@@ -1,0 +1,61 @@
+[gd_scene format=3 uid="uid://djeb0cuoeaeet"]
+
+[ext_resource type="Script" uid="uid://bemyqvwyyhaj" path="res://Marble3D.gd" id="1_0xm2m"]
+[ext_resource type="Script" uid="uid://dw76x6xynmui5" path="res://GameManager.gd" id="1_h2yge"]
+[ext_resource type="Script" uid="uid://bjbocushr2are" path="res://hex_grid_3d.gd" id="2_h2yge"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7dm0k"]
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true
+albedo_color = Color(1, 0, 0, 1)
+roughness = 0.1
+
+[sub_resource type="SphereMesh" id="SphereMesh_ig7tw"]
+material = SubResource("StandardMaterial3D_7dm0k")
+radius = 0.3
+height = 0.6
+radial_segments = 32
+rings = 16
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_0xm2m"]
+radius = 0.3
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_h2yge"]
+size = Vector2(20, 20)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1bvp3"]
+size = Vector3(10, 0.1, 10)
+
+[node name="Node3D" type="Node3D" unique_id=986382811]
+script = ExtResource("1_h2yge")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=851398400]
+transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 3, 5)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=577630825]
+transform = Transform3D(0.8660254, -0.43301272, 0.24999999, 0, 0.49999997, 0.86602545, -0.5, -0.75, 0.43301266, 12, 24, -12)
+light_energy = 1.2
+
+[node name="Marble_Rigid" type="RigidBody3D" parent="." unique_id=71343183]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+script = ExtResource("1_0xm2m")
+
+[node name="Marble" type="MeshInstance3D" parent="Marble_Rigid" unique_id=499095825]
+mesh = SubResource("SphereMesh_ig7tw")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Marble_Rigid" unique_id=1983967790]
+shape = SubResource("SphereShape3D_0xm2m")
+debug_color = Color(0, 0.6, 0.7019608, 0.41960785)
+
+[node name="HexGrid3D" type="Node3D" parent="." unique_id=787739087]
+script = ExtResource("2_h2yge")
+
+[node name="Ground" type="StaticBody3D" parent="." unique_id=2111532073]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground" unique_id=1350164526]
+transform = Transform3D(0.9747807, 0, 0.22316505, 0, 1, 0, -0.22316505, 0, 0.9747807, -0.008733273, 0.041730165, -0.021206379)
+mesh = SubResource("PlaneMesh_h2yge")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground" unique_id=1242823950]
+shape = SubResource("BoxShape3D_1bvp3")
