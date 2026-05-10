@@ -15,7 +15,7 @@ var marbles: Dictionary = {}
 func hex_to_world(q: int, r: int) -> Vector3:
 	# 轴对齐六边形坐标转世界坐标公式
 	var world_x: float = cell_size * (sqrt(3) * q + sqrt(3)/2 * r)
-	var world_z: float = cell_size * (3/2 * r)
+	var world_z: float = cell_size * (1.5 * r)
 	return Vector3(world_x, 0, world_z)  # Y轴固定为0，让弹珠落在地面
 
 
