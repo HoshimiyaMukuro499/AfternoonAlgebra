@@ -1,9 +1,5 @@
-# Marble3D.gd
-# 所有弹珠的基类，实现了通用的逐格移动、弹性碰撞、出界死亡、钩子机制。
-# 子类通过重写钩子函数来实现各自特殊规则（如白球的步数加成、蓝球的随从生成等）。
-
-class_name Marble2D
-extends RigidBody2D
+class_name  Marble2D
+extends Area2D
 
 # ---------- 导出变量（可在编辑器中直接设置） ----------
 # 弹珠颜色（默认为白色）
@@ -20,24 +16,29 @@ var remaining_steps: int = 0
 var current_dir: int = 0
 
 # 棋盘管理器引用（由 _ready() 自动查找）
-var hex_grid: HexGrid3D = null
+var hex_grid: HexGrid2D = null
 # 当前所在的六边形坐标（缓存，提高性能）
 var hex_coord: Vector2 = Vector2.ZERO
 
+# 引用 Sprite 节点（用于改变颜色）
+@onready var sprite: Sprite2D = $Sprite
+
 
 func _ready() -> void:
-	# 自动查找场景中的 HexGrid3D 节点（兼容多种节点路径）
-	hex_grid = get_node("/root/Game/HexGrid3D")
+	# 自动查找场景中的 HexGrid2D 节点（兼容多种节点路径）
+	hex_grid = get_node("/root/Game/HexGrid2D")
 	if not hex_grid:
 		var parent = get_parent()
 		while parent:
-			if parent is HexGrid3D:
+			if parent is HexGrid2D:
 				hex_grid = parent
 				break
 			parent = parent.get_parent()
 	if hex_grid:
 		# 从棋盘管理器中读取当前坐标（外部调用 place_marble 时会写入 meta 数据）
 		hex_coord = hex_grid.get_marble_hex(self)
+	# 初始化外观颜色
+	_update_sprite_color()
 
 
 # ---------- 公共移动接口（供游戏流程调用） ----------
@@ -119,13 +120,13 @@ func on_step_moved(new_hex: Vector2) -> void:
 	pass
 
 # 当前弹珠主动碰撞其他弹珠时调用（可用于特殊碰撞效果）
-func on_collision_with(other: Marble3D, remaining_steps: int, direction: int) -> void:
+func on_collision_with(other: Marble2D, remaining_steps: int, direction: int) -> void:
 	pass
 
 # 当前弹珠作为“被撞者”时，外部会调用此函数询问步数是否需要调整
 # 返回值将作为实际传给 continue_move 的步数
 # 默认实现是不修改（原样返回）
-func on_collision_as_target(collider: Marble3D, incoming_steps: int, direction: int) -> int:
+func on_collision_as_target(collider: Marble2D, incoming_steps: int, direction: int) -> int:
 	return incoming_steps
 
 
@@ -142,11 +143,6 @@ func die() -> void:
 
 # 死亡时的钩子（子类可重写，如黄球触发增益、蓝球清理随从）
 func on_death() -> void:
-	is_alive = false
-	set_process(false)
-	set_physics_process(false)  # 确保死亡弹珠不再参与物理模拟
-	print("弹珠已出界/被淘汰，阵营：", camp)
-	queue_free()
 	print("%s 死亡" % get_class())
 
 
@@ -168,3 +164,15 @@ func get_neighbor_hex(hex: Vector2, dir: int) -> Vector2:
 		Vector2(0, -1)   # 5: RIGHT_DOWN
 	]
 	return hex + dirs[dir]
+
+# 根据当前颜色更新 Sprite 的 modulate
+func _update_sprite_color() -> void:
+	if not sprite:
+		return
+	match color:
+		MarbleConst.MarbleColor.WHITE: sprite.modulate = Color.WHITE
+		MarbleConst.MarbleColor.BLUE:  sprite.modulate = Color.BLUE
+		MarbleConst.MarbleColor.GREEN: sprite.modulate = Color.GREEN
+		MarbleConst.MarbleColor.RED:   sprite.modulate = Color.RED
+		MarbleConst.MarbleColor.BLACK: sprite.modulate = Color.BLACK
+		MarbleConst.MarbleColor.YELLOW:sprite.modulate = Color.YELLOW

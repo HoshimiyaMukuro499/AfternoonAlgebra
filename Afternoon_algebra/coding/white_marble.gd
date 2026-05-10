@@ -1,5 +1,5 @@
 # WhiteMarble.gd
-# 白球（变色者）弹珠。
+# 白球（变色者）弹珠（2D版）。
 # 特性1：当当前颜色为白色时，被友方碰撞步数+1。
 # 特性2：己方其他颜色弹珠死亡时，白球变为该颜色，并继承该颜色的全部移动特性（如变蓝后能生成随从）。
 # 特性3：可以多次变色（覆盖）。
@@ -9,12 +9,15 @@ extends Marble2D
 # 记录是否已经变色过（用于外部优先选择未变色的白球）
 var has_changed: bool = false
 # 临时存储随从列表（仅当当前颜色为蓝色时使用，每次移动后即清空）
-var temp_followers: Array[Node3D] = []
+var temp_followers: Array[Node2D] = []
+
+# 获取弹珠的 Sprite 节点（假设子节点名为 "SpriteWhite"）
+@onready var spritewhite: Sprite2D = $SpriteWhite
 
 
 # ---------- 碰撞步数调整 ----------
 # 作为被撞者时，如果当前颜色为白色且碰撞者为友方，则步数+1
-func on_collision_as_target(collider: Marble3D, incoming_steps: int, direction: int) -> int:
+func on_collision_as_target(collider: Marble2D, incoming_steps: int, direction: int) -> int:
 	if color == MarbleConst.MarbleColor.WHITE and collider.camp == camp:
 		return incoming_steps + 1
 	return incoming_steps
@@ -104,27 +107,24 @@ func on_teammate_died(dead_color: int) -> void:
 		change_color(dead_color)   # 允许覆盖变色
 
 
-# 改变颜色并更新外观材质
+# 改变颜色并更新外观
 func change_color(new_color: int) -> void:
 	color = new_color
 	_update_appearance(new_color)
 	print("白球变为颜色: ", new_color)
 
 
-# 根据颜色设置弹珠材质
+# 根据颜色设置 Sprite 的 modulate（2D 着色）
 func _update_appearance(new_color: int) -> void:
-	var mat = StandardMaterial3D.new()
+	if not sprite:
+		return
 	match new_color:
-		MarbleConst.MarbleColor.WHITE: mat.albedo_color = Color.WHITE
-		MarbleConst.MarbleColor.BLUE:  mat.albedo_color = Color.BLUE
-		MarbleConst.MarbleColor.GREEN: mat.albedo_color = Color.GREEN
-		MarbleConst.MarbleColor.RED:   mat.albedo_color = Color.RED
-		MarbleConst.MarbleColor.BLACK: mat.albedo_color = Color.BLACK
-		MarbleConst.MarbleColor.YELLOW:mat.albedo_color = Color.YELLOW
-	# 查找弹珠的网格节点（兼容多种命名）
-	var mesh_instance = find_child("MeshInstance3D") or $MeshInstance3D
-	if mesh_instance:
-		mesh_instance.material_override = mat
+		MarbleConst.MarbleColor.WHITE: sprite.modulate = Color.WHITE
+		MarbleConst.MarbleColor.BLUE:  sprite.modulate = Color.BLUE
+		MarbleConst.MarbleColor.GREEN: sprite.modulate = Color.GREEN
+		MarbleConst.MarbleColor.RED:   sprite.modulate = Color.RED
+		MarbleConst.MarbleColor.BLACK: sprite.modulate = Color.BLACK
+		MarbleConst.MarbleColor.YELLOW:sprite.modulate = Color.YELLOW
 
 
 # 死亡时清理可能残留的随从（防御）
