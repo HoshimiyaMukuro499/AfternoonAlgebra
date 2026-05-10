@@ -13,15 +13,41 @@
             "state": {
               "type": "markdown",
               "state": {
+<<<<<<< Updated upstream
                 "file": "Afternoon_algebra/git 使用实例.md",
+=======
+                "file": "Afternoon_algebra/task_allocation.md",
+>>>>>>> Stashed changes
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
+<<<<<<< Updated upstream
               "title": "git 使用实例"
             }
           }
         ]
+=======
+              "title": "task_allocation"
+            }
+          },
+          {
+            "id": "61c277d6d6c36f7e",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Afternoon_algebra/C 2026.5.11 更新说明.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "C 2026.5.11 更新说明"
+            }
+          }
+        ],
+        "currentTab": 1
+>>>>>>> Stashed changes
       }
     ],
     "direction": "vertical"
@@ -203,6 +229,26 @@
     "README.md",
     "Afternoon_algebra/如何贡献项目--zjt.md",
     "Afternoon_algebra/task_allocation.md",
+<<<<<<< Updated upstream
+=======
+    "Afternoon_algebra/C 2026.5.11 更新说明.md",
+    "Afternoon_algebra/coding/main.tscn6007216410.tmp",
+    "Afternoon_algebra/coding/main.tscn5999511256.tmp",
+    "Afternoon_algebra/coding/main.tscn5990049453.tmp",
+    "Afternoon_algebra/coding/icon.svg.import",
+    "Afternoon_algebra/coding/UI/UI.gd.uid",
+    "Afternoon_algebra/coding/UI/UI.gd",
+    "Afternoon_algebra/coding/UI",
+    "Afternoon_algebra/coding/hex_grid_3d.gd.uid",
+    "Afternoon_algebra/coding/hex_grid_3d.gd",
+    "Afternoon_algebra/coding/InputHandler.gd.uid",
+    "Afternoon_algebra/git 使用实例.md",
+    "Afternoon_algebra/coding/icon.svg",
+    "Afternoon_algebra/变量.md",
+    "文件模板/meeting.md",
+    "README.md",
+    "Afternoon_algebra/如何贡献项目--zjt.md",
+>>>>>>> Stashed changes
     "Afternoon_algebra/introduction.md",
     "Afternoon_algebra/README.md",
     "Afternoon_algebra/Godot 4 user guidance.md",

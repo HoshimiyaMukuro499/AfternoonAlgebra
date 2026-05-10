@@ -24,6 +24,15 @@ var hex_grid: HexGrid3D = null
 # 当前所在的六边形坐标（缓存，提高性能）
 var hex_coord: Vector2 = Vector2.ZERO
 
+<<<<<<< Updated upstream:Afternoon_algebra/coding/Marble3D.gd
+=======
+# 引用 Sprite 节点（用于改变颜色）
+@onready var sprite: Sprite2D = $Sprite
+
+# 高亮状态
+var is_highlighted: bool = false
+
+>>>>>>> Stashed changes:Afternoon_algebra/coding/Marble2D.gd
 
 func _ready() -> void:
 	# 自动查找场景中的 HexGrid3D 节点（兼容多种节点路径）
@@ -38,6 +47,29 @@ func _ready() -> void:
 	if hex_grid:
 		# 从棋盘管理器中读取当前坐标（外部调用 place_marble 时会写入 meta 数据）
 		hex_coord = hex_grid.get_marble_hex(self)
+
+
+# 高亮选中弹珠
+func highlight() -> void:
+	is_highlighted = true
+	var s = _get_sprite_node()
+	if s:
+		s.modulate = s.modulate * Color(1.5, 1.5, 1.5, 1)
+
+
+# 取消高亮
+func unhighlight() -> void:
+	is_highlighted = false
+	_update_sprite_color()
+
+
+# 获取实际存在的 Sprite 节点（兼容白球的 SpriteWhite）
+func _get_sprite_node():
+	if sprite:
+		return sprite
+	if has_node("SpriteWhite"):
+		return $SpriteWhite
+	return null
 
 
 # ---------- 公共移动接口（供游戏流程调用） ----------
@@ -122,7 +154,7 @@ func on_step_moved(new_hex: Vector2) -> void:
 func on_collision_with(other: Marble3D, remaining_steps: int, direction: int) -> void:
 	pass
 
-# 当前弹珠作为“被撞者”时，外部会调用此函数询问步数是否需要调整
+# 当前弹珠作为"被撞者"时，外部会调用此函数询问步数是否需要调整
 # 返回值将作为实际传给 continue_move 的步数
 # 默认实现是不修改（原样返回）
 func on_collision_as_target(collider: Marble3D, incoming_steps: int, direction: int) -> int:
@@ -168,3 +200,19 @@ func get_neighbor_hex(hex: Vector2, dir: int) -> Vector2:
 		Vector2(0, -1)   # 5: RIGHT_DOWN
 	]
 	return hex + dirs[dir]
+<<<<<<< Updated upstream:Afternoon_algebra/coding/Marble3D.gd
+=======
+
+# 根据当前颜色更新 Sprite 的 modulate
+func _update_sprite_color() -> void:
+	var s = _get_sprite_node()
+	if not s:
+		return
+	match color:
+		MarbleConst.MarbleColor.WHITE: s.modulate = Color.WHITE
+		MarbleConst.MarbleColor.BLUE:  s.modulate = Color.BLUE
+		MarbleConst.MarbleColor.GREEN: s.modulate = Color.GREEN
+		MarbleConst.MarbleColor.RED:   s.modulate = Color.RED
+		MarbleConst.MarbleColor.BLACK: s.modulate = Color.BLACK
+		MarbleConst.MarbleColor.YELLOW:s.modulate = Color.YELLOW
+>>>>>>> Stashed changes:Afternoon_algebra/coding/Marble2D.gd
