@@ -142,11 +142,11 @@ func die() -> void:
 
 # 死亡时的钩子（子类可重写，如黄球触发增益、蓝球清理随从）
 func on_death() -> void:
-	is_alive = false
-	set_process(false)
-	set_physics_process(false)  # 确保死亡弹珠不再参与物理模拟
-	print("弹珠已出界/被淘汰，阵营：", camp)
-	queue_free()
+    is_alive = false
+    set_process(false)
+    set_physics_process(false)  # 确保死亡弹珠不再参与物理模拟
+    print("弹珠已出界/被淘汰，阵营：", camp)
+    queue_free()
     print("%s 死亡" % get_class())
 
 
