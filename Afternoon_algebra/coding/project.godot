@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="新建游戏项目"
+config/name="HexGame"
 run/main_scene="uid://djeb0cuoeaeet"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
