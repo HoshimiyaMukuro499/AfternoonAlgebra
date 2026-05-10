@@ -22,5 +22,6 @@ func move(direction: int, steps: int) -> void:
 func on_death() -> void:
 	is_alive = false
 	set_process(false)
+	set_physics_process(false)  # 确保死亡弹珠不再参与物理模拟
 	print("弹珠已出界/被淘汰，阵营：", camp)
 	queue_free()
