@@ -1,6 +1,5 @@
 [gd_scene format=3 uid="uid://djeb0cuoeaeet"]
 
-[ext_resource type="Script" uid="uid://cewanx4oo0brr" path="res://Marble2D.gd" id="2_lquwl"]
 [ext_resource type="Script" uid="uid://c70vkud42up1n" path="res://white_marble.gd" id="3_lquwl"]
 [ext_resource type="Script" uid="uid://e4ly1u2usr2f" path="res://blue_marble.gd" id="4_7mycd"]
 [ext_resource type="Script" uid="uid://b8ugwsr7b2cbf" path="res://hex_grid_2d.gd" id="5_7mycd"]
@@ -36,11 +35,10 @@ skew = 0.7137245
 
 [node name="Marble_Rigid" type="RigidBody2D" parent="." unique_id=1217890176]
 position = Vector2(0, 0.3)
-script = ExtResource("2_lquwl")
 
-[node name="Marble" type="RigidBody2D" parent="Marble_Rigid" unique_id=369756324]
+[node name="Marble" type="Area2D" parent="Marble_Rigid" unique_id=255752409]
 
-[node name="WhiteMarble" type="RigidBody2D" parent="Marble_Rigid/Marble" unique_id=2014667997]
+[node name="WhiteMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=1304230792]
 script = ExtResource("3_lquwl")
 
 [node name="Mesh" type="MeshInstance2D" parent="Marble_Rigid/Marble/WhiteMarble" unique_id=1869383307]
@@ -51,10 +49,9 @@ shape = SubResource("CircleShape2D_272bh")
 
 [node name="SpriteWhite" type="Sprite2D" parent="Marble_Rigid/Marble/WhiteMarble" unique_id=1455492384]
 
-[node name="BlueMarble" type="RigidBody2D" parent="Marble_Rigid/Marble" unique_id=2104621818]
+[node name="BlueMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=1085971219]
 script = ExtResource("4_7mycd")
 color = 1
-camp = null
 
 [node name="Mesh" type="MeshInstance2D" parent="Marble_Rigid/Marble/BlueMarble" unique_id=1071842442]
 mesh = SubResource("SphereMesh_272bh")

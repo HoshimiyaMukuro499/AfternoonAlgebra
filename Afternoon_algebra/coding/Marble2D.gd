@@ -25,18 +25,7 @@ var hex_coord: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
-	# 自动查找场景中的 HexGrid2D 节点（兼容多种节点路径）
-	hex_grid = get_node("/root/Game/HexGrid2D")
-	if not hex_grid:
-		var parent = get_parent()
-		while parent:
-			if parent is HexGrid2D:
-				hex_grid = parent
-				break
-			parent = parent.get_parent()
-	if hex_grid:
-		# 从棋盘管理器中读取当前坐标（外部调用 place_marble 时会写入 meta 数据）
-		hex_coord = hex_grid.get_marble_hex(self)
+	
 	# 初始化外观颜色
 	_update_sprite_color()
 

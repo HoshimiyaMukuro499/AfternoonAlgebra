@@ -44,3 +44,22 @@ func remove_marble(q: int, r: int) -> void:
 	var hex_pos: Vector2 = Vector2(q, r)
 	if marbles.has(hex_pos):
 		marbles.erase(hex_pos)
+		# 辅助方法：根据弹珠节点获取其六边形坐标
+func get_marble_hex(marble: Node2D) -> Vector2:
+	return marble.get_meta("hex_pos")
+
+# 辅助方法：获取指定坐标上的弹珠节点
+func get_marble_at(q: int, r: int) -> Node2D:
+	return marbles.get(Vector2(q, r), null)
+
+# 辅助方法：移动弹珠到相邻格子（不检查出界，仅更新内部字典和位置）
+func move_marble(marble: Node2D, from_hex: Vector2, to_hex: Vector2) -> void:
+	marbles.erase(from_hex)
+	marbles[to_hex] = marble
+	marble.set_meta("hex_pos", to_hex)
+	marble.position = hex_to_world(to_hex.x, to_hex.y)
+
+# 辅助方法：根据节点移除弹珠（无需提供坐标）
+func remove_marble_by_node(marble: Node2D) -> void:
+	var hex = get_marble_hex(marble)
+	marbles.erase(hex)
