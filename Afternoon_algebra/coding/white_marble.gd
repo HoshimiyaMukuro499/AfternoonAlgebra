@@ -4,7 +4,7 @@
 # 特性2：己方其他颜色弹珠死亡时，白球变为该颜色，并继承该颜色的全部移动特性（如变蓝后能生成随从）。
 # 特性3：可以多次变色（覆盖）。
 
-extends Marble3D
+extends Marble2D
 
 # 记录是否已经变色过（用于外部优先选择未变色的白球）
 var has_changed: bool = false

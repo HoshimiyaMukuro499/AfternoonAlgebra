@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bemyqvwyyhaj" path="res://Marble3D.gd" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://dw76x6xynmui5" path="res://GameManager.gd" id="1_h2yge"]
 [ext_resource type="Script" uid="uid://bjbocushr2are" path="res://hex_grid_3d.gd" id="2_h2yge"]
+[ext_resource type="Script" uid="uid://coh6wapnvbgfw" path="res://BlueMarbleHelper.gd" id="3_1bvp3"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7dm0k"]
 vertex_color_use_as_albedo = true
@@ -17,45 +18,49 @@ height = 0.6
 radial_segments = 32
 rings = 16
 
-[sub_resource type="SphereShape3D" id="SphereShape3D_0xm2m"]
-radius = 0.3
+[sub_resource type="CircleShape2D" id="CircleShape2D_lquwl"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_h2yge"]
 size = Vector2(20, 20)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_1bvp3"]
-size = Vector3(10, 0.1, 10)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_7mycd"]
+size = Vector2(238, 159)
 
-[node name="Node3D" type="Node3D" unique_id=986382811]
+[node name="Node2D" type="Node2D" unique_id=1973850133]
 script = ExtResource("1_h2yge")
 
-[node name="Camera3D" type="Camera3D" parent="." unique_id=851398400]
-transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 3, 5)
+[node name="Camera3D" type="Camera2D" parent="." unique_id=361100068]
+position = Vector2(0, 3)
+scale = Vector2(1, 0.8660254)
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=577630825]
-transform = Transform3D(0.8660254, -0.43301272, 0.24999999, 0, 0.49999997, 0.86602545, -0.5, -0.75, 0.43301266, 12, 24, -12)
-light_energy = 1.2
+[node name="DirectionalLight3D" type="DirectionalLight2D" parent="." unique_id=1231113806]
+position = Vector2(12, 24)
+scale = Vector2(0.8660254, 0.6614378)
+skew = 0.7137245
 
-[node name="Marble_Rigid" type="RigidBody3D" parent="." unique_id=71343183]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+[node name="Marble_Rigid" type="RigidBody2D" parent="." unique_id=1073606483]
+position = Vector2(0, 0.3)
 script = ExtResource("1_0xm2m")
 
-[node name="Marble" type="MeshInstance3D" parent="Marble_Rigid" unique_id=499095825]
+[node name="Marble" type="MeshInstance2D" parent="Marble_Rigid" unique_id=1735527300 groups=["marbles"]]
 mesh = SubResource("SphereMesh_ig7tw")
+script = ExtResource("3_1bvp3")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Marble_Rigid" unique_id=1983967790]
-shape = SubResource("SphereShape3D_0xm2m")
+[node name="CollisionShape3D" type="CollisionShape2D" parent="Marble_Rigid" unique_id=1474729905]
+shape = SubResource("CircleShape2D_lquwl")
 debug_color = Color(0, 0.6, 0.7019608, 0.41960785)
 
-[node name="HexGrid3D" type="Node3D" parent="." unique_id=787739087]
+[node name="HexGrid2D" type="Node2D" parent="." unique_id=1631004188 groups=["board"]]
 script = ExtResource("2_h2yge")
 
-[node name="Ground" type="StaticBody3D" parent="." unique_id=2111532073]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)
+[node name="Ground" type="StaticBody2D" parent="." unique_id=690866042]
+position = Vector2(0, -0.05)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground" unique_id=1350164526]
-transform = Transform3D(0.9747807, 0, 0.22316505, 0, 1, 0, -0.22316505, 0, 0.9747807, -0.008733273, 0.041730165, -0.021206379)
+[node name="MeshInstance3D" type="MeshInstance2D" parent="Ground" unique_id=2067425250]
+position = Vector2(-0.008733273, 0.041730165)
+scale = Vector2(0.9747807, 1)
 mesh = SubResource("PlaneMesh_h2yge")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground" unique_id=1242823950]
-shape = SubResource("BoxShape3D_1bvp3")
+[node name="CollisionShape3D" type="CollisionShape2D" parent="Ground" unique_id=751569869]
+position = Vector2(0, 0.049999237)
+shape = SubResource("RectangleShape2D_7mycd")

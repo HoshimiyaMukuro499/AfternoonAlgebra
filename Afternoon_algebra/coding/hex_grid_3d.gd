@@ -1,6 +1,6 @@
 # HexGrid3D.gd（3D棋盘控制器脚本）
-class_name HexGrid3D
-extends Node3D
+class_name HexGrid2D
+extends Node2D
 
 # 导出配置，方便队友在编辑器里调整参数
 @export var grid_radius: int = MarbleConst.GRID_RADIUS
