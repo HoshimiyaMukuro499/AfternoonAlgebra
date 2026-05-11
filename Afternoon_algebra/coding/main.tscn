@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bmes0p5f4xlb2" path="res://InputHandler.gd" id="1_1bvp3"]
 [ext_resource type="Script" uid="uid://dw76x6xynmui5" path="res://GameManager.gd" id="1_lquwl"]
-[ext_resource type="Script" uid="uid://rxongw37k117" path="res://Marble2D.gd" id="2_7mycd"]
+[ext_resource type="Script" path="res://Marble2D.gd" id="2_7mycd"]
 [ext_resource type="Script" uid="uid://c70vkud42up1n" path="res://white_marble.gd" id="3_lquwl"]
 [ext_resource type="Script" uid="uid://e4ly1u2usr2f" path="res://blue_marble.gd" id="4_7mycd"]
 [ext_resource type="Script" uid="uid://b8ugwsr7b2cbf" path="res://hex_grid_2d.gd" id="5_7mycd"]
@@ -70,12 +70,14 @@ offset_left = -557.0
 offset_top = -265.0
 offset_right = -517.0
 offset_bottom = -242.0
+text = "This is Message Label."
 
 [node name="TurnLabel" type="Label" parent="Marble_Rigid/Marble/BlueMarble/UI" unique_id=446793811]
 offset_left = -563.0
 offset_top = -306.0
 offset_right = -523.0
 offset_bottom = -283.0
+text = "This is Turn Label."
 
 [node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble/BlueMarble" unique_id=1992537419]
 
