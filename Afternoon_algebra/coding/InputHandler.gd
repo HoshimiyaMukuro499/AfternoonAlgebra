@@ -4,7 +4,7 @@ extends Node2D
 var game_manager: GameManager
 
 func _ready():
-	func _ready():
+	# func _ready():
 	game_manager = get_node("/root/Node2D")  # 使用绝对路径了
 	# 或者
 	# game_manager = get_tree().get_first_node_in_group("game_manager")

@@ -20,19 +20,16 @@ var remaining_steps: int = 0
 var current_dir: int = 0
 
 # 棋盘管理器引用（由 _ready() 自动查找）
-var hex_grid: HexGrid3D = null
+var hex_grid: HexGrid2D = null
 # 当前所在的六边形坐标（缓存，提高性能）
 var hex_coord: Vector2 = Vector2.ZERO
 
-<<<<<<< Updated upstream:Afternoon_algebra/coding/Marble3D.gd
-=======
 # 引用 Sprite 节点（用于改变颜色）
 @onready var sprite: Sprite2D = $Sprite
 
 # 高亮状态
 var is_highlighted: bool = false
 
->>>>>>> Stashed changes:Afternoon_algebra/coding/Marble2D.gd
 
 func _ready() -> void:
 	# 自动查找场景中的 HexGrid3D 节点（兼容多种节点路径）
@@ -40,7 +37,7 @@ func _ready() -> void:
 	if not hex_grid:
 		var parent = get_parent()
 		while parent:
-			if parent is HexGrid3D:
+			if parent is HexGrid2D:
 				hex_grid = parent
 				break
 			parent = parent.get_parent()
@@ -151,13 +148,13 @@ func on_step_moved(new_hex: Vector2) -> void:
 	pass
 
 # 当前弹珠主动碰撞其他弹珠时调用（可用于特殊碰撞效果）
-func on_collision_with(other: Marble3D, remaining_steps: int, direction: int) -> void:
+func on_collision_with(other: Marble2D, remaining_steps: int, direction: int) -> void:
 	pass
 
 # 当前弹珠作为"被撞者"时，外部会调用此函数询问步数是否需要调整
 # 返回值将作为实际传给 continue_move 的步数
 # 默认实现是不修改（原样返回）
-func on_collision_as_target(collider: Marble3D, incoming_steps: int, direction: int) -> int:
+func on_collision_as_target(collider: Marble2D, incoming_steps: int, direction: int) -> int:
 	return incoming_steps
 
 
@@ -200,8 +197,6 @@ func get_neighbor_hex(hex: Vector2, dir: int) -> Vector2:
 		Vector2(0, -1)   # 5: RIGHT_DOWN
 	]
 	return hex + dirs[dir]
-<<<<<<< Updated upstream:Afternoon_algebra/coding/Marble3D.gd
-=======
 
 # 根据当前颜色更新 Sprite 的 modulate
 func _update_sprite_color() -> void:
@@ -215,4 +210,3 @@ func _update_sprite_color() -> void:
 		MarbleConst.MarbleColor.RED:   s.modulate = Color.RED
 		MarbleConst.MarbleColor.BLACK: s.modulate = Color.BLACK
 		MarbleConst.MarbleColor.YELLOW:s.modulate = Color.YELLOW
->>>>>>> Stashed changes:Afternoon_algebra/coding/Marble2D.gd
