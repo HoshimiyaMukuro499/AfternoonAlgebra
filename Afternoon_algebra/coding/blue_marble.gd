@@ -1,10 +1,9 @@
 # BlueMarble.gd
-# 蓝球（随从）弹珠，直接使用 BlueMarbleHelper 完成随从生成、移动和清除。
+# 蓝球（随从）弹珠（2D版），直接使用 BlueMarbleHelper 完成随从生成、移动和清除。
+extends Marble2D   # 改为 Marble2D
 
-extends Marble3D
-
-# 当前回合生成的随从节点列表
-var followers: Array[Node3D] = []
+# 当前回合生成的随从节点列表（2D 节点）
+var followers: Array[Node2D] = []
 
 
 # 重写移动方法

@@ -1,9 +1,5 @@
-# Marble3D.gd
-# 所有弹珠的基类，实现了通用的逐格移动、弹性碰撞、出界死亡、钩子机制。
-# 子类通过重写钩子函数来实现各自特殊规则（如白球的步数加成、蓝球的随从生成等）。
-
 class_name Marble2D
-extends RigidBody2D
+extends Area2D
 
 # ---------- 导出变量（可在编辑器中直接设置） ----------
 # 弹珠颜色（默认为白色）
@@ -32,18 +28,28 @@ var is_highlighted: bool = false
 
 
 func _ready() -> void:
-	# 自动查找场景中的 HexGrid3D 节点（兼容多种节点路径）
-	hex_grid = get_node("/root/Game/HexGrid3D")
+	# 自动查找 HexGrid2D 棋盘节点（向上遍历父节点）
+	var parent = get_parent()
+	while parent:
+		if parent is HexGrid2D:
+			hex_grid = parent
+			break
+		parent = parent.get_parent()
+	
+	# 如果上面没找到，再试试用节点名称查找（方便你在编辑器里把棋盘命名为 HexGrid）
 	if not hex_grid:
-		var parent = get_parent()
-		while parent:
-			if parent is HexGrid2D:
-				hex_grid = parent
-				break
-			parent = parent.get_parent()
+		var root = get_tree().current_scene
+		if root:
+			hex_grid = root.find_child("HexGrid2D", true, false)
+	
 	if hex_grid:
-		# 从棋盘管理器中读取当前坐标（外部调用 place_marble 时会写入 meta 数据）
-		hex_coord = hex_grid.get_marble_hex(self)
+		if has_meta("hex_pos"):
+			hex_coord = get_meta("hex_pos")
+		else:
+			hex_coord = Vector2.ZERO  # 尚未放置，暂用原点
+			# 如果你希望外部放置后自动更新，可以在这里不强制设置
+	else:
+		push_error("Marble2D: 找不到 HexGrid2D 棋盘节点")
 
 
 # 高亮选中弹珠
@@ -171,11 +177,6 @@ func die() -> void:
 
 # 死亡时的钩子（子类可重写，如黄球触发增益、蓝球清理随从）
 func on_death() -> void:
-	is_alive = false
-	set_process(false)
-	set_physics_process(false)  # 确保死亡弹珠不再参与物理模拟
-	print("弹珠已出界/被淘汰，阵营：", camp)
-	queue_free()
 	print("%s 死亡" % get_class())
 
 

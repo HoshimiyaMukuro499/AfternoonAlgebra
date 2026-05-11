@@ -23,7 +23,7 @@ var turn_number: int = 0
 func _ready():
 	# ====== 原有：获取节点 ======
 	hex_grid = $HexGrid2D
-	test_marble = $Marble_Rigid  # 改成你在场景里的实际节点名
+	test_marble = $Marble_Rigid/Marble  # 改成你在场景里的实际节点名
 	
 	if hex_grid and test_marble:
 		hex_grid.place_marble(test_marble, 0, 0)
