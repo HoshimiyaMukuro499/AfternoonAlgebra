@@ -12,7 +12,7 @@ var has_changed: bool = false
 var temp_followers: Array[Node2D] = []
 
 # 获取弹珠的 Sprite 节点（假设子节点名为 "SpriteWhite"）
-@onready var spritewhite: Sprite2D = $SpriteWhite
+@onready var spritewhite: Sprite2D = $Sprite
 
 
 # ---------- 碰撞步数调整 ----------

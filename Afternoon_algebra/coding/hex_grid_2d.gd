@@ -16,7 +16,12 @@ func hex_to_world(q: int, r: int) -> Vector2:
 	var world_x: float = cell_size * (sqrt(3) * q + sqrt(3)/2 * r)
 	var world_y: float = cell_size * (3.0/2 * r)
 	return Vector2(world_x, world_y)
-
+#与之对应
+func world_to_hex(world_pos: Vector2) -> Vector2:
+	var sqrt3 = sqrt(3)
+	var q = (world_pos.x * sqrt3 / 3 - world_pos.y / 3) / cell_size
+	var r = (world_pos.y * 2.0 / 3) / cell_size
+	return Vector2(round(q), round(r))
 
 # 检查六边形坐标是否超出棋盘边界
 func is_out_of_bounds(q: int, r: int) -> bool:
@@ -38,7 +43,7 @@ func place_marble(marble: Node2D, q: int, r: int) -> void:
 	marble.set_meta("hex_pos", hex_pos)
 	marble.position = hex_to_world(q, r)
 
-
+#这里应该是原来的“辅助功能”
 # 从棋盘上移除指定坐标的弹珠
 func remove_marble(q: int, r: int) -> void:
 	var hex_pos: Vector2 = Vector2(q, r)
@@ -46,7 +51,9 @@ func remove_marble(q: int, r: int) -> void:
 		marbles.erase(hex_pos)
 		# 辅助方法：根据弹珠节点获取其六边形坐标
 func get_marble_hex(marble: Node2D) -> Vector2:
-	return marble.get_meta("hex_pos")
+	if marble.has_meta("hex_pos"):
+		return marble.get_meta("hex_pos")
+	return Vector2.ZERO   # 未放置时返回(0,0)作为默认坐标
 
 # 辅助方法：获取指定坐标上的弹珠节点
 func get_marble_at(q: int, r: int) -> Node2D:

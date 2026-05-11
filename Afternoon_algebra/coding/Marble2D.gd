@@ -1,4 +1,4 @@
-class_name  Marble2D
+class_name Marble2D
 extends Area2D
 
 # ---------- 导出变量（可在编辑器中直接设置） ----------
@@ -23,11 +23,56 @@ var hex_coord: Vector2 = Vector2.ZERO
 # 引用 Sprite 节点（用于改变颜色）
 @onready var sprite: Sprite2D = $Sprite
 
+# 高亮状态
+var is_highlighted: bool = false
+
 
 func _ready() -> void:
+	# 自动查找 HexGrid2D 棋盘节点（向上遍历父节点）
+	var parent = get_parent()
+	while parent:
+		if parent is HexGrid2D:
+			hex_grid = parent
+			break
+		parent = parent.get_parent()
 	
-	# 初始化外观颜色
+	# 如果上面没找到，再试试用节点名称查找（方便你在编辑器里把棋盘命名为 HexGrid）
+	if not hex_grid:
+		var root = get_tree().current_scene
+		if root:
+			hex_grid = root.find_child("HexGrid2D", true, false)
+	
+	if hex_grid:
+		if has_meta("hex_pos"):
+			hex_coord = get_meta("hex_pos")
+		else:
+			hex_coord = Vector2.ZERO  # 尚未放置，暂用原点
+			# 如果你希望外部放置后自动更新，可以在这里不强制设置
+	else:
+		push_error("Marble2D: 找不到 HexGrid2D 棋盘节点")
+
+
+# 高亮选中弹珠
+func highlight() -> void:
+	is_highlighted = true
+	var s = _get_sprite_node()
+	if s:
+		s.modulate = s.modulate * Color(1.5, 1.5, 1.5, 1)
+
+
+# 取消高亮
+func unhighlight() -> void:
+	is_highlighted = false
 	_update_sprite_color()
+
+
+# 获取实际存在的 Sprite 节点（兼容白球的 SpriteWhite）
+func _get_sprite_node():
+	if sprite:
+		return sprite
+	if has_node("SpriteWhite"):
+		return $SpriteWhite
+	return null
 
 
 # ---------- 公共移动接口（供游戏流程调用） ----------
@@ -112,7 +157,7 @@ func on_step_moved(new_hex: Vector2) -> void:
 func on_collision_with(other: Marble2D, remaining_steps: int, direction: int) -> void:
 	pass
 
-# 当前弹珠作为“被撞者”时，外部会调用此函数询问步数是否需要调整
+# 当前弹珠作为"被撞者"时，外部会调用此函数询问步数是否需要调整
 # 返回值将作为实际传给 continue_move 的步数
 # 默认实现是不修改（原样返回）
 func on_collision_as_target(collider: Marble2D, incoming_steps: int, direction: int) -> int:
@@ -156,12 +201,13 @@ func get_neighbor_hex(hex: Vector2, dir: int) -> Vector2:
 
 # 根据当前颜色更新 Sprite 的 modulate
 func _update_sprite_color() -> void:
-	if not sprite:
+	var s = _get_sprite_node()
+	if not s:
 		return
 	match color:
-		MarbleConst.MarbleColor.WHITE: sprite.modulate = Color.WHITE
-		MarbleConst.MarbleColor.BLUE:  sprite.modulate = Color.BLUE
-		MarbleConst.MarbleColor.GREEN: sprite.modulate = Color.GREEN
-		MarbleConst.MarbleColor.RED:   sprite.modulate = Color.RED
-		MarbleConst.MarbleColor.BLACK: sprite.modulate = Color.BLACK
-		MarbleConst.MarbleColor.YELLOW:sprite.modulate = Color.YELLOW
+		MarbleConst.MarbleColor.WHITE: s.modulate = Color.WHITE
+		MarbleConst.MarbleColor.BLUE:  s.modulate = Color.BLUE
+		MarbleConst.MarbleColor.GREEN: s.modulate = Color.GREEN
+		MarbleConst.MarbleColor.RED:   s.modulate = Color.RED
+		MarbleConst.MarbleColor.BLACK: s.modulate = Color.BLACK
+		MarbleConst.MarbleColor.YELLOW:s.modulate = Color.YELLOW
