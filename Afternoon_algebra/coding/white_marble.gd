@@ -9,12 +9,12 @@ extends Marble2D
 # 记录是否已经变色过（用于外部优先选择未变色的白球）
 var has_changed: bool = false
 # 临时存储随从列表（仅当当前颜色为蓝色时使用，每次移动后即清空）
-var temp_followers: Array[Node3D] = []
+var temp_followers: Array[Node2D] = []
 
 
 # ---------- 碰撞步数调整 ----------
 # 作为被撞者时，如果当前颜色为白色且碰撞者为友方，则步数+1
-func on_collision_as_target(collider: Marble3D, incoming_steps: int, direction: int) -> int:
+func on_collision_as_target(collider: Marble2D, incoming_steps: int, direction: int) -> int:
 	if color == MarbleConst.MarbleColor.WHITE and collider.camp == camp:
 		return incoming_steps + 1
 	return incoming_steps

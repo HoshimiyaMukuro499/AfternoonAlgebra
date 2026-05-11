@@ -1,16 +1,9 @@
 [gd_scene format=3 uid="uid://djeb0cuoeaeet"]
 
-<<<<<<< Updated upstream
-[ext_resource type="Script" uid="uid://bemyqvwyyhaj" path="res://Marble3D.gd" id="1_0xm2m"]
-[ext_resource type="Script" uid="uid://dw76x6xynmui5" path="res://GameManager.gd" id="1_h2yge"]
-[ext_resource type="Script" uid="uid://bjbocushr2are" path="res://hex_grid_3d.gd" id="2_h2yge"]
-[ext_resource type="Script" uid="uid://coh6wapnvbgfw" path="res://BlueMarbleHelper.gd" id="3_1bvp3"]
-=======
 [ext_resource type="Script" uid="uid://bmes0p5f4xlb2" path="res://InputHandler.gd" id="1_1bvp3"]
 [ext_resource type="Script" uid="uid://c70vkud42up1n" path="res://white_marble.gd" id="3_lquwl"]
 [ext_resource type="Script" uid="uid://e4ly1u2usr2f" path="res://blue_marble.gd" id="4_7mycd"]
 [ext_resource type="Script" uid="uid://b8ugwsr7b2cbf" path="res://hex_grid_2d.gd" id="5_7mycd"]
->>>>>>> Stashed changes
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7dm0k"]
 vertex_color_use_as_albedo = true
@@ -33,13 +26,8 @@ size = Vector2(20, 20)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_7mycd"]
 size = Vector2(238, 159)
 
-<<<<<<< Updated upstream
-[node name="Node2D" type="Node2D" unique_id=1973850133]
-script = ExtResource("1_h2yge")
-=======
 [node name="Node2D" type="Node2D" unique_id=1398219849]
 script = ExtResource("1_1bvp3")
->>>>>>> Stashed changes
 
 [node name="Camera3D" type="Camera2D" parent="." unique_id=361100068]
 position = Vector2(0, 3)
@@ -58,10 +46,6 @@ script = ExtResource("1_0xm2m")
 mesh = SubResource("SphereMesh_ig7tw")
 script = ExtResource("3_1bvp3")
 
-<<<<<<< Updated upstream
-[node name="CollisionShape3D" type="CollisionShape2D" parent="Marble_Rigid" unique_id=1474729905]
-shape = SubResource("CircleShape2D_lquwl")
-=======
 [node name="WhiteMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=1304230792 groups=["marbles"]]
 script = ExtResource("3_lquwl")
 
@@ -102,7 +86,6 @@ shape = SubResource("CircleShape2D_kek77")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Marble_Rigid" unique_id=941855440]
 shape = SubResource("CircleShape2D_4c57u")
->>>>>>> Stashed changes
 debug_color = Color(0, 0.6, 0.7019608, 0.41960785)
 
 [node name="HexGrid2D" type="Node2D" parent="." unique_id=1631004188 groups=["board"]]

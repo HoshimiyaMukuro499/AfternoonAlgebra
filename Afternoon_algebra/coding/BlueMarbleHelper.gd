@@ -1,6 +1,6 @@
 # BlueMarbleHelper.gd
 # 将蓝球特有的逻辑（随从生成、移动、清除）提取为静态方法，供 BlueMarble 和 WhiteMarble（变色后）复用，
-# 避免代码重复。此类不依赖弹珠的具体类型，只需传入一个 Marble3D 实例即可。
+# 避免代码重复。此类不依赖弹珠的具体类型，只需传入一个 Marble2D 实例即可。
 
 class_name BlueMarbleHelper
 extends RefCounted      # 轻量级引用类型，适合工具类
@@ -10,8 +10,8 @@ extends RefCounted      # 轻量级引用类型，适合工具类
 # 生成随从列表，返回随从节点数组
 # marble: 弹珠实例（蓝球或变为蓝色的白球）
 # direction: 移动方向（0~5）
-static func spawn_followers(marble: Marble3D, direction: int) -> Array[Node3D]:
-	var followers: Array[Node3D] = []
+static func spawn_followers(marble: Marble2D, direction: int) -> Array[Node2D]:
+	var followers: Array[Node2D] = []
 	var spawn_cells = _get_follower_spawn_cells(marble, direction)
 	for cell in spawn_cells:
 		followers.append(_create_follower(marble, cell))
@@ -20,7 +20,7 @@ static func spawn_followers(marble: Marble3D, direction: int) -> Array[Node3D]:
 
 # 移动所有随从，按相同的方向和步数移动
 # 返回值：如果所有随从移动过程中均未出界，返回 true；只要有一个出界就返回 false
-static func move_followers(marble: Marble3D, followers: Array[Node3D], direction: int, steps: int) -> bool:
+static func move_followers(marble: Marble2D, followers: Array[Node2D], direction: int, steps: int) -> bool:
 	for f in followers:
 		var start = marble.hex_grid.get_marble_hex(f)
 		var ok = _move_follower(marble, f, start, direction, steps)
@@ -30,7 +30,7 @@ static func move_followers(marble: Marble3D, followers: Array[Node3D], direction
 
 
 # 清除所有随从（从棋盘移除并释放节点）
-static func clear_followers(marble: Marble3D, followers: Array[Node3D]) -> void:
+static func clear_followers(marble: Marble2D, followers: Array[Node2D]) -> void:
 	for f in followers:
 		if is_instance_valid(f):
 			marble.hex_grid.remove_marble_by_node(f)
@@ -40,7 +40,7 @@ static func clear_followers(marble: Marble3D, followers: Array[Node3D]) -> void:
 
 # ---------- 私有实现细节（静态） ----------
 # 计算随从生成的位置（与移动方向不共线的相邻格子，最多2个）
-static func _get_follower_spawn_cells(marble: Marble3D, dir: int) -> Array[Vector2]:
+static func _get_follower_spawn_cells(marble: Marble2D, dir: int) -> Array[Vector2]:
 	# 与移动方向夹角 ±60° 的两个方向
 	var left = (dir + 1) % 6
 	var right = (dir + 5) % 6
@@ -71,7 +71,7 @@ static func _get_follower_spawn_cells(marble: Marble3D, dir: int) -> Array[Vecto
 
 
 # 创建一个随从节点（青色小球体）
-static func _create_follower(marble: Marble3D, cell: Vector2) -> Node3D:
+static func _create_follower(marble: Marble2D, cell: Vector2) -> Node2D:
 	var f = MeshInstance3D.new()
 	var mesh = SphereMesh.new()
 	mesh.radius = 0.4
@@ -87,7 +87,7 @@ static func _create_follower(marble: Marble3D, cell: Vector2) -> Node3D:
 
 
 # 移动单个随从，返回是否未出界
-static func _move_follower(marble: Marble3D, follower: Node3D, start: Vector2, dir: int, steps: int) -> bool:
+static func _move_follower(marble: Marble2D, follower: Node2D, start: Vector2, dir: int, steps: int) -> bool:
 	var remaining = steps
 	var current = start
 	while remaining > 0:
