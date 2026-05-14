@@ -6,7 +6,11 @@
 [ext_resource type="Script" uid="uid://c70vkud42up1n" path="res://white_marble.gd" id="3_lquwl"]
 [ext_resource type="Script" uid="uid://e4ly1u2usr2f" path="res://blue_marble.gd" id="4_7mycd"]
 [ext_resource type="Script" uid="uid://b8ugwsr7b2cbf" path="res://hex_grid_2d.gd" id="5_7mycd"]
+[ext_resource type="Script" uid="uid://dkwsi85yatbam" path="res://green_marble.gd" id="5_efxa6"]
+[ext_resource type="Script" uid="uid://or3yeule5hx8" path="res://red_marble.gd" id="6_dg77c"]
 [ext_resource type="Script" uid="uid://gji5k7jtkidb" path="res://hex_grid_drawer.gd" id="7_272bh"]
+[ext_resource type="Script" uid="uid://d2decfg5lat0m" path="res://black_marble.gd" id="7_ycdy4"]
+[ext_resource type="Script" uid="uid://dugqeam5wnmeo" path="res://yellow_marble.gd" id="8_w48qg"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_lquwl"]
 
@@ -17,6 +21,22 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_5vw27"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_kek77"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_vivmo"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2cqfq"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_yaehf"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_074og"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_cegan"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_82xsv"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_getpj"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ryguw"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_4c57u"]
 
@@ -47,6 +67,8 @@ script = ExtResource("2_7mycd")
 [node name="WhiteMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=1304230792 groups=["marbles"]]
 position = Vector2(51, 113.7)
 script = ExtResource("3_lquwl")
+color = null
+camp = null
 
 [node name="Mesh" type="MeshInstance2D" parent="Marble_Rigid/Marble/WhiteMarble" unique_id=1869383307]
 mesh = SubResource("SphereMesh_lquwl")
@@ -92,6 +114,50 @@ position = Vector2(90, 79.7)
 shape = SubResource("CircleShape2D_kek77")
 
 [node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble" unique_id=1717806886]
+
+[node name="GreenMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=1740909634]
+script = ExtResource("5_efxa6")
+
+[node name="Mesh" type="MeshInstance2D" parent="Marble_Rigid/Marble/GreenMarble" unique_id=1989198083]
+mesh = SubResource("SphereMesh_vivmo")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Marble_Rigid/Marble/GreenMarble" unique_id=1807179411]
+shape = SubResource("CircleShape2D_2cqfq")
+
+[node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble/GreenMarble" unique_id=1649386565]
+
+[node name="RedMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=866384609]
+script = ExtResource("6_dg77c")
+
+[node name="Mesh" type="MeshInstance2D" parent="Marble_Rigid/Marble/RedMarble" unique_id=1098653701]
+mesh = SubResource("SphereMesh_yaehf")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Marble_Rigid/Marble/RedMarble" unique_id=782883392]
+shape = SubResource("CircleShape2D_074og")
+
+[node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble/RedMarble" unique_id=971682574]
+
+[node name="BlackMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=193105339]
+script = ExtResource("7_ycdy4")
+
+[node name="Mesh" type="MeshInstance2D" parent="Marble_Rigid/Marble/BlackMarble" unique_id=1511627482]
+mesh = SubResource("SphereMesh_cegan")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Marble_Rigid/Marble/BlackMarble" unique_id=225128442]
+shape = SubResource("CircleShape2D_82xsv")
+
+[node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble/BlackMarble" unique_id=890034287]
+
+[node name="YellowMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=2083973639]
+script = ExtResource("8_w48qg")
+
+[node name="Mesh" type="MeshInstance2D" parent="Marble_Rigid/Marble/YellowMarble" unique_id=928910958]
+mesh = SubResource("SphereMesh_getpj")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Marble_Rigid/Marble/YellowMarble" unique_id=692477042]
+shape = SubResource("CircleShape2D_ryguw")
+
+[node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble/YellowMarble" unique_id=879982723]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Marble_Rigid" unique_id=941855440]
 position = Vector2(140, 202.7)
