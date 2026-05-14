@@ -1,5 +1,5 @@
 # test_white_marble.gd
-# 测试 WhiteMarble 白球的变色和碰撞加成机制
+# 测试 WhiteMarble 白球的变色和碰撞加成机制（含棋盘状态验证）
 class_name TestWhiteMarble
 extends BaseTest
 
@@ -21,10 +21,17 @@ func before_each() -> void:
 	grid.place_marble(white, 0, 0)
 
 func after_each() -> void:
-	if white:
+	# 清理可能残留的随从
+	if white and is_instance_valid(white):
+		BlueMarbleHelper.clear_followers(white, white.temp_followers)
 		white.queue_free()
 		white = null
 	if grid:
+		for hex in grid.marbles.keys():
+			var m = grid.marbles[hex]
+			if is_instance_valid(m) and m != white:
+				m.queue_free()
+		grid.marbles.clear()
 		grid.queue_free()
 		grid = null
 
@@ -101,3 +108,41 @@ func test_move_as_black_no_move() -> void:
 	var old_pos = white.hex_coord
 	white.move(MarbleConst.HexDirection.RIGHT, 2)
 	assert_eq(white.hex_coord, old_pos, "黑色不应移动")
+
+# ---------- 变色为蓝后的棋盘随从测试 ----------
+
+func test_blue_white_spawns_followers_on_grid() -> void:
+	white.change_color(MarbleConst.MarbleColor.BLUE)
+	white.move(MarbleConst.HexDirection.RIGHT, 2)
+	
+	# 移动后随从应被清除，棋盘上只应有白球
+	assert_eq(white.hex_coord, Vector2(2, 0), "变蓝后应正常移动")
+	assert_true(white.is_alive, "变蓝移动后应存活")
+
+func test_blue_white_move_updates_grid_state() -> void:
+	white.change_color(MarbleConst.MarbleColor.BLUE)
+	grid.place_marble(white, 0, 0)
+	white.hex_coord = Vector2.ZERO
+	
+	white.move(MarbleConst.HexDirection.RIGHT, 2)
+	
+	assert_null(grid.get_marble_at(0, 0), "变蓝移动后原位置应为空")
+	assert_eq(grid.get_marble_at(2, 0), white, "变蓝移动后新位置应有白球")
+
+func test_blue_white_collision_with_followers_grid_state() -> void:
+	# 在路径上放置一个敌方棋子，测试碰撞时棋盘状态
+	white.change_color(MarbleConst.MarbleColor.BLUE)
+	var enemy = Marble2D.new()
+	enemy.hex_grid = grid
+	enemy.camp = MarbleConst.Camp.BLUE
+	grid.place_marble(enemy, 2, 0)
+	enemy.hex_coord = Vector2(2, 0)
+	
+	white.move(MarbleConst.HexDirection.RIGHT, 3)
+	
+	# 白球在 (1,0) 撞到 enemy，enemy 获得 2 步移动到 (4,0)
+	assert_eq(grid.get_marble_at(1, 0), white, "白球应停在(1,0)")
+	assert_eq(grid.get_marble_at(4, 0), enemy, "被撞者应到达(4,0)")
+	assert_true(white.is_alive, "碰撞后白球应存活")
+	
+	enemy.queue_free()

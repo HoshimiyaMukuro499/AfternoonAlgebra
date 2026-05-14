@@ -46,7 +46,7 @@ static func _get_follower_spawn_cells(marble: Marble2D, dir: int) -> Array[Vecto
 	# 与移动方向夹角 ±60° 的两个方向
 	var left = (dir + 1) % 6
 	var right = (dir + 5) % 6
-	var candidates = []
+	var candidates: Array[Vector2] = []
 	var start = marble.get_current_hex()
 	
 	# 优先在左右两侧生成
