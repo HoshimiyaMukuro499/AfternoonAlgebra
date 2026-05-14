@@ -10,6 +10,10 @@ extends Marble2D
 var has_changed: bool = false
 # 临时存储随从列表（仅当当前颜色为蓝色时使用，每次移动后即清空）
 var temp_followers: Array[Node2D] = []
+var follower_safe: bool = false
+var push_range: int = 1
+var max_steps: int = 4
+var enhanced: bool = false
 
 # 获取弹珠的 Sprite 节点（假设子节点名为 "SpriteWhite"）
 @onready var spritewhite: Sprite2D = $Sprite
@@ -74,25 +78,30 @@ func _move_as_blue(direction: int, steps: int) -> bool:
 
 # 绿色：推挤（暂未实现，占位）
 func _move_as_green(direction: int, steps: int) -> bool:
-	# TODO: 实现绿球推挤逻辑
-	return _move_step_by_step(direction, steps)
-
-
+	var success = _move_step_by_step(direction, steps)
+	if success and is_alive:
+		GreenMarbleHelper.push_neighbors(self, push_range)
+	return success
 # 红色：逐步选方向（暂未实现）
 func _move_as_red(direction: int, steps: int) -> bool:
-	# TODO: 实现红球每步可选方向
-	return _move_step_by_step(direction, steps)
+	var dirs = []
+	for i in range(steps):
+		dirs.append(direction)
+	return RedMarbleHelper.move_with_step_directions(self, dirs, steps)
 
 
 # 黑色：不能主动移动，直接返回失败
 func _move_as_black(direction: int, steps: int) -> bool:
+	print("当前颜色为黑色，不能主动移动")
 	return false
 
 
 # 黄色：力度随机 ±1（暂未实现）
 func _move_as_yellow(direction: int, steps: int) -> bool:
-	# TODO: 实现黄球力度随机偏移
-	return _move_step_by_step(direction, steps)
+	var actual_steps = YellowMarbleHelper.get_randomized_steps(steps)
+	print("黄球移动：原力度 ", steps, "，实际力度 ", actual_steps)
+	return _move_step_by_step(direction, actual_steps)
+
 
 
 # ---------- 变色逻辑 ----------
