@@ -1,6 +1,6 @@
 # BoardInitializer.gd
 class_name BoardInitializer
-extends Node
+extends RefCounted
 
 # 初始化双方弹珠
 static func initialize_board(hex_grid: HexGrid2D) -> Array[Marble2D]:
@@ -76,8 +76,8 @@ static func _create_marble(color: int, camp: int) -> Marble2D:
 		collision.shape = shape
 		marble.add_child(collision)
 	
-	marble.color = color
-	marble.camp = camp
+	marble.color = color as MarbleConst.MarbleColor
+	marble.camp = camp as MarbleConst.Camp
 	marble.is_alive = true
 	
 	return marble
@@ -85,16 +85,16 @@ static func _create_marble(color: int, camp: int) -> Marble2D:
 static func _get_marble_scene_path(color: int) -> String:
 	match color:
 		MarbleConst.MarbleColor.WHITE:
-			return "res://scenes/WhiteMarble.tscn"
+			return "Marble_Rigid/Marble/WhiteMarble"
 		MarbleConst.MarbleColor.BLUE:
-			return "res://scenes/BlueMarble.tscn"
+			return "Marble_Rigid/Marble/BlueMarble"
 		MarbleConst.MarbleColor.GREEN:
-			return "res://scenes/GreenMarble.tscn"
+			return "Marble_Rigid/Marble/GreenMarble"
 		MarbleConst.MarbleColor.RED:
-			return "res://scenes/RedMarble.tscn"
+			return "Marble_Rigid/Marble/RedMarble"
 		MarbleConst.MarbleColor.BLACK:
-			return "res://scenes/BlackMarble.tscn"
+			return "Marble_Rigid/Marble/BlackMarble"
 		MarbleConst.MarbleColor.YELLOW:
-			return "res://scenes/YellowMarble.tscn"
+			return "Marble_Rigid/Marble/YellowMarble"
 		_:
 			return ""

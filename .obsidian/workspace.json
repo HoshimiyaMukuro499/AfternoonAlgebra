@@ -29,7 +29,7 @@
               "state": {
                 "file": "Afternoon_algebra/C 2026.5.15更新说明.md",
                 "mode": "source",
-                "source": false
+                "source": true
               },
               "icon": "lucide-file",
               "title": "C 2026.5.15更新说明"
@@ -197,6 +197,8 @@
   },
   "active": "0663b0c552e6ae94",
   "lastOpenFiles": [
+    "Pasted image 20260515203645.png",
+    "Pasted image 20260515203634.png",
     "Afternoon_algebra/coding/blue_marble.tscn",
     "Afternoon_algebra/coding/BoardInitializer.gd.uid",
     "Afternoon_algebra/coding/BoardInitializer.gd",
