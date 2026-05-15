@@ -43,6 +43,10 @@ func place_marble(marble: Node2D, q: int, r: int) -> void:
 	marble.set_meta("hex_pos", hex_pos)
 	marble.position = hex_to_world(q, r)
 
+		# 关键修复：如果是 Marble2D 实例，同步其缓存坐标
+	if marble is Marble2D:
+		marble.update_hex_coord(hex_pos)
+
 #这里应该是原来的“辅助功能”
 # 从棋盘上移除指定坐标的弹珠
 func remove_marble(q: int, r: int) -> void:
