@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://ibkdkn0j4cgh"]
+
+[ext_resource type="Script" uid="uid://c70vkud42up1n" path="res://white_marble.gd" id="1_1ubuk"]
+[ext_resource type="Texture2D" uid="uid://c7kvtfibin8yk" path="res://e38f2b561d3b4729548c49c70ff55bfc_副本.png" id="2_0cbva"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_lquwl"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_272bh"]
+
+[node name="WhiteMarble" type="Area2D" unique_id=528923663 groups=["marbles"]]
+script = ExtResource("1_1ubuk")
+
+[node name="Mesh" type="MeshInstance2D" parent="." unique_id=1653220859]
+mesh = SubResource("SphereMesh_lquwl")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1744166380]
+position = Vector2(143, 16.7)
+shape = SubResource("CircleShape2D_272bh")
+
+[node name="SpriteWhite" type="Sprite2D" parent="." unique_id=102529914]
+position = Vector2(0, 0.6000061)
+scale = Vector2(0.01, 0.01)
+texture = ExtResource("2_0cbva")

@@ -43,14 +43,18 @@ func _ready() -> void:
 			hex_grid = root.find_child("HexGrid2D", true, false)
 	
 	if hex_grid:
-		if has_meta("hex_pos"):
-			hex_coord = get_meta("hex_pos")
+		# 关键修复：从棋盘获取实际位置，而不是依赖 meta
+		var pos = hex_grid.get_marble_hex(self)
+		if pos != Vector2.ZERO:
+			hex_coord = pos
 		else:
-			hex_coord = Vector2.ZERO  # 尚未放置，暂用原点
-			# 如果你希望外部放置后自动更新，可以在这里不强制设置
+			hex_coord = Vector2.ZERO
 	else:
 		push_error("Marble2D: 找不到 HexGrid2D 棋盘节点")
 
+# 添加一个外部方法设置位置同时同步缓存
+func update_hex_coord(new_coord: Vector2) -> void:
+	hex_coord = new_coord
 
 # 高亮选中弹珠
 func highlight() -> void:

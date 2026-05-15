@@ -2,19 +2,20 @@
 
 [ext_resource type="Script" uid="uid://bmes0p5f4xlb2" path="res://InputHandler.gd" id="1_1bvp3"]
 [ext_resource type="Script" uid="uid://dw76x6xynmui5" path="res://GameManager.gd" id="1_lquwl"]
-[ext_resource type="Script" path="res://Marble2D.gd" id="2_7mycd"]
-[ext_resource type="Script" uid="uid://c70vkud42up1n" path="res://white_marble.gd" id="3_lquwl"]
+[ext_resource type="Script" uid="uid://rxongw37k117" path="res://Marble2D.gd" id="2_7mycd"]
+[ext_resource type="PackedScene" uid="uid://ibkdkn0j4cgh" path="res://white_marble.tscn" id="3_2cqfq"]
 [ext_resource type="Script" uid="uid://e4ly1u2usr2f" path="res://blue_marble.gd" id="4_7mycd"]
 [ext_resource type="Script" uid="uid://b8ugwsr7b2cbf" path="res://hex_grid_2d.gd" id="5_7mycd"]
 [ext_resource type="Script" uid="uid://dkwsi85yatbam" path="res://green_marble.gd" id="5_efxa6"]
 [ext_resource type="Script" uid="uid://or3yeule5hx8" path="res://red_marble.gd" id="6_dg77c"]
+[ext_resource type="Texture2D" uid="uid://untm0cuhq4nt" path="res://72ecbf01174f9811d8d12cb4db99ff12.png" id="6_ycdy4"]
 [ext_resource type="Script" uid="uid://gji5k7jtkidb" path="res://hex_grid_drawer.gd" id="7_272bh"]
 [ext_resource type="Script" uid="uid://d2decfg5lat0m" path="res://black_marble.gd" id="7_ycdy4"]
 [ext_resource type="Script" uid="uid://dugqeam5wnmeo" path="res://yellow_marble.gd" id="8_w48qg"]
-
-[sub_resource type="SphereMesh" id="SphereMesh_lquwl"]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_272bh"]
+[ext_resource type="Texture2D" uid="uid://7fa2hcthmnyx" path="res://e0b8bb4e61a2c84b61cb88da0639f13f.png" id="8_yaehf"]
+[ext_resource type="Texture2D" uid="uid://cvslydebirwfe" path="res://51aaad4f97bb00788f135d0f723e824b.png" id="10_074og"]
+[ext_resource type="Texture2D" uid="uid://d20doactpqupv" path="res://b764655fb551105500b3ff458d9a265f.png" id="12_cegan"]
+[ext_resource type="Texture2D" uid="uid://fk7x144uh6qy" path="res://448f9290e54cf220665a9acb90b58e08.png" id="14_82xsv"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_272bh"]
 
@@ -64,20 +65,8 @@ position = Vector2(-59, 22)
 position = Vector2(-62, 74.7)
 script = ExtResource("2_7mycd")
 
-[node name="WhiteMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=1304230792 groups=["marbles"]]
+[node name="WhiteMarble" parent="Marble_Rigid/Marble" unique_id=528923663 instance=ExtResource("3_2cqfq")]
 position = Vector2(51, 113.7)
-script = ExtResource("3_lquwl")
-color = null
-camp = null
-
-[node name="Mesh" type="MeshInstance2D" parent="Marble_Rigid/Marble/WhiteMarble" unique_id=1869383307]
-mesh = SubResource("SphereMesh_lquwl")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Marble_Rigid/Marble/WhiteMarble" unique_id=2060242595]
-position = Vector2(143, 16.7)
-shape = SubResource("CircleShape2D_272bh")
-
-[node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble/WhiteMarble" unique_id=1455492384]
 
 [node name="BlueMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=1085971219 groups=["marbles"]]
 position = Vector2(108, 46.7)
@@ -108,14 +97,18 @@ offset_bottom = -283.0
 text = "This is Turn Label."
 
 [node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble/BlueMarble" unique_id=1992537419]
+scale = Vector2(0.01, 0.01)
+texture = ExtResource("6_ycdy4")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Marble_Rigid/Marble" unique_id=1979226030]
 position = Vector2(90, 79.7)
 shape = SubResource("CircleShape2D_kek77")
 
 [node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble" unique_id=1717806886]
+position = Vector2(214, -41.699997)
 
-[node name="GreenMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=1740909634]
+[node name="GreenMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=1740909634 groups=["marbles"]]
+position = Vector2(0, 179.3)
 script = ExtResource("5_efxa6")
 
 [node name="Mesh" type="MeshInstance2D" parent="Marble_Rigid/Marble/GreenMarble" unique_id=1989198083]
@@ -125,8 +118,11 @@ mesh = SubResource("SphereMesh_vivmo")
 shape = SubResource("CircleShape2D_2cqfq")
 
 [node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble/GreenMarble" unique_id=1649386565]
+scale = Vector2(0.01, 0.01)
+texture = ExtResource("8_yaehf")
 
-[node name="RedMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=866384609]
+[node name="RedMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=866384609 groups=["marbles"]]
+position = Vector2(-56, 79.3)
 script = ExtResource("6_dg77c")
 
 [node name="Mesh" type="MeshInstance2D" parent="Marble_Rigid/Marble/RedMarble" unique_id=1098653701]
@@ -136,8 +132,11 @@ mesh = SubResource("SphereMesh_yaehf")
 shape = SubResource("CircleShape2D_074og")
 
 [node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble/RedMarble" unique_id=971682574]
+scale = Vector2(0.01, 0.01)
+texture = ExtResource("10_074og")
 
-[node name="BlackMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=193105339]
+[node name="BlackMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=193105339 groups=["marbles"]]
+position = Vector2(-66, -14.699997)
 script = ExtResource("7_ycdy4")
 
 [node name="Mesh" type="MeshInstance2D" parent="Marble_Rigid/Marble/BlackMarble" unique_id=1511627482]
@@ -147,8 +146,10 @@ mesh = SubResource("SphereMesh_cegan")
 shape = SubResource("CircleShape2D_82xsv")
 
 [node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble/BlackMarble" unique_id=890034287]
+scale = Vector2(0.01, 0.01)
+texture = ExtResource("12_cegan")
 
-[node name="YellowMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=2083973639]
+[node name="YellowMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=2083973639 groups=["marbles"]]
 script = ExtResource("8_w48qg")
 
 [node name="Mesh" type="MeshInstance2D" parent="Marble_Rigid/Marble/YellowMarble" unique_id=928910958]
@@ -158,6 +159,8 @@ mesh = SubResource("SphereMesh_getpj")
 shape = SubResource("CircleShape2D_ryguw")
 
 [node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble/YellowMarble" unique_id=879982723]
+scale = Vector2(0.01, 0.01)
+texture = ExtResource("14_82xsv")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Marble_Rigid" unique_id=941855440]
 position = Vector2(140, 202.7)
