@@ -4,7 +4,7 @@ extends Node2D
 var game_manager: GameManager
 
 func _ready():
-	func _ready():
+	# func _ready():
 	game_manager = get_node("/root/Node2D")  # 使用绝对路径了
 	# 或者
 	# game_manager = get_tree().get_first_node_in_group("game_manager")
@@ -17,11 +17,11 @@ func _unhandled_input(event):
 
 func _handle_click(pos: Vector2):
 	match game_manager.current_state:
-		game_manager.IDLE:
+		GameManager.TurnState.IDLE:
 			_try_select_marble(pos)
-		game_manager.MARBLE_SELECTED:
+		GameManager.TurnState.MARBLE_SELECTED:
 			_try_select_direction(pos)
-		game_manager.DIRECTION_SELECTED:
+		GameManager.TurnState.DIRECTION_SELECTED:
 			_try_select_power(pos)
 
 func _try_select_marble(pos: Vector2):
@@ -50,7 +50,7 @@ func _try_select_power(pos: Vector2):
 	pass
 #使用键盘输入
 func _input(event):
-	if game_manager.current_state != game_manager.DIRECTION_SELECTED:
+	if game_manager.current_state != GameManager.TurnState.DIRECTION_SELECTED:
 		return
 	if event is InputEventKey and event.pressed:
 		var key_map = {
