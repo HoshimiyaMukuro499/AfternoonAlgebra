@@ -7,33 +7,16 @@
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_5vw27"]
 
-[node name="BlueMarble" type="Area2D" unique_id=1679746026 groups=["marbles"]]
+[node name="BlueMarble" type="Area2D" unique_id=1712787069 groups=["marbles"]]
 script = ExtResource("1_2hpm7")
 color = 1
 
-[node name="Mesh" type="MeshInstance2D" parent="." unique_id=748534265]
+[node name="Mesh" type="MeshInstance2D" parent="." unique_id=934443917]
 mesh = SubResource("SphereMesh_272bh")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1152933607]
-position = Vector2(133, 24.7)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=3216547]
 shape = SubResource("CircleShape2D_5vw27")
 
-[node name="UI" type="CanvasLayer" parent="." unique_id=1479019864]
-
-[node name="MessageLabel" type="Label" parent="UI" unique_id=1911828784]
-offset_left = -557.0
-offset_top = -265.0
-offset_right = -517.0
-offset_bottom = -242.0
-text = "This is Message Label."
-
-[node name="TurnLabel" type="Label" parent="UI" unique_id=59038540]
-offset_left = -563.0
-offset_top = -306.0
-offset_right = -523.0
-offset_bottom = -283.0
-text = "This is Turn Label."
-
-[node name="Sprite" type="Sprite2D" parent="." unique_id=947161812]
+[node name="Sprite" type="Sprite2D" parent="." unique_id=364871186]
 scale = Vector2(0.01, 0.01)
 texture = ExtResource("2_ut57a")

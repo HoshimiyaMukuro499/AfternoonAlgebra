@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://ds273ll2eo81n"]
+
+[ext_resource type="Script" uid="uid://dugqeam5wnmeo" path="res://yellow_marble.gd" id="1_ghrpf"]
+[ext_resource type="Texture2D" uid="uid://fk7x144uh6qy" path="res://448f9290e54cf220665a9acb90b58e08.png" id="2_ub0o2"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_getpj"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ryguw"]
+
+[node name="YellowMarble" type="Area2D" unique_id=286787378 groups=["marbles"]]
+script = ExtResource("1_ghrpf")
+
+[node name="Mesh" type="MeshInstance2D" parent="." unique_id=100524708]
+mesh = SubResource("SphereMesh_getpj")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1116454725]
+shape = SubResource("CircleShape2D_ryguw")
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=1009068949]
+scale = Vector2(0.01, 0.01)
+texture = ExtResource("2_ub0o2")

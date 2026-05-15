@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://blt048pljsbtk"]
+
+[ext_resource type="Script" uid="uid://d2decfg5lat0m" path="res://black_marble.gd" id="1_jlrve"]
+[ext_resource type="Texture2D" uid="uid://d20doactpqupv" path="res://b764655fb551105500b3ff458d9a265f.png" id="2_rriod"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_cegan"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_82xsv"]
+
+[node name="BlackMarble" type="Area2D" unique_id=334069760 groups=["marbles"]]
+script = ExtResource("1_jlrve")
+
+[node name="Mesh" type="MeshInstance2D" parent="." unique_id=1785363453]
+mesh = SubResource("SphereMesh_cegan")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1338265890]
+shape = SubResource("CircleShape2D_82xsv")
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=1499942563]
+scale = Vector2(0.01, 0.01)
+texture = ExtResource("2_rriod")

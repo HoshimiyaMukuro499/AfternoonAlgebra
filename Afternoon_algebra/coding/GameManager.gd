@@ -5,7 +5,7 @@ extends Node2D
 # ====== 原有：棋盘引用 ======
 var hex_grid: HexGrid2D
 var test_marble: Marble2D
-
+var all_marbles: Array[Marble2D] = []
 # ====== 新增：状态机 ======
 enum TurnState {
 	IDLE,
@@ -23,7 +23,13 @@ var turn_number: int = 0
 func _ready():
 	# ====== 原有：获取节点 ======
 	hex_grid = $HexGrid2D
-	test_marble = $Marble_Rigid/Marble  # 改成你在场景里的实际节点名
+	if hex_grid:
+		all_marbles = BoardInitializer.initialize_board(hex_grid)
+		print("棋盘初始化完成，弹珠数量: ", all_marbles.size())
+	else:
+		push_error("GameManager: 找不到 HexGrid2D 节点")
+		
+	test_marble = $Marble_Rigid/Marble/WhiteMarble  # 改成你在场景里的实际节点名
 	
 	if hex_grid and test_marble:
 		hex_grid.place_marble(test_marble, 0, 0)
@@ -49,9 +55,19 @@ func start_turn():
 	turn_number += 1
 	print("第 %d 回合，%s 方行动" % [turn_number, "红" if current_team == MarbleConst.Camp.RED else "蓝"])
 
+# 修改 select_marble 方法，添加更多安全检查和调试信息
 func select_marble(marble):
-	if current_state != TurnState.IDLE: return
-	if marble.camp != current_team or not marble.is_alive: return
+	
+	if current_state != TurnState.IDLE:
+		print("当前状态不能选择弹珠: ", current_state)
+		return
+	if not marble or not marble.is_alive:
+		print("弹珠无效或已死亡")
+		return
+	if marble.camp != current_team:
+		print("不是当前回合方的弹珠")
+		return
+	
 	selected_marble = marble
 	current_state = TurnState.MARBLE_SELECTED
 	marble.highlight()
@@ -77,11 +93,12 @@ func execute_move():
 	current_team = MarbleConst.Camp.BLUE if current_team == MarbleConst.Camp.RED else MarbleConst.Camp.RED
 	start_turn()
 
+# 改进 cancel_selection
 func cancel_selection():
-	if current_state == TurnState.IDLE or current_state == TurnState.EXECUTING: return
-	if selected_marble:           # ← 加这个判断
-		selected_marble.unhighlight()  # ← 加这行
+	if current_state == TurnState.IDLE or current_state == TurnState.EXECUTING:
+		return
+	if selected_marble and is_instance_valid(selected_marble):
+		selected_marble.unhighlight()
 	selected_marble = null
 	current_state = TurnState.IDLE
-	
 	print("已取消选择")
