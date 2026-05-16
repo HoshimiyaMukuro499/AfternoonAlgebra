@@ -66,7 +66,9 @@ position = Vector2(-62, 74.7)
 script = ExtResource("2_7mycd")
 
 [node name="WhiteMarble" parent="Marble_Rigid/Marble" unique_id=528923663 instance=ExtResource("3_2cqfq")]
-position = Vector2(51, 113.7)
+position = Vector2(20, 106.3)
+
+[node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble/WhiteMarble" unique_id=1532797599]
 
 [node name="BlueMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=1085971219 groups=["marbles"]]
 position = Vector2(108, 46.7)
