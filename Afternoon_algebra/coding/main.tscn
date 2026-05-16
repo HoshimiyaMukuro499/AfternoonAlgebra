@@ -58,119 +58,10 @@ position = Vector2(12, 24)
 scale = Vector2(0.8660254, 0.6614378)
 skew = 0.7137245
 
-[node name="Marble_Rigid" type="Area2D" parent="." unique_id=2001200297]
-position = Vector2(-59, 22)
-
-[node name="Marble" type="Area2D" parent="Marble_Rigid" unique_id=255752409]
-position = Vector2(-62, 74.7)
-script = ExtResource("2_7mycd")
-
-[node name="WhiteMarble" parent="Marble_Rigid/Marble" unique_id=528923663 instance=ExtResource("3_2cqfq")]
-position = Vector2(51, 113.7)
-
-[node name="BlueMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=1085971219 groups=["marbles"]]
-position = Vector2(108, 46.7)
-script = ExtResource("4_7mycd")
-color = 1
-
-[node name="Mesh" type="MeshInstance2D" parent="Marble_Rigid/Marble/BlueMarble" unique_id=1071842442]
-mesh = SubResource("SphereMesh_272bh")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Marble_Rigid/Marble/BlueMarble" unique_id=1779181653]
-position = Vector2(133, 24.7)
-shape = SubResource("CircleShape2D_5vw27")
-
-[node name="UI" type="CanvasLayer" parent="Marble_Rigid/Marble/BlueMarble" unique_id=1452924562]
-
-[node name="MessageLabel" type="Label" parent="Marble_Rigid/Marble/BlueMarble/UI" unique_id=658507363]
-offset_left = -557.0
-offset_top = -265.0
-offset_right = -517.0
-offset_bottom = -242.0
-text = "This is Message Label."
-
-[node name="TurnLabel" type="Label" parent="Marble_Rigid/Marble/BlueMarble/UI" unique_id=446793811]
-offset_left = -563.0
-offset_top = -306.0
-offset_right = -523.0
-offset_bottom = -283.0
-text = "This is Turn Label."
-
-[node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble/BlueMarble" unique_id=1992537419]
-scale = Vector2(0.01, 0.01)
-texture = ExtResource("6_ycdy4")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Marble_Rigid/Marble" unique_id=1979226030]
-position = Vector2(90, 79.7)
-shape = SubResource("CircleShape2D_kek77")
-
-[node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble" unique_id=1717806886]
-position = Vector2(214, -41.699997)
-
-[node name="GreenMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=1740909634 groups=["marbles"]]
-position = Vector2(0, 179.3)
-script = ExtResource("5_efxa6")
-
-[node name="Mesh" type="MeshInstance2D" parent="Marble_Rigid/Marble/GreenMarble" unique_id=1989198083]
-mesh = SubResource("SphereMesh_vivmo")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Marble_Rigid/Marble/GreenMarble" unique_id=1807179411]
-shape = SubResource("CircleShape2D_2cqfq")
-
-[node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble/GreenMarble" unique_id=1649386565]
-scale = Vector2(0.01, 0.01)
-texture = ExtResource("8_yaehf")
-
-[node name="RedMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=866384609 groups=["marbles"]]
-position = Vector2(-56, 79.3)
-script = ExtResource("6_dg77c")
-
-[node name="Mesh" type="MeshInstance2D" parent="Marble_Rigid/Marble/RedMarble" unique_id=1098653701]
-mesh = SubResource("SphereMesh_yaehf")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Marble_Rigid/Marble/RedMarble" unique_id=782883392]
-shape = SubResource("CircleShape2D_074og")
-
-[node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble/RedMarble" unique_id=971682574]
-scale = Vector2(0.01, 0.01)
-texture = ExtResource("10_074og")
-
-[node name="BlackMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=193105339 groups=["marbles"]]
-position = Vector2(-66, -14.699997)
-script = ExtResource("7_ycdy4")
-
-[node name="Mesh" type="MeshInstance2D" parent="Marble_Rigid/Marble/BlackMarble" unique_id=1511627482]
-mesh = SubResource("SphereMesh_cegan")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Marble_Rigid/Marble/BlackMarble" unique_id=225128442]
-shape = SubResource("CircleShape2D_82xsv")
-
-[node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble/BlackMarble" unique_id=890034287]
-scale = Vector2(0.01, 0.01)
-texture = ExtResource("12_cegan")
-
-[node name="YellowMarble" type="Area2D" parent="Marble_Rigid/Marble" unique_id=2083973639 groups=["marbles"]]
-script = ExtResource("8_w48qg")
-
-[node name="Mesh" type="MeshInstance2D" parent="Marble_Rigid/Marble/YellowMarble" unique_id=928910958]
-mesh = SubResource("SphereMesh_getpj")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Marble_Rigid/Marble/YellowMarble" unique_id=692477042]
-shape = SubResource("CircleShape2D_ryguw")
-
-[node name="Sprite" type="Sprite2D" parent="Marble_Rigid/Marble/YellowMarble" unique_id=879982723]
-scale = Vector2(0.01, 0.01)
-texture = ExtResource("14_82xsv")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Marble_Rigid" unique_id=941855440]
-position = Vector2(140, 202.7)
-shape = SubResource("CircleShape2D_4c57u")
-debug_color = Color(0, 0.6, 0.7019608, 0.41960785)
-
 [node name="HexGrid2D" type="Node2D" parent="." unique_id=1083284442]
-position = Vector2(218, 152)
+position = Vector2(576, 324)
 script = ExtResource("5_7mycd")
-cell_size = 16.0
+cell_size = 32.0
 
 [node name="Ground" type="StaticBody2D" parent="." unique_id=135017203]
 position = Vector2(303, 112)
@@ -186,6 +77,6 @@ shape = SubResource("RectangleShape2D_efxa6")
 position = Vector2(203, 89)
 script = ExtResource("1_1bvp3")
 
-[node name="HexGridDrawer" type="Node2D" parent="." unique_id=1135638677]
-position = Vector2(302, 194)
+[node name="HexGridDrawer" type="Node2D" parent="HexGrid2D" unique_id=1135638677]
+position = Vector2(0, 0)
 script = ExtResource("7_272bh")
