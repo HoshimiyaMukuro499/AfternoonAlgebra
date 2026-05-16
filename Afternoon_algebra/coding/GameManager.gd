@@ -41,10 +41,10 @@ func _ready():
 	start_turn()
 
 # ====== 原有：回车测试 ======
-func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_accept"):
-		if current_state == TurnState.IDLE:
-			test_marble.move(MarbleConst.HexDirection.RIGHT, 2)
+#func _input(event: InputEvent) -> void:
+	#if event.is_action_pressed("ui_accept"):
+		#if current_state == TurnState.IDLE:
+			#test_marble.move(MarbleConst.HexDirection.RIGHT, 2)
 
 # ====== 新增：状态机方法 ======
 func start_turn():

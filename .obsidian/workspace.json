@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Afternoon_algebra/C 2026.5.15更新说明.md",
+                "file": "Afternoon_algebra/game_rule.md",
                 "mode": "source",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "C 2026.5.15更新说明"
+              "title": "game_rule"
             }
           }
         ],
@@ -197,13 +197,13 @@
   },
   "active": "0663b0c552e6ae94",
   "lastOpenFiles": [
+    "Afternoon_algebra/C 2026.5.15更新说明.md",
     "Pasted image 20260515203645.png",
     "Pasted image 20260515203634.png",
     "Afternoon_algebra/coding/blue_marble.tscn",
     "Afternoon_algebra/coding/BoardInitializer.gd.uid",
     "Afternoon_algebra/coding/BoardInitializer.gd",
     "Afternoon_algebra/C 2026.5.11 更新说明.md",
-    "Afternoon_algebra/C 2026.5.15更新说明.md",
     "Afternoon_algebra/coding/tests/README.md",
     "Afternoon_algebra/coding/b764655fb551105500b3ff458d9a265f.png.import",
     "Afternoon_algebra/coding/b764655fb551105500b3ff458d9a265f.png",
