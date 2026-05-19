@@ -1,9 +1,15 @@
 extends CanvasLayer
 
-@onready var turn_label: Label = $TurnLabel
-@onready var message_label: Label = $MessageLabel
+# 不用 @onready，因为 GameManager 在挂载脚本后才添加子节点
+var turn_label: Label = null
+var message_label: Label = null
+
 
 func _ready():
+	# 延迟查找子节点（GameManager 在挂载脚本后才创建它们）
+	turn_label = $TurnLabel if has_node("TurnLabel") else null
+	message_label = $MessageLabel if has_node("MessageLabel") else null
+
 	# 延迟一帧连接信号，确保 GameManager 已就绪
 	await get_tree().process_frame
 	
@@ -56,3 +62,4 @@ func _on_state_changed(new_state):
 			message_label.text = "请选择力度 (按 1~5)"
 		GameManager.TurnState.EXECUTING:
 			message_label.text = "移动中..."
+
