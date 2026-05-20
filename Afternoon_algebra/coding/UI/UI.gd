@@ -52,6 +52,11 @@ func _on_state_changed(new_state):
 	var gm = _find_game_manager()
 	if gm:
 		update_turn_display(gm)
+		
+		# 红球在MARBLE_SELECTED状态下提示选力度
+		if new_state == GameManager.TurnState.MARBLE_SELECTED and gm.selected_marble and gm.selected_marble.color == MarbleConst.MarbleColor.RED:
+			message_label.text = "红球：请选择力度 (按 1~5 键)"
+			return
 	
 	match new_state:
 		GameManager.TurnState.IDLE:
@@ -60,6 +65,11 @@ func _on_state_changed(new_state):
 			message_label.text = "请选择移动方向 (点击相邻格子)"
 		GameManager.TurnState.DIRECTION_SELECTED:
 			message_label.text = "请选择力度 (按 1~5)"
+		GameManager.TurnState.RED_DIRECTION_PICKING:
+			if gm:
+				message_label.text = "红球：请选择第 %d 步方向 (点击相邻格子)" % (gm.red_current_step_index + 1)
+			else:
+				message_label.text = "红球：请选择方向 (点击相邻格子)"
 		GameManager.TurnState.EXECUTING:
 			message_label.text = "移动中..."
 

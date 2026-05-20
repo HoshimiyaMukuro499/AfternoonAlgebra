@@ -30,9 +30,17 @@ func _handle_click(pos: Vector2):
 		GameManager.TurnState.IDLE:
 			_try_select_marble(pos)
 		GameManager.TurnState.MARBLE_SELECTED:
-			_try_select_direction(pos)
+			# 红球在MARBLE_SELECTED状态下点击方向（力度已选完才有效）
+			# 如果力度还没选（red_total_steps == 0），忽略点击，等待按数字键
+			if game_manager.selected_marble and game_manager.selected_marble.color == MarbleConst.MarbleColor.RED:
+				# 红球在MARBLE_SELECTED状态下不处理点击，等待键盘选力度
+				pass
+			else:
+				_try_select_direction(pos)
 		GameManager.TurnState.DIRECTION_SELECTED:
 			_try_select_power(pos)
+		GameManager.TurnState.RED_DIRECTION_PICKING:
+			_try_red_select_direction(pos)
 
 func _try_select_marble(pos: Vector2):
 	var hex = game_manager.hex_grid.world_to_hex(pos)
@@ -41,6 +49,17 @@ func _try_select_marble(pos: Vector2):
 		game_manager.select_marble(marble)
 		return
 
+func _try_red_select_direction(pos: Vector2):
+	if not game_manager.selected_marble:
+		return
+	var current_hex = game_manager.selected_marble.get_current_hex()
+	for dir in range(6):
+		var neighbor = current_hex + NEIGHBOR_OFFSETS[dir]
+		var neighbor_pos = game_manager.hex_grid.hex_to_world(neighbor.x, neighbor.y)
+		if pos.distance_to(neighbor_pos) < 25:
+			game_manager.red_append_direction(dir)
+			return
+	# 点击位置不在任何相邻格子，不取消选择（红球需要连续选方向，误触不应取消）
 func _try_select_direction(pos: Vector2):
 	if not game_manager.selected_marble:
 		return
@@ -58,11 +77,22 @@ func _try_select_power(pos: Vector2):
 	pass
 
 func _input(event):
-	if game_manager.current_state != GameManager.TurnState.DIRECTION_SELECTED:
-		return
-	if event is InputEventKey and event.pressed:
-		var key_map = {
-			KEY_1: 1, KEY_2: 2, KEY_3: 3, KEY_4: 4, KEY_5: 5
-		}
-		if event.keycode in key_map:
-			game_manager.select_power(key_map[event.keycode])
+	# 非红球：在DIRECTION_SELECTED状态下按1~5选力度
+	if game_manager.current_state == GameManager.TurnState.DIRECTION_SELECTED:
+		if event is InputEventKey and event.pressed:
+			var key_map = {
+				KEY_1: 1, KEY_2: 2, KEY_3: 3, KEY_4: 4, KEY_5: 5
+			}
+			if event.keycode in key_map:
+				game_manager.select_power(key_map[event.keycode])
+	
+	# 红球：在MARBLE_SELECTED状态下按1~5选力度（步数）
+	if game_manager.current_state == GameManager.TurnState.MARBLE_SELECTED:
+		if game_manager.selected_marble and game_manager.selected_marble.color == MarbleConst.MarbleColor.RED:
+			if event is InputEventKey and event.pressed:
+				var key_map = {
+					KEY_1: 1, KEY_2: 2, KEY_3: 3, KEY_4: 4, KEY_5: 5
+				}
+				if event.keycode in key_map:
+					game_manager.red_select_power(key_map[event.keycode])
+

@@ -10,12 +10,16 @@ var _failed: int = 0
 func _ready() -> void:
 	print("\n========== 开始运行测试 ==========\n")
 	
+	# preload 确保新测试模块被加载
+	var TestRedMarble = preload("res://tests/test_red_marble.gd")
+
 	# 注册所有测试模块
 	_register_tests(TestHexGrid.new())
 	_register_tests(TestMarble.new())
 	_register_tests(TestBlueMarble.new())
 	_register_tests(TestWhiteMarble.new())
 	_register_tests(TestGameManager.new())
+	_register_tests(TestRedMarble.new())
 	
 	# 执行所有测试
 	_run_all_tests()
@@ -83,3 +87,4 @@ func _print_report() -> void:
 	else:
 		print("存在失败的测试，请检查上方日志。")
 	print("==============================\n")
+
