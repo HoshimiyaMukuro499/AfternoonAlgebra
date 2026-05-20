@@ -21,7 +21,7 @@ var hex_grid: HexGrid2D = null
 var hex_coord: Vector2 = Vector2.ZERO
 
 # 引用 Sprite 节点（用于改变颜色）
-@onready var sprite: Sprite2D = $Sprite
+@onready var sprite: Sprite2D = $Sprite if has_node("Sprite") else null
 
 # 高亮状态
 var is_highlighted: bool = false
