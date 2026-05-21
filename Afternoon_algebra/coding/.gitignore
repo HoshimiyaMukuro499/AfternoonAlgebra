@@ -2,3 +2,6 @@
 .godot/
 /android/
 .continue/
+
+# GUT test report
+gut.md
