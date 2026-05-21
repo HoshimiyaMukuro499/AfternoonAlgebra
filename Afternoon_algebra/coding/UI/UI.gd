@@ -73,7 +73,6 @@ func _build_ui():
 	turn_label.add_theme_color_override("font_color", Color.WHITE)
 	turn_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	turn_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	turn_label.bbcode_enabled = true
 	container.add_child(turn_label)
 	
 	# 创建消息标签
