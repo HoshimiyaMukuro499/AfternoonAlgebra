@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Afternoon_algebra/C 2026.5.15更新说明.md",
+                "file": "Afternoon_algebra/deepseek cli配置指南.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "C 2026.5.15更新说明"
+              "title": "deepseek cli配置指南"
             }
           }
         ],
@@ -197,11 +197,17 @@
   },
   "active": "0663b0c552e6ae94",
   "lastOpenFiles": [
+    "Afternoon_algebra/coding/UI.tscn",
+    "coding/UI/UI.gd",
+    "coding/UI",
+    "coding",
+    "Afternoon_algebra/如何贡献项目--zjt.md",
+    "Afternoon_algebra/deepseek cli配置指南.md",
+    "Afternoon_algebra/C 2026.5.15更新说明.md",
     "Afternoon_algebra/coding/blue_marble.tscn",
     "Afternoon_algebra/coding/BoardInitializer.gd.uid",
     "Afternoon_algebra/coding/BoardInitializer.gd",
     "Afternoon_algebra/C 2026.5.11 更新说明.md",
-    "Afternoon_algebra/C 2026.5.15更新说明.md",
     "Afternoon_algebra/coding/tests/README.md",
     "Afternoon_algebra/coding/b764655fb551105500b3ff458d9a265f.png.import",
     "Afternoon_algebra/coding/b764655fb551105500b3ff458d9a265f.png",
@@ -211,9 +217,7 @@
     "Afternoon_algebra/coding/51aaad4f97bb00788f135d0f723e824b.png",
     "Afternoon_algebra/coding/e0b8bb4e61a2c84b61cb88da0639f13f.png.import",
     "Afternoon_algebra/coding/e0b8bb4e61a2c84b61cb88da0639f13f.png",
-    "Afternoon_algebra/coding/72ecbf01174f9811d8d12cb4db99ff12.png.import",
     "Afternoon_algebra/coding/72ecbf01174f9811d8d12cb4db99ff12.png",
-    "Afternoon_algebra/coding/e38f2b561d3b4729548c49c70ff55bfc_副本.png.import",
     "Afternoon_algebra/coding/e38f2b561d3b4729548c49c70ff55bfc_副本.png"
   ]
 }
