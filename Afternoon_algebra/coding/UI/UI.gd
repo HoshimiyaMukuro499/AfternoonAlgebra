@@ -68,7 +68,7 @@ func _build_ui():
 	turn_label.add_theme_font_size_override("normal_font_size", 32)
 	turn_label.add_theme_color_override("default_color", Color.WHITE)
 	turn_label.bbcode_enabled = true
-	turn_label.fit_content_height = true
+	turn_label.scroll_active = false
 	turn_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	container.add_child(turn_label)
 	
@@ -87,7 +87,7 @@ func _build_ui():
 	message_label.add_theme_font_size_override("normal_font_size", 32)
 	message_label.add_theme_color_override("default_color", Color(1, 1, 0.8))
 	message_label.bbcode_enabled = true
-	message_label.fit_content_height = true
+	message_label.scroll_active = false
 	message_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	container.add_child(message_label)
 
