@@ -19,22 +19,25 @@ jobs:
         uses: chickensoft-games/setup-godot@v2
         with:
           version: 4.6.2
-          include_mono: false # 明确指定不需要 Mono 版
+          # 如果你的项目不用 C#，建议把下面这行改为 false 会快很多
+          include_mono: true 
 
-      # 关键步骤 1：屏蔽 GUT 的 UI 部分（这些是导致 Parse Error 的元凶）
-      # 我们在 CI 里不需要 GUT 的编辑器界面，创建一个 .gdignore 文件让 Godot 忽略这个文件夹
       - name: Skip GUT UI Parsing
-        run: |
-          touch Afternoon_algebra/coding/addons/gut/gui/.gdignore
+        run: touch Afternoon_algebra/coding/addons/gut/gui/.gdignore
 
-      # 关键步骤 2：强制多次导入
-      # Godot 4 有时需要运行两次才能正确识别所有 class_name
-      - name: Import Assets
+      - name: Import Assets & Run Tests
+        # 使用 bash 脚本连续执行，确保路径切换正确
         run: |
-          godot --headless --path Afternoon_algebra/coding --editor --quit --display-driver dummy || true
-          godot --headless --path Afternoon_algebra/coding --editor --quit --display-driver dummy || true
-
-      # 关键步骤 3：正式运行测试
-      - name: Run GUT Tests
-        run: |
-          godot --headless --path Afternoon_algebra/coding -s res://addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs -gexit
+          # 1. 进入项目实际目录
+          cd Afternoon_algebra/coding
+          
+          # 2. 强制第一遍导入 (生成 .godot 目录)
+          # 我们给它 10 秒时间扫描，然后杀掉进程，因为有时候 --quit 在导入时会卡死
+          timeout 20s godot --headless -e --display-driver dummy || true
+          
+          # 3. 第二遍确认导入 (注册 class_name)
+          godot --headless -e --quit --display-driver dummy || true
+          
+          # 4. 正式运行 GUT 测试
+          # 注意：进入目录后，--path 就可以用 "." 了
+          godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs -gexit
