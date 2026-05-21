@@ -1,0 +1,52 @@
+[gd_scene format=3 uid="uid://btp46h8ot1jgy"]
+
+[ext_resource type="Script" uid="uid://ms6nbtwkh38x" path="res://menu.gd" id="1_lti8b"]
+
+[sub_resource type="Theme" id="Theme_lti8b"]
+
+[sub_resource type="FontVariation" id="FontVariation_ouk20"]
+
+[sub_resource type="Theme" id="Theme_mae5d"]
+
+[sub_resource type="FontVariation" id="FontVariation_4hy44"]
+
+[node name="Menu" type="Control" unique_id=1085796656]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_lti8b")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1524160407]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="start" type="Button" parent="VBoxContainer" unique_id=1102239198]
+layout_mode = 2
+size_flags_vertical = 4
+theme = SubResource("Theme_lti8b")
+theme_override_fonts/font = SubResource("FontVariation_ouk20")
+theme_override_font_sizes/font_size = 30
+text = "开始游戏"
+
+[node name="quit" type="Button" parent="VBoxContainer" unique_id=421480167]
+layout_mode = 2
+theme = SubResource("Theme_mae5d")
+theme_override_fonts/font = SubResource("FontVariation_4hy44")
+theme_override_font_sizes/font_size = 30
+text = "退出"
+
+[connection signal="pressed" from="VBoxContainer/start" to="." method="_on_start_pressed"]
+[connection signal="pressed" from="VBoxContainer/quit" to="." method="_on_quit_pressed"]

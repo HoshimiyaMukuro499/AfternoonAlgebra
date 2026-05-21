@@ -115,4 +115,3 @@ func _update_appearance(new_color: int) -> void:
 func on_death() -> void:
 	if current_strategy:
 		current_strategy.on_death(self)
-

@@ -95,4 +95,3 @@ func _input(event):
 				}
 				if event.keycode in key_map:
 					game_manager.red_select_power(key_map[event.keycode])
-

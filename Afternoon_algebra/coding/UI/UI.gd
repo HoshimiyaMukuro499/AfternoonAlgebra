@@ -72,4 +72,3 @@ func _on_state_changed(new_state):
 				message_label.text = "红球：请选择方向 (点击相邻格子)"
 		GameManager.TurnState.EXECUTING:
 			message_label.text = "移动中..."
-
