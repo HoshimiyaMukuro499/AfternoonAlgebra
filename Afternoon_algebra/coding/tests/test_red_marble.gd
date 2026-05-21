@@ -1,7 +1,7 @@
 # test_red_marble.gd
 # 测试红球逐格选方向交互逻辑
 class_name TestRedMarble
-extends BaseTest
+extends "res://tests/base_test.gd"
 
 var gm: GameManager
 var grid: HexGrid2D

@@ -1,7 +1,7 @@
 # test_hex_grid.gd
 # 测试 HexGrid2D 六边形棋盘的核心功能（使用真实 Marble2D 棋子）
 class_name TestHexGrid
-extends BaseTest
+extends "res://tests/base_test.gd"
 
 var grid: HexGrid2D
 

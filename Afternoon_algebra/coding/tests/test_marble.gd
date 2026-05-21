@@ -1,7 +1,7 @@
 # test_marble.gd
 # 测试 Marble2D 基类的移动、碰撞、邻居计算及棋盘状态一致性
 class_name TestMarble
-extends BaseTest
+extends "res://tests/base_test.gd"
 
 var grid: HexGrid2D
 var marble: Marble2D

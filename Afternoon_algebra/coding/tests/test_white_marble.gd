@@ -1,7 +1,7 @@
 # test_white_marble.gd
 # 测试 WhiteMarble 白球的变色和碰撞加成机制（含棋盘状态验证）
 class_name TestWhiteMarble
-extends BaseTest
+extends "res://tests/base_test.gd"
 
 const WhiteMarbleScript = preload("res://white_marble.gd")
 
