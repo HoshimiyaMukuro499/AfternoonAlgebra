@@ -40,17 +40,20 @@ func test_neighbor_left() -> void:
 	assert_eq(n, Vector2(-1, 0), "LEFT方向应为(-1,0)")
 
 func test_neighbor_right_up() -> void:
+	# 轴向六边形坐标下，RIGHT_UP（索引1）对应SE方向，偏移量为(0,1)
 	var n = marble.get_neighbor_hex(Vector2.ZERO, MarbleConst.HexDirection.RIGHT_UP)
-	assert_eq(n, Vector2(1, 1), "RIGHT_UP方向应为(1,1)")
+	assert_eq(n, Vector2(0, 1), "RIGHT_UP方向应为(0,1)")
 
 func test_neighbor_all_directions() -> void:
+	# 轴向六边形坐标：平顶布局，r向下递增
+	# RIGHT=(1,0), SE=(0,1), SW=(-1,1), LEFT=(-1,0), NW=(0,-1), NE=(1,-1)
 	var expected = [
-		Vector2(1, 0),   # RIGHT
-		Vector2(1, 1),   # RIGHT_UP
-		Vector2(0, 1),   # LEFT_UP
-		Vector2(-1, 0),  # LEFT
-		Vector2(-1, -1), # LEFT_DOWN
-		Vector2(0, -1)   # RIGHT_DOWN
+		Vector2(1, 0),   # 0: RIGHT
+		Vector2(0, 1),   # 1: RIGHT_UP (SE)
+		Vector2(-1, 1),  # 2: LEFT_UP (SW)
+		Vector2(-1, 0),  # 3: LEFT
+		Vector2(0, -1),  # 4: LEFT_DOWN (NW)
+		Vector2(1, -1)   # 5: RIGHT_DOWN (NE)
 	]
 	for dir in range(6):
 		var n = marble.get_neighbor_hex(Vector2.ZERO, dir)
