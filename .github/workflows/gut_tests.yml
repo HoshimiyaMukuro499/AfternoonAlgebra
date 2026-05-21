@@ -14,6 +14,17 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+      
+      - name: Cache Godot Data
+        uses: actions/cache@v4
+        with:
+          # 缓存 Godot 的导入数据文件夹
+          path: |
+            Afternoon_algebra/coding/.godot
+          # 根据项目文件计算一个 Key，如果项目没变，就直接用缓存
+          key: ${{ runner.os }}-godot-cache-${{ hashFiles('**/project.godot') }}
+          restore-keys: |
+            ${{ runner.os }}-godot-cache-
 
       - name: Setup Godot
         uses: chickensoft-games/setup-godot@v2
