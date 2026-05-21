@@ -1,14 +1,18 @@
 [gd_scene format=3 uid="uid://btp46h8ot1jgy"]
 
 [ext_resource type="Script" uid="uid://ms6nbtwkh38x" path="res://menu.gd" id="1_lti8b"]
+[ext_resource type="Texture2D" uid="uid://cw82lv85pcebs" path="res://UI/be9374e914bd0b2580eb5b107bea4503.png" id="2_ouk20"]
+[ext_resource type="FontFile" uid="uid://dvyi48lju62co" path="res://HYPixel11pxU-2.ttf" id="3_mae5d"]
 
 [sub_resource type="Theme" id="Theme_lti8b"]
 
 [sub_resource type="FontVariation" id="FontVariation_ouk20"]
+base_font = ExtResource("3_mae5d")
 
 [sub_resource type="Theme" id="Theme_mae5d"]
 
 [sub_resource type="FontVariation" id="FontVariation_4hy44"]
+base_font = ExtResource("3_mae5d")
 
 [node name="Menu" type="Control" unique_id=1085796656]
 layout_mode = 3
@@ -19,33 +23,38 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_lti8b")
 
+[node name="TextureRect" type="TextureRect" parent="." unique_id=1519007934]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("2_ouk20")
+expand_mode = 1
+
 [node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1524160407]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -20.0
-offset_top = -20.0
-offset_right = 20.0
-offset_bottom = 20.0
-grow_horizontal = 2
-grow_vertical = 2
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -128.0
+offset_top = -104.0
+grow_horizontal = 0
+grow_vertical = 0
 
 [node name="start" type="Button" parent="VBoxContainer" unique_id=1102239198]
 layout_mode = 2
 size_flags_vertical = 4
 theme = SubResource("Theme_lti8b")
 theme_override_fonts/font = SubResource("FontVariation_ouk20")
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 50
 text = "开始游戏"
 
 [node name="quit" type="Button" parent="VBoxContainer" unique_id=421480167]
 layout_mode = 2
 theme = SubResource("Theme_mae5d")
 theme_override_fonts/font = SubResource("FontVariation_4hy44")
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 50
 text = "退出"
 
 [connection signal="pressed" from="VBoxContainer/start" to="." method="_on_start_pressed"]
