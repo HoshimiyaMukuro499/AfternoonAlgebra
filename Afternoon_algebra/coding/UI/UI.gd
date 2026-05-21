@@ -22,8 +22,8 @@ func _build_ui():
 	var custom_font = FontFile.new()
 	custom_font.font_data = custom_font_data
 	
-	# 创建容器 VBoxContainer（自动垂直排列子节点）
-	var container = VBoxContainer.new()
+	# 创建容器 Control（固定尺寸）
+	var container = Control.new()
 	container.name = "UIContainer"
 	container.anchor_left = 0.0
 	container.anchor_top = 0.0
@@ -31,8 +31,8 @@ func _build_ui():
 	container.anchor_bottom = 0.0
 	container.offset_left = 10
 	container.offset_top = 10
-	container.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	container.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	container.offset_right = 400
+	container.offset_bottom = 150
 	add_child(container)
 	
 	# 创建背景面板（填充容器）
@@ -62,14 +62,13 @@ func _build_ui():
 	turn_label.offset_left = 10
 	turn_label.offset_top = 10
 	turn_label.offset_right = -10
-	turn_label.offset_bottom = -10
+	turn_label.offset_bottom = 50
 	# 设置字体样式
 	turn_label.add_theme_font_override("normal_font", custom_font)
 	turn_label.add_theme_font_size_override("normal_font_size", 32)
 	turn_label.add_theme_color_override("default_color", Color.WHITE)
 	turn_label.bbcode_enabled = true
-	turn_label.scroll_active = false
-	turn_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	turn_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	container.add_child(turn_label)
 	
 	# 创建消息标签（使用 RichTextLabel 以支持 BBCode）
@@ -80,15 +79,14 @@ func _build_ui():
 	message_label.anchor_right = 1.0
 	message_label.anchor_bottom = 0.0
 	message_label.offset_left = 10
-	message_label.offset_top = 10
+	message_label.offset_top = 60
 	message_label.offset_right = -10
 	message_label.offset_bottom = -10
 	message_label.add_theme_font_override("normal_font", custom_font)
 	message_label.add_theme_font_size_override("normal_font_size", 32)
 	message_label.add_theme_color_override("default_color", Color(1, 1, 0.8))
 	message_label.bbcode_enabled = true
-	message_label.scroll_active = false
-	message_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	container.add_child(message_label)
 
 func _find_game_manager() -> GameManager:
