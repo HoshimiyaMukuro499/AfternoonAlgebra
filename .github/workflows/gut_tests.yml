@@ -19,28 +19,28 @@ jobs:
         uses: chickensoft-games/setup-godot@v2
         with:
           version: 4.6.2
-          include_mono: true # 因为你的版本显示是 Mono 版
+          # 修正参数名，Mono 版必须开启这个
+          use-dotnet: true 
 
       - name: Debug - List Files
-        # 这一步用来确认路径是否正确，如果这一步报错，说明文件夹名字写错了
-        run: |
-          ls -R Afternoon_algebra/coding/project.godot
+        run: ls -R Afternoon_algebra/coding/project.godot
 
       - name: Import Assets & Run Tests
-        # 我们合并步骤并使用绝对路径确保 Godot 真正干活
         run: |
-          # 1. 强制进入项目目录
           cd Afternoon_algebra/coding
           
-          # 2. 第一次导入：强制编辑器模式运行并等待资源扫描
-          # 我们使用 --editor 模式，这是唯一能生成 class_name 索引的方法
-          echo "Starting first import pass..."
-          godot --headless --editor --display-driver dummy --quit --verbose || true
+          # 1. 修正后的导入命令：使用 --headless 替代 --display-driver dummy
+          echo "Starting import pass..."
+          godot --headless --editor --quit --verbose || true
           
-          # 3. 检查 .godot 文件夹是否生成（如果没有生成，说明导入失败了）
-          if [ -d ".godot" ]; then echo ".godot folder created successfully"; else echo ".godot folder MISSING"; fi
+          # 2. 验证导入结果
+          if [ -d ".godot" ]; then echo "Success: .godot folder created"; else echo "Error: .godot folder STILL MISSING"; fi
 
-          # 4. 第二次运行：正式执行 GUT 测试
-          # 注意：此时已经在 coding 目录下，--path 为 .
+          # 3. 如果你有 C# 代码，这一步是必须的；如果是纯 GDScript，这一步也不会报错
+          echo "Building project (Required for Mono)..."
+          dotnet build || true
+
+          # 4. 正式运行 GUT 测试
           echo "Starting GUT tests..."
-          godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs -gexit
+          # 显式使用 --headless 并指向入口
+          godot --headless -s res://addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs -gexit
