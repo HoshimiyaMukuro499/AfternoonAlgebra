@@ -105,6 +105,8 @@ func update_turn(text: String):
 func update_message(text: String):
 	if message_label:
 		message_label.text = text
+	else:
+		push_error("UI.gd: message_label 为 null，无法更新消息")
 
 func update_turn_display(gm: GameManager):
 	if not turn_label:
