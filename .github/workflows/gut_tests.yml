@@ -1,0 +1,26 @@
+name: CI - GUT Unit Tests
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  gut-tests:
+    runs-on: ubuntu-latest
+    name: Run GUT Tests
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run GUT Tests
+        # 使用官方 GUT Action
+        uses: bitwes/gut-action@v2.3.0
+        with:
+          # 根据你的实际 Godot 版本修改，例如 '4.2.1'
+          godot_version: '4.2.6'
+          godot_4: true
+          # 【重要】告诉 Action 你的项目在子文件夹里
+          path: "Afternoon_algebra/coding"
