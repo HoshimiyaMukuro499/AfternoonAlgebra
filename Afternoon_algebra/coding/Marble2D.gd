@@ -193,13 +193,16 @@ func get_current_hex() -> Vector2:
 # hex: 当前坐标 (q, r)
 # dir: 0~5 方向索引
 func get_neighbor_hex(hex: Vector2, dir: int) -> Vector2:
+	# 轴向六边形坐标下6个方向的偏移量
+	# 使用标准轴向坐标 (q, r)，平顶布局，r向下递增
+	# RIGHT=(1,0), SE=(0,1), SW=(-1,1), LEFT=(-1,0), NW=(0,-1), NE=(1,-1)
 	var dirs = [
-		Vector2(1, 0),   # 0: 东
-		Vector2(0, 1),   # 1: 东南
-		Vector2(-1, 1),  # 2: 西南
-		Vector2(-1, 0),  # 3: 西
-		Vector2(0, -1),  # 4: 西北
-		Vector2(1, -1)   # 5: 东北
+		Vector2(1, 0),   # 0: RIGHT
+		Vector2(0, 1),   # 1: RIGHT_UP (SE方向)
+		Vector2(-1, 1),  # 2: LEFT_UP (SW方向)
+		Vector2(-1, 0),  # 3: LEFT
+		Vector2(0, -1),  # 4: LEFT_DOWN (NW方向)
+		Vector2(1, -1)   # 5: RIGHT_DOWN (NE方向)
 	]
 	return hex + dirs[dir]
 
