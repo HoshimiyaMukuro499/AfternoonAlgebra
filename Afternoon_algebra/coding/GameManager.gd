@@ -61,7 +61,7 @@ func _adjust_marble_visuals():
 				child.position = Vector2.ZERO
 
 func _init_ui():
-	# 查找或创建 UI 节点（先不加入场景树，等脚本挂载后再加入）
+	# 查找或创建 UI 节点
 	var ui = get_node_or_null("UI")
 	var need_add_child = false
 	if not ui:
@@ -69,7 +69,7 @@ func _init_ui():
 		ui.name = "UI"
 		need_add_child = true
 	
-	# 确保 UI 挂载了 UI.gd 脚本（在加入场景树前挂载，确保 _ready 被触发）
+	# 确保 UI 挂载了 UI.gd 脚本
 	if ui.get_script() == null:
 		var ui_script = load("res://UI/UI.gd")
 		if ui_script:
@@ -78,21 +78,7 @@ func _init_ui():
 	if need_add_child:
 		add_child(ui)
 	
-	# 创建或查找 TurnLabel
-	var turn_label = ui.get_node_or_null("TurnLabel")
-	if not turn_label:
-		turn_label = Label.new()
-		turn_label.name = "TurnLabel"
-		turn_label.position = Vector2(20, 20)
-		ui.add_child(turn_label)
-	
-	# 创建或查找 MessageLabel
-	var message_label = ui.get_node_or_null("MessageLabel")
-	if not message_label:
-		message_label = Label.new()
-		message_label.name = "MessageLabel"
-		message_label.position = Vector2(20, 50)
-		ui.add_child(message_label)
+	# UI.gd 的 _ready() 会创建所有子节点，不再需要手动创建 Label
 
 func start_turn():
 	current_state = TurnState.IDLE
