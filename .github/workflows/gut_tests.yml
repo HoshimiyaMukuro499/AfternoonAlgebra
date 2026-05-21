@@ -15,17 +15,18 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 第一步：安装 Godot 4.6.2
       - name: Setup Godot
         uses: chickensoft-games/setup-godot@v2
         with:
-          # 填入你截图中的版本号
-          version: 4.6.2
-          # 如果 4.6.2 是官方版本，它会自动下载；
-          # 如果它是自定义版本，Action 可能会报错，到时候我们需要换一种下载方式。
-          # 但目前先按这个填。
+          version: 4.2.1 # 建议先用 4.2.1 稳定版试试，你的 4.6 可能是某个特殊版本
 
-      # 第二步：直接通过命令行运行 GUT
+      # 【关键的一步】：初次导入资源
+      # 这会生成 .godot 文件夹并注册所有 class_name
+      - name: Import Assets
+        run: |
+          godot --headless --path Afternoon_algebra/coding --editor --quit || true
+
+      # 第二步：正式运行测试
       - name: Run GUT Tests
         run: |
           godot --headless --path Afternoon_algebra/coding -s res://addons/gut/gut_cmdln.gd
