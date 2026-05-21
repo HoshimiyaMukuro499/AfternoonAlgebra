@@ -133,3 +133,19 @@ func _on_state_changed(new_state):
 				message_label.text = "红球：请选择方向 (点击相邻格子)"
 		GameManager.TurnState.EXECUTING:
 			message_label.text = "移动中..."
+extends CanvasLayer
+
+var turn_label: Label
+var message_label: Label
+
+func _ready():
+	turn_label = $UIContainer/TurnLabel
+	message_label = $UIContainer/MessageLabel
+
+func update_turn(text: String):
+	if turn_label:
+		turn_label.text = text
+
+func update_message(text: String):
+	if message_label:
+		message_label.text = text
