@@ -18,15 +18,23 @@ jobs:
       - name: Setup Godot
         uses: chickensoft-games/setup-godot@v2
         with:
-          version: 4.2.1 # 建议先用 4.2.1 稳定版试试，你的 4.6 可能是某个特殊版本
+          # 保持使用你的 4.6.2 版本
+          version: 4.6.2
 
-      # 【关键的一步】：初次导入资源
-      # 这会生成 .godot 文件夹并注册所有 class_name
+      # 关键步骤 1：屏蔽 GUT 的 UI 部分（这些是导致 Parse Error 的元凶）
+      # 我们在 CI 里不需要 GUT 的编辑器界面，创建一个 .gdignore 文件让 Godot 忽略这个文件夹
+      - name: Skip GUT UI Parsing
+        run: |
+          touch Afternoon_algebra/coding/addons/gut/gui/.gdignore
+
+      # 关键步骤 2：强制多次导入
+      # Godot 4 有时需要运行两次才能正确识别所有 class_name
       - name: Import Assets
         run: |
-          godot --headless --path Afternoon_algebra/coding --editor --quit || true
+          godot --headless --path Afternoon_algebra/coding --editor --quit --display-driver dummy || true
+          godot --headless --path Afternoon_algebra/coding --editor --quit --display-driver dummy || true
 
-      # 第二步：正式运行测试
+      # 关键步骤 3：正式运行测试
       - name: Run GUT Tests
         run: |
-          godot --headless --path Afternoon_algebra/coding -s res://addons/gut/gut_cmdln.gd
+          godot --headless --path Afternoon_algebra/coding -s res://addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs -gexit
