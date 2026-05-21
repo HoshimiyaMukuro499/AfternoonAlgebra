@@ -15,12 +15,17 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Run GUT Tests
-        # 使用官方 GUT Action
-        uses: bitwes/gut-action@v2.1.0
+      # 第一步：安装 Godot 4.6.2
+      - name: Setup Godot
+        uses: chickensoft-games/setup-godot@v2
         with:
-          # 根据你的实际 Godot 版本修改，例如 '4.2.1'
-          godot_version: '4.2.6'
-          godot_4: true
-          # 【重要】告诉 Action 你的项目在子文件夹里
-          path: "Afternoon_algebra/coding"
+          # 填入你截图中的版本号
+          version: 4.6.2
+          # 如果 4.6.2 是官方版本，它会自动下载；
+          # 如果它是自定义版本，Action 可能会报错，到时候我们需要换一种下载方式。
+          # 但目前先按这个填。
+
+      # 第二步：直接通过命令行运行 GUT
+      - name: Run GUT Tests
+        run: |
+          godot --headless --path Afternoon_algebra/coding -s res://addons/gut/gut_cmdln.gd
