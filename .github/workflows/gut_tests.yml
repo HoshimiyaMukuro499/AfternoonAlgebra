@@ -17,7 +17,7 @@ jobs:
 
       - name: Run GUT Tests
         # 使用官方 GUT Action
-        uses: bitwes/gut-action@v2.3.0
+        uses: bitwes/gut-action@v2.1.0
         with:
           # 根据你的实际 Godot 版本修改，例如 '4.2.1'
           godot_version: '4.2.6'
