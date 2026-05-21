@@ -1,23 +1,11 @@
 extends CanvasLayer
 
 # 节点引用
-var turn_label: Label
-var message_label: Label
-var background_panel: Panel
+@onready var turn_label: Label = $UIContainer/Background/VBoxContainer/TurnLabel
+@onready var message_label: Label = $UIContainer/Background/VBoxContainer/MessageLabel
+@onready var background_panel: Panel = $UIContainer/Background
 
 func _ready():
-	# 获取场景中已有的节点，添加错误检查
-	turn_label = get_node_or_null("UIContainer/Background/VBoxContainer/TurnLabel")
-	message_label = get_node_or_null("UIContainer/Background/VBoxContainer/MessageLabel")
-	background_panel = get_node_or_null("UIContainer/Background")
-	
-	if not turn_label:
-		push_error("UI.gd: 找不到 TurnLabel 节点")
-	if not message_label:
-		push_error("UI.gd: 找不到 MessageLabel 节点")
-	if not background_panel:
-		push_error("UI.gd: 找不到 Background 节点")
-	
 	# 连接信号
 	var gm = _find_game_manager()
 	if gm:
