@@ -17,6 +17,11 @@ func _ready():
 		_on_state_changed(gm.current_state)
 
 func _build_ui():
+	# 加载自定义字体
+	var custom_font_data = load("res://HYPixel11pxU-2.ttf")
+	var custom_font = FontFile.new()
+	custom_font.font_data = custom_font_data
+	
 	# 创建容器 Control（用于自适应布局）
 	var container = Control.new()
 	container.name = "UIContainer"
@@ -63,10 +68,8 @@ func _build_ui():
 	turn_label.offset_right = -10
 	turn_label.offset_bottom = 40
 	# 设置字体样式
-	var font = ThemeDB.fallback_font
-	var font_size = 20
-	turn_label.add_theme_font_override("font", font)
-	turn_label.add_theme_font_size_override("font_size", font_size)
+	turn_label.add_theme_font_override("font", custom_font)
+	turn_label.add_theme_font_size_override("font_size", 32)
 	turn_label.add_theme_color_override("font_color", Color.WHITE)
 	turn_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	turn_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -83,8 +86,8 @@ func _build_ui():
 	message_label.offset_top = 50
 	message_label.offset_right = -10
 	message_label.offset_bottom = 80
-	message_label.add_theme_font_override("font", font)
-	message_label.add_theme_font_size_override("font_size", 16)
+	message_label.add_theme_font_override("font", custom_font)
+	message_label.add_theme_font_size_override("font_size", 32)
 	message_label.add_theme_color_override("font_color", Color(1, 1, 0.8))
 	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	message_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
