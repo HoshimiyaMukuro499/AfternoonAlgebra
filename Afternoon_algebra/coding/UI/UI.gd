@@ -22,8 +22,8 @@ func _build_ui():
 	var custom_font = FontFile.new()
 	custom_font.font_data = custom_font_data
 	
-	# 创建容器 Control（用于自适应布局）
-	var container = Control.new()
+	# 创建容器 VBoxContainer（自动垂直排列子节点）
+	var container = VBoxContainer.new()
 	container.name = "UIContainer"
 	container.anchor_left = 0.0
 	container.anchor_top = 0.0
@@ -31,21 +31,17 @@ func _build_ui():
 	container.anchor_bottom = 0.0
 	container.offset_left = 10
 	container.offset_top = 10
-	container.offset_right = 300
-	container.offset_bottom = 120
+	container.size_flags_horizontal = SIZE_SHRINK_BEGIN
+	container.size_flags_vertical = SIZE_SHRINK_BEGIN
 	add_child(container)
 	
-	# 创建背景面板
+	# 创建背景面板（填充容器）
 	background_panel = Panel.new()
 	background_panel.name = "Background"
 	background_panel.anchor_left = 0.0
 	background_panel.anchor_top = 0.0
 	background_panel.anchor_right = 1.0
 	background_panel.anchor_bottom = 1.0
-	background_panel.offset_left = -5
-	background_panel.offset_top = -5
-	background_panel.offset_right = 5
-	background_panel.offset_bottom = 5
 	# 设置半透明黑色背景
 	var style = StyleBoxFlat.new()
 	style.bg_color = Color(0, 0, 0, 0.6)
@@ -66,12 +62,14 @@ func _build_ui():
 	turn_label.offset_left = 10
 	turn_label.offset_top = 10
 	turn_label.offset_right = -10
-	turn_label.offset_bottom = 40
+	turn_label.offset_bottom = -10
 	# 设置字体样式
 	turn_label.add_theme_font_override("normal_font", custom_font)
 	turn_label.add_theme_font_size_override("normal_font_size", 32)
 	turn_label.add_theme_color_override("default_color", Color.WHITE)
 	turn_label.bbcode_enabled = true
+	turn_label.fit_content_height = true
+	turn_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	container.add_child(turn_label)
 	
 	# 创建消息标签（使用 RichTextLabel 以支持 BBCode）
@@ -82,13 +80,15 @@ func _build_ui():
 	message_label.anchor_right = 1.0
 	message_label.anchor_bottom = 0.0
 	message_label.offset_left = 10
-	message_label.offset_top = 50
+	message_label.offset_top = 10
 	message_label.offset_right = -10
-	message_label.offset_bottom = 80
+	message_label.offset_bottom = -10
 	message_label.add_theme_font_override("normal_font", custom_font)
 	message_label.add_theme_font_size_override("normal_font_size", 32)
 	message_label.add_theme_color_override("default_color", Color(1, 1, 0.8))
 	message_label.bbcode_enabled = true
+	message_label.fit_content_height = true
+	message_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	container.add_child(message_label)
 
 func _find_game_manager() -> GameManager:
