@@ -5,6 +5,7 @@ signal state_changed(new_state)
 
 var hex_grid: HexGrid2D
 var all_marbles: Array[Marble2D] = []
+var ui: CanvasLayer
 
 enum TurnState {
 	IDLE,
@@ -62,23 +63,24 @@ func _adjust_marble_visuals():
 
 func _init_ui():
 	# 查找或创建 UI 节点
-	var ui = get_node_or_null("UI")
+	var ui_node = get_node_or_null("UI")
 	var need_add_child = false
-	if not ui:
-		ui = CanvasLayer.new()
-		ui.name = "UI"
+	if not ui_node:
+		ui_node = CanvasLayer.new()
+		ui_node.name = "UI"
 		need_add_child = true
 	
 	# 确保 UI 挂载了 UI.gd 脚本
-	if ui.get_script() == null:
+	if ui_node.get_script() == null:
 		var ui_script = load("res://UI/UI.gd")
 		if ui_script:
-			ui.set_script(ui_script)
+			ui_node.set_script(ui_script)
 	
 	if need_add_child:
-		add_child(ui)
+		add_child(ui_node)
 	
-	# UI.gd 的 _ready() 会创建所有子节点，不再需要手动创建 Label
+	# 保存引用以便后续使用
+	ui = ui_node
 
 func start_turn():
 	current_state = TurnState.IDLE
