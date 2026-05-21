@@ -41,11 +41,6 @@ func _ready():
 	# 初始化 UI
 	_init_ui()
 	
-	# 手动连接 UI 信号（确保 UI 已准备好）
-	if ui:
-		if not ui.is_connected("state_changed", _on_state_changed):
-			ui.connect("state_changed", _on_state_changed)
-	
 	randomize()
 	current_team = MarbleConst.Camp.RED if randi() % 2 == 0 else MarbleConst.Camp.BLUE
 	start_turn()
