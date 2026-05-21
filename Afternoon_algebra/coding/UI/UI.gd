@@ -1,7 +1,7 @@
 extends CanvasLayer
 
-var turn_label: RichTextLabel
-var message_label: RichTextLabel
+var turn_label: Label
+var message_label: Label
 var background_panel: Panel
 
 func _ready():
@@ -52,8 +52,8 @@ func _build_ui():
 	background_panel.add_theme_stylebox_override("panel", style)
 	container.add_child(background_panel)
 	
-	# 创建回合标签（使用 RichTextLabel 以支持 BBCode）
-	turn_label = RichTextLabel.new()
+	# 创建回合标签
+	turn_label = Label.new()
 	turn_label.name = "TurnLabel"
 	turn_label.anchor_left = 0.0
 	turn_label.anchor_top = 0.0
@@ -64,15 +64,15 @@ func _build_ui():
 	turn_label.offset_right = -10
 	turn_label.offset_bottom = 50
 	# 设置字体样式
-	turn_label.add_theme_font_override("normal_font", custom_font)
-	turn_label.add_theme_font_size_override("normal_font_size", 32)
-	turn_label.add_theme_color_override("default_color", Color.WHITE)
-	turn_label.bbcode_enabled = true
-	turn_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	turn_label.add_theme_font_override("font", custom_font)
+	turn_label.add_theme_font_size_override("font_size", 32)
+	turn_label.add_theme_color_override("font_color", Color.WHITE)
+	turn_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	turn_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	container.add_child(turn_label)
 	
-	# 创建消息标签（使用 RichTextLabel 以支持 BBCode）
-	message_label = RichTextLabel.new()
+	# 创建消息标签
+	message_label = Label.new()
 	message_label.name = "MessageLabel"
 	message_label.anchor_left = 0.0
 	message_label.anchor_top = 0.0
@@ -82,11 +82,11 @@ func _build_ui():
 	message_label.offset_top = 60
 	message_label.offset_right = -10
 	message_label.offset_bottom = -10
-	message_label.add_theme_font_override("normal_font", custom_font)
-	message_label.add_theme_font_size_override("normal_font_size", 32)
-	message_label.add_theme_color_override("default_color", Color(1, 1, 0.8))
-	message_label.bbcode_enabled = true
-	message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	message_label.add_theme_font_override("font", custom_font)
+	message_label.add_theme_font_size_override("font_size", 32)
+	message_label.add_theme_color_override("font_color", Color(1, 1, 0.8))
+	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	message_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	container.add_child(message_label)
 
 func _find_game_manager() -> GameManager:
@@ -113,9 +113,9 @@ func update_turn_display(gm: GameManager):
 		return
 	var team_name = ""
 	if gm.current_team == MarbleConst.Camp.RED:
-		team_name = "[color=red]红方[/color]"
+		team_name = "红方"
 	else:
-		team_name = "[color=blue]蓝方[/color]"
+		team_name = "蓝方"
 	turn_label.text = "当前回合: " + team_name
 
 func _on_state_changed(new_state):
