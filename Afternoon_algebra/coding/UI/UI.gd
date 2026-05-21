@@ -31,8 +31,8 @@ func _build_ui():
 	container.anchor_bottom = 0.0
 	container.offset_left = 10
 	container.offset_top = 10
-	container.size_flags_horizontal = SIZE_SHRINK_BEGIN
-	container.size_flags_vertical = SIZE_SHRINK_BEGIN
+	container.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	container.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	add_child(container)
 	
 	# 创建背景面板（填充容器）
