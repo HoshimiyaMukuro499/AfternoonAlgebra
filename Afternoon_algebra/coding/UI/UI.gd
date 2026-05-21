@@ -73,6 +73,7 @@ func _build_ui():
 	turn_label.add_theme_color_override("font_color", Color.WHITE)
 	turn_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	turn_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	turn_label.bbcode_enabled = true
 	container.add_child(turn_label)
 	
 	# 创建消息标签
@@ -105,7 +106,11 @@ func _find_game_manager() -> GameManager:
 func update_turn_display(gm: GameManager):
 	if not turn_label:
 		return
-	var team_name = "红方" if gm.current_team == MarbleConst.Camp.RED else "蓝方"
+	var team_name = ""
+	if gm.current_team == MarbleConst.Camp.RED:
+		team_name = "[color=red]红方[/color]"
+	else:
+		team_name = "[color=blue]蓝方[/color]"
 	turn_label.text = "当前回合: " + team_name
 
 func _on_state_changed(new_state):
