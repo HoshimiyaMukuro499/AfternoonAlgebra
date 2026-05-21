@@ -89,7 +89,11 @@ func start_turn():
 	red_total_steps = 0
 	red_current_step_index = 0
 	turn_number += 1
-	print("第 %d 回合，%s 方行动" % [turn_number, "红" if current_team == MarbleConst.Camp.RED else "蓝"])
+	var turn_text = "第 %d 回合，%s 方行动" % [turn_number, "红" if current_team == MarbleConst.Camp.RED else "蓝"]
+	print(turn_text)
+	if ui:
+		ui.update_turn(turn_text)
+		ui.update_message("请点击己方弹珠")
 	state_changed.emit(current_state)
 
 func select_marble(marble):

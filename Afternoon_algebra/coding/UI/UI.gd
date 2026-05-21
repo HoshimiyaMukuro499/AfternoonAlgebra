@@ -98,6 +98,14 @@ func _find_game_manager() -> GameManager:
 		parent = parent.get_parent()
 	return null
 
+func update_turn(text: String):
+	if turn_label:
+		turn_label.text = text
+
+func update_message(text: String):
+	if message_label:
+		message_label.text = text
+
 func update_turn_display(gm: GameManager):
 	if not turn_label:
 		return
