@@ -177,15 +177,12 @@ func _red_execute_move():
 		RedMarbleHelper.move_with_step_directions(selected_marble, red_step_directions, red_total_steps)
 		selected_marble.on_after_move(red_step_directions[0] if red_step_directions.size() > 0 else 0, red_total_steps, selected_marble.is_alive)
 		selected_marble.unhighlight()
+	
+	# 在不处于场景树中的测试环境里，同步执行后续逻辑
 	if is_inside_tree():
 		await get_tree().create_timer(0.5).timeout
-	var winner = _check_victory()
-	if winner != -1:
-		_on_victory(winner)
-		return
-	# 切换回合
-	current_team = MarbleConst.Camp.BLUE if current_team == MarbleConst.Camp.RED else MarbleConst.Camp.RED
-	start_turn()
+	
+	_finish_turn()
 
 func select_power(power: int):
 	if current_state != TurnState.DIRECTION_SELECTED or current_state == TurnState.VICTORY: return
@@ -197,7 +194,15 @@ func execute_move():
 	state_changed.emit(current_state)
 	if selected_marble and selected_marble.is_alive:
 		selected_marble.move(selected_direction, selected_power)
-	await get_tree().create_timer(0.5).timeout
+	
+	# 在不处于场景树中的测试环境里，同步执行后续逻辑
+	if is_inside_tree():
+		await get_tree().create_timer(0.5).timeout
+	
+	_finish_turn()
+
+# 提取回合结束公共逻辑，方便测试和代码复用
+func _finish_turn():
 	var winner = _check_victory()
 	if winner != -1:
 		_on_victory(winner)
