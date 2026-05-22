@@ -3,6 +3,7 @@ extends CanvasLayer
 var turn_label: Label
 var message_label: Label
 var background_panel: Panel
+var team_label: Label
 
 func _ready():
 	# 创建UI结构
@@ -32,7 +33,7 @@ func _build_ui():
 	container.offset_left = 10
 	container.offset_top = 10
 	container.offset_right = 400
-	container.offset_bottom = 150
+	container.offset_bottom = 200
 	add_child(container)
 	
 	# 创建背景面板（填充容器）
@@ -71,6 +72,23 @@ func _build_ui():
 	turn_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	container.add_child(turn_label)
 	
+	# 创建阵营标签
+	team_label = Label.new()
+	team_label.name = "TeamLabel"
+	team_label.anchor_left = 0.0
+	team_label.anchor_top = 0.0
+	team_label.anchor_right = 1.0
+	team_label.anchor_bottom = 0.0
+	team_label.offset_left = 10
+	team_label.offset_top = 60
+	team_label.offset_right = -10
+	team_label.offset_bottom = 100
+	team_label.add_theme_font_override("font", custom_font)
+	team_label.add_theme_font_size_override("font_size", 32)
+	team_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	team_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	container.add_child(team_label)
+	
 	# 创建消息标签
 	message_label = Label.new()
 	message_label.name = "MessageLabel"
@@ -79,7 +97,7 @@ func _build_ui():
 	message_label.anchor_right = 1.0
 	message_label.anchor_bottom = 0.0
 	message_label.offset_left = 10
-	message_label.offset_top = 60
+	message_label.offset_top = 110
 	message_label.offset_right = -10
 	message_label.offset_bottom = -10
 	message_label.add_theme_font_override("font", custom_font)
@@ -109,14 +127,19 @@ func update_message(text: String):
 		push_error("UI.gd: message_label 为 null，无法更新消息")
 
 func update_turn_display(gm: GameManager):
-	if not turn_label:
+	if not turn_label or not team_label:
 		return
 	var team_name = ""
+	var team_color = Color.WHITE
 	if gm.current_team == MarbleConst.Camp.RED:
 		team_name = "红方"
+		team_color = Color.RED
 	else:
 		team_name = "蓝方"
-	turn_label.text = "当前回合: " + team_name
+		team_color = Color.BLUE
+	turn_label.text = "第 %d 回合行动：" % gm.turn_number
+	team_label.text = team_name
+	team_label.add_theme_color_override("font_color", team_color)
 
 func _on_state_changed(new_state):
 	if not message_label:
