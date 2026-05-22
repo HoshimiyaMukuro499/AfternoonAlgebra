@@ -108,7 +108,15 @@ func continue_move(steps: int, direction: int) -> void:
 
 # ---------- 核心逐格移动逻辑（私有） ----------
 # 返回值：是否成功完成全部步数（未中途死亡）
+var _recursion_depth: int = 0
+
 func _move_step_by_step(direction: int, steps: int) -> bool:
+	# 防止无限递归
+	if _recursion_depth > 10:
+		push_error("递归深度超过限制，强制停止移动")
+		return false
+	_recursion_depth += 1
+	
 	var remaining = steps
 	var current = hex_coord if hex_coord != Vector2.ZERO else hex_grid.get_marble_hex(self)
 	
@@ -119,6 +127,7 @@ func _move_step_by_step(direction: int, steps: int) -> bool:
 		# 1. 边界检查：超出棋盘半径则死亡
 		if hex_grid.is_out_of_bounds(next.x, next.y):
 			die()
+			_recursion_depth -= 1
 			return false
 		
 		# 2. 检查目标格子是否有其他弹珠
@@ -143,6 +152,8 @@ func _move_step_by_step(direction: int, steps: int) -> bool:
 			hex_coord = current   # 更新缓存坐标
 			# 每移动一步后的钩子（例如绿球推挤可在此触发）
 			on_step_moved(current)
+	
+	_recursion_depth -= 1
 	return true
 
 
