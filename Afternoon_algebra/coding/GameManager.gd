@@ -29,6 +29,10 @@ var red_current_step_index: int = 0
 func _ready():
 	hex_grid = $HexGrid2D
 	
+	# 将棋盘居中
+	var screen_size = get_viewport().get_visible_rect().size
+	hex_grid.position = Vector2(screen_size.x / 2, screen_size.y / 2)
+	
 	# 清理场景中的旧测试弹珠
 	if has_node("Marble_Rigid"):
 		$Marble_Rigid.queue_free()
