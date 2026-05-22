@@ -235,9 +235,6 @@ func on_after_move(direction: int, steps: int, success: bool) -> void:
     # 清理蓝球随从（如果有）
     if temp_followers.size() > 0:
         BlueMarbleHelper.clear_followers(self, temp_followers)
-    # 清理蓝球随从（如果有）
-    if temp_followers.size() > 0:
-        BlueMarbleHelper.clear_followers(self, temp_followers)
 
 # 每移动一步后调用（绿球推挤可用）
 func on_step_moved(new_hex: Vector2) -> void:
