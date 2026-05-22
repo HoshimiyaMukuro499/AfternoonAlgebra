@@ -27,8 +27,6 @@ var hex_coord: Vector2 = Vector2.ZERO
 var is_highlighted: bool = false
 var label_index: int = 0
 var _label_node: Label = null
-var label_index: int = 0
-var _label_node: Label = null
 
 
 func _ready() -> void:
