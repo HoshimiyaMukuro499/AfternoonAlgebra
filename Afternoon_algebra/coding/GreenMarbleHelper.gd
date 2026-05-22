@@ -13,7 +13,8 @@ extends RefCounted
 
 # 推挤相邻格子的弹珠（同时结算）
 static func push_neighbors(marble: Marble2D, push_range: int) -> void:
-	var current_hex = marble.get_current_hex()
+	# 直接从棋盘获取绿球当前坐标，避免缓存未更新的问题
+	var current_hex = marble.hex_grid.get_marble_hex(marble)
 	# 存储推挤数据：{ marble, from_hex, to_hex, will_die }
 	var pushes: Array[Dictionary] = []
 	
@@ -43,7 +44,7 @@ static func push_neighbors(marble: Marble2D, push_range: int) -> void:
 			"will_die": will_die,
 			"blocked": blocked
 		})
-	
+	3
 	# 第二步：同时执行所有推挤（不依赖中间状态）
 	for push in pushes:
 		var pushed: Marble2D = push.marble

@@ -24,6 +24,7 @@ var turn_number: int = 0
 var red_step_directions: Array[int] = []
 var red_total_steps: int = 0
 var red_current_step_index: int = 0
+var red_moved_steps: int = 0
 
 func _ready():
 	hex_grid = $HexGrid2D
@@ -102,6 +103,7 @@ func start_turn():
 	red_step_directions = []
 	red_total_steps = 0
 	red_current_step_index = 0
+	red_moved_steps = 0
 	turn_number += 1
 	print("第 %d 回合，%s 方行动" % [turn_number, "红" if current_team == MarbleConst.Camp.RED else "蓝"])
 	state_changed.emit(current_state)
@@ -137,6 +139,10 @@ func red_select_power(power: int):
 	red_total_steps = power
 	red_step_directions = []
 	red_current_step_index = 0
+	red_moved_steps = 0
+	# 调用移动前钩子（方向暂时用0，后续每步会更新）
+	if selected_marble.is_alive:
+		selected_marble.on_before_move(0, power)
 	current_state = TurnState.RED_DIRECTION_PICKING
 	print("红球：请选择第 1 步的方向（点击相邻格子）")
 	state_changed.emit(current_state)
@@ -149,26 +155,39 @@ func red_append_direction(direction: int):
 	red_step_directions.append(direction)
 	red_current_step_index += 1
 	
-	if red_current_step_index >= red_total_steps:
-		# 方向选满，执行移动
-		print("红球方向已选满，开始移动")
-		_red_execute_move()
+	# 执行一步移动
+	var success = _red_execute_single_step(direction)
+	
+	if not success:
+		# 移动失败（死亡），结束回合
+		_red_finish_turn()
+		return
+	
+	red_moved_steps += 1
+	
+	if red_moved_steps >= red_total_steps or not selected_marble.is_alive:
+		# 所有步数完成或死亡，结束回合
+		_red_finish_turn()
 	else:
-		print("红球：请选择第 %d 步的方向（点击相邻格子）" % (red_current_step_index + 1))
+		print("红球：请选择第 %d 步的方向（点击相邻格子）" % (red_moved_steps + 1))
 		state_changed.emit(current_state)
 
 # 红球执行移动（传入方向列表）
-func _red_execute_move():
+func _red_execute_single_step(direction: int) -> bool:
+	if not selected_marble or not selected_marble.is_alive:
+		return false
+	var success = selected_marble._move_step_by_step(direction, 1)
+	return success
+
+func _red_finish_turn():
 	current_state = TurnState.EXECUTING
 	state_changed.emit(current_state)
-	if selected_marble and selected_marble.is_alive:
-		selected_marble.on_before_move(red_step_directions[0] if red_step_directions.size() > 0 else 0, red_total_steps)
-		RedMarbleHelper.move_with_step_directions(selected_marble, red_step_directions, red_total_steps)
-		selected_marble.on_after_move(red_step_directions[0] if red_step_directions.size() > 0 else 0, red_total_steps, selected_marble.is_alive)
+	
+	if selected_marble and is_instance_valid(selected_marble):
+		var last_dir = red_step_directions[-1] if red_step_directions.size() > 0 else 0
+		selected_marble.on_after_move(last_dir, red_total_steps, selected_marble.is_alive)
 		selected_marble.unhighlight()
-	if is_inside_tree():
-		await get_tree().create_timer(0.5).timeout
-	# 切换回合
+	
 	current_team = MarbleConst.Camp.BLUE if current_team == MarbleConst.Camp.RED else MarbleConst.Camp.RED
 	start_turn()
 
@@ -198,6 +217,7 @@ func cancel_selection():
 		red_step_directions = []
 		red_total_steps = 0
 		red_current_step_index = 0
+		red_moved_steps = 0
 		current_state = TurnState.IDLE
 		print("已取消选择")
 		state_changed.emit(current_state)
