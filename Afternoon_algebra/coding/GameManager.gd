@@ -106,8 +106,7 @@ func start_turn():
 	var turn_text = "第 %d 回合，%s 方行动" % [turn_number, "红" if current_team == MarbleConst.Camp.RED else "蓝"]
 	print(turn_text)
 	if ui:
-		ui.update_turn(turn_text)
-		ui.update_message("请点击己方弹珠")
+		ui.update_turn_display(self)
 	state_changed.emit(current_state)
 
 func select_marble(marble):
