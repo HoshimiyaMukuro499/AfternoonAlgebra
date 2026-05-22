@@ -81,9 +81,13 @@ static func _create_marble(color: int, camp: int) -> Marble2D:
 		collision.shape = shape
 		marble.add_child(collision)
 	
-	marble.color = color
-	marble.camp = camp
-	marble.is_alive = true
+	# 确保 marble 是 Marble2D 类型
+	if marble is Marble2D:
+		marble.color = color
+		marble.camp = camp
+		marble.is_alive = true
+	else:
+		push_error("BoardInitializer: 创建弹珠失败，类型错误")
 	
 	return marble
 
