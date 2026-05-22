@@ -1,21 +1,22 @@
-[gd_scene format=3 uid="uid://74bhbny8ym4a"]
+[gd_scene format=3 uid="uid://bomtddmse766q"]
 
-[ext_resource type="Script" uid="uid://or3yeule5hx8" path="res://red_marble.gd" id="1_fs1lr"]
-[ext_resource type="Texture2D" uid="uid://cvslydebirwfe" path="res://51aaad4f97bb00788f135d0f723e824b.png" id="2_gbpcq"]
+[ext_resource type="Script" uid="uid://or3yeule5hx8" path="res://red_marble.gd" id="1_2hpm7"]
+[ext_resource type="Texture2D" uid="uid://cvslydebirwfe" path="res://51aaad4f97bb00788f135d0f723e824b.png" id="2_ut57a"]
 
-[sub_resource type="SphereMesh" id="SphereMesh_yaehf"]
+[sub_resource type="SphereMesh" id="SphereMesh_272bh"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_074og"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_5vw27"]
 
-[node name="RedMarble" type="Area2D" unique_id=871767466 groups=["marbles"]]
-script = ExtResource("1_fs1lr")
+[node name="RedMarble" type="Area2D" groups=["marbles"]]
+script = ExtResource("1_2hpm7")
+color = 3
 
-[node name="Mesh" type="MeshInstance2D" parent="." unique_id=1237670505]
-mesh = SubResource("SphereMesh_yaehf")
+[node name="Mesh" type="MeshInstance2D" parent="."]
+mesh = SubResource("SphereMesh_272bh")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1256379769]
-shape = SubResource("CircleShape2D_074og")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_5vw27")
 
-[node name="Sprite" type="Sprite2D" parent="." unique_id=657422486]
+[node name="Sprite" type="Sprite2D" parent="."]
 scale = Vector2(0.01, 0.01)
-texture = ExtResource("2_gbpcq")
+texture = ExtResource("2_ut57a")

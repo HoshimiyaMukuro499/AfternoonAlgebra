@@ -2,19 +2,8 @@
 
 [ext_resource type="Script" uid="uid://bmes0p5f4xlb2" path="res://InputHandler.gd" id="1_1bvp3"]
 [ext_resource type="Script" uid="uid://dw76x6xynmui5" path="res://GameManager.gd" id="1_lquwl"]
-[ext_resource type="Script" uid="uid://rxongw37k117" path="res://Marble2D.gd" id="2_7mycd"]
-[ext_resource type="PackedScene" uid="uid://ibkdkn0j4cgh" path="res://white_marble.tscn" id="3_2cqfq"]
-[ext_resource type="PackedScene" uid="uid://dnfxg8qiu2u5w" path="res://blue_marble.tscn" id="4_efxa6"]
 [ext_resource type="Script" uid="uid://b8ugwsr7b2cbf" path="res://hex_grid_2d.gd" id="5_7mycd"]
-[ext_resource type="PackedScene" uid="uid://dfr7o62tqv6ft" path="res://green_marble.tscn" id="5_dg77c"]
-[ext_resource type="PackedScene" uid="uid://74bhbny8ym4a" path="res://red_marble.tscn" id="6_ycdy4"]
 [ext_resource type="Script" uid="uid://gji5k7jtkidb" path="res://hex_grid_drawer.gd" id="7_272bh"]
-[ext_resource type="PackedScene" uid="uid://blt048pljsbtk" path="res://black_marble.tscn" id="7_w48qg"]
-[ext_resource type="PackedScene" uid="uid://ds273ll2eo81n" path="res://yellow_marble.tscn" id="8_vivmo"]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_efxa6"]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_dg77c"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_h2yge"]
 size = Vector2(20, 20)
@@ -25,7 +14,7 @@ size = Vector2(20, 20)
 script = ExtResource("1_lquwl")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=433658316]
-position = Vector2(301, 195.00002)
+position = Vector2(961.99994, 534)
 scale = Vector2(1, 0.8660254)
 
 [node name="DirectionalLight2D" type="DirectionalLight2D" parent="." unique_id=1789863138]
@@ -33,40 +22,13 @@ position = Vector2(12, 24)
 scale = Vector2(0.8660254, 0.6614378)
 skew = 0.7137245
 
-[node name="Marble_Rigid" type="Area2D" parent="." unique_id=2001200297]
-position = Vector2(-59, 22)
-
-[node name="Marble" type="Area2D" parent="Marble_Rigid" unique_id=255752409]
-position = Vector2(-62, 74.7)
-script = ExtResource("2_7mycd")
-
-[node name="WhiteMarble" parent="Marble_Rigid/Marble" unique_id=528923663 instance=ExtResource("3_2cqfq")]
-position = Vector2(51, 113.3)
-
-[node name="BlueMarble" parent="Marble_Rigid/Marble" unique_id=1712787069 instance=ExtResource("4_efxa6")]
-position = Vector2(108, 46.7)
-
-[node name="GreenMarble" parent="Marble_Rigid/Marble" unique_id=443029069 instance=ExtResource("5_dg77c")]
-position = Vector2(0, 179.3)
-
-[node name="RedMarble" parent="Marble_Rigid/Marble" unique_id=871767466 instance=ExtResource("6_ycdy4")]
-position = Vector2(-56, 79.3)
-
-[node name="BlackMarble" parent="Marble_Rigid/Marble" unique_id=334069760 instance=ExtResource("7_w48qg")]
-position = Vector2(108, 194.3)
-
-[node name="YellowMarble" parent="Marble_Rigid/Marble" unique_id=286787378 instance=ExtResource("8_vivmo")]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Marble_Rigid/Marble" unique_id=313428640]
-shape = SubResource("CircleShape2D_efxa6")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Marble_Rigid" unique_id=833130983]
-shape = SubResource("CircleShape2D_dg77c")
-
 [node name="HexGrid2D" type="Node2D" parent="." unique_id=1083284442]
-position = Vector2(218, 152)
+position = Vector2(576, 324)
 script = ExtResource("5_7mycd")
-cell_size = 16.0
+cell_size = 32.0
+
+[node name="HexGridDrawer" type="Node2D" parent="HexGrid2D" unique_id=1135638677]
+script = ExtResource("7_272bh")
 
 [node name="Ground" type="StaticBody2D" parent="." unique_id=135017203]
 position = Vector2(303, 112)
@@ -81,23 +43,3 @@ shape = SubResource("RectangleShape2D_efxa6")
 [node name="InputHandler" type="Node2D" parent="." unique_id=1446407286]
 position = Vector2(203, 89)
 script = ExtResource("1_1bvp3")
-
-[node name="HexGridDrawer" type="Node2D" parent="." unique_id=1135638677]
-position = Vector2(302, 194)
-script = ExtResource("7_272bh")
-
-[node name="UI" type="CanvasLayer" parent="." unique_id=453044292]
-
-[node name="MessageLabel" type="Label" parent="UI" unique_id=2125139753]
-offset_left = -557.0
-offset_top = -265.0
-offset_right = -517.0
-offset_bottom = -242.0
-text = "This is Message Label."
-
-[node name="TurnLabel" type="Label" parent="UI" unique_id=1078843421]
-offset_left = -563.0
-offset_top = -306.0
-offset_right = -523.0
-offset_bottom = -283.0
-text = "This is Turn Label."

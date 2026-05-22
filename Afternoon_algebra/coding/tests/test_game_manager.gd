@@ -1,7 +1,7 @@
 # test_game_manager.gd
 # 测试 GameManager 状态机和回合逻辑
 class_name TestGameManager
-extends BaseTest
+extends "res://tests/base_test.gd"
 
 var gm: GameManager
 var grid: HexGrid2D

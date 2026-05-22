@@ -1,6 +1,6 @@
 # BoardInitializer.gd
 class_name BoardInitializer
-extends RefCounted
+extends Node
 
 # 初始化双方弹珠
 static func initialize_board(hex_grid: HexGrid2D) -> Array[Marble2D]:
@@ -40,12 +40,14 @@ static func initialize_board(hex_grid: HexGrid2D) -> Array[Marble2D]:
 	# 创建红方弹珠
 	for i in range(red_positions.size()):
 		var marble = _create_marble(red_colors[i], MarbleConst.Camp.RED)
+		hex_grid.add_child(marble)
 		hex_grid.place_marble(marble, red_positions[i].x, red_positions[i].y)
 		all_marbles.append(marble)
 	
 	# 创建蓝方弹珠
 	for i in range(blue_positions.size()):
 		var marble = _create_marble(blue_colors[i], MarbleConst.Camp.BLUE)
+		hex_grid.add_child(marble)
 		hex_grid.place_marble(marble, blue_positions[i].x, blue_positions[i].y)
 		all_marbles.append(marble)
 	
@@ -67,6 +69,9 @@ static func _create_marble(color: int, camp: int) -> Marble2D:
 		# 添加 Sprite2D 子节点
 		var sprite = Sprite2D.new()
 		sprite.name = "Sprite"
+		var texture = _get_marble_texture(color)
+		if texture:
+			sprite.texture = texture
 		marble.add_child(sprite)
 		
 		# 添加 CollisionShape2D
@@ -76,25 +81,48 @@ static func _create_marble(color: int, camp: int) -> Marble2D:
 		collision.shape = shape
 		marble.add_child(collision)
 	
-	marble.color = color as MarbleConst.MarbleColor
-	marble.camp = camp as MarbleConst.Camp
-	marble.is_alive = true
+	# 确保 marble 是 Marble2D 类型
+	if marble is Marble2D:
+		marble.color = color
+		marble.camp = camp
+		marble.is_alive = true
+	else:
+		push_error("BoardInitializer: 创建弹珠失败，类型错误")
 	
 	return marble
+
+static func _get_marble_texture(color: int) -> Texture2D:
+	var path := ""
+	match color:
+		MarbleConst.MarbleColor.WHITE:
+			path = "res://e38f2b561d3b4729548c49c70ff55bfc_副本.png"
+		MarbleConst.MarbleColor.BLUE:
+			path = "res://72ecbf01174f9811d8d12cb4db99ff12.png"
+		MarbleConst.MarbleColor.GREEN:
+			path = "res://e0b8bb4e61a2c84b61cb88da0639f13f.png"
+		MarbleConst.MarbleColor.RED:
+			path = "res://51aaad4f97bb00788f135d0f723e824b.png"
+		MarbleConst.MarbleColor.BLACK:
+			path = "res://b764655fb551105500b3ff458d9a265f.png"
+		MarbleConst.MarbleColor.YELLOW:
+			path = "res://448f9290e54cf220665a9acb90b58e08.png"
+	if path != "":
+		return load(path)
+	return null
 
 static func _get_marble_scene_path(color: int) -> String:
 	match color:
 		MarbleConst.MarbleColor.WHITE:
-			return "Marble_Rigid/Marble/WhiteMarble"
+			return "res://white_marble.tscn"
 		MarbleConst.MarbleColor.BLUE:
-			return "Marble_Rigid/Marble/BlueMarble"
+			return "res://blue_marble.tscn"
 		MarbleConst.MarbleColor.GREEN:
-			return "Marble_Rigid/Marble/GreenMarble"
+			return "res://green_marble.tscn"
 		MarbleConst.MarbleColor.RED:
-			return "Marble_Rigid/Marble/RedMarble"
+			return "res://red_marble.tscn"
 		MarbleConst.MarbleColor.BLACK:
-			return "Marble_Rigid/Marble/BlackMarble"
+			return "res://black_marble.tscn"
 		MarbleConst.MarbleColor.YELLOW:
-			return "Marble_Rigid/Marble/YellowMarble"
+			return "res://yellow_marble.tscn"
 		_:
 			return ""

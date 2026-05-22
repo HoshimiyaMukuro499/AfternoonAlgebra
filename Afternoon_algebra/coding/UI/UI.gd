@@ -1,27 +1,178 @@
 extends CanvasLayer
 
-@onready var turn_label = $TurnLabel
-@onready var message_label = $MessageLabel
+var turn_label: Label
+var message_label: Label
+var background_panel: Panel
+var team_label: Label
 
 func _ready():
-	var gm = get_node("/root/Main/GameManager")  # 根据你的场景路径调整
+	# 创建UI结构
+	_build_ui()
+	
+	# 连接信号
+	var gm = _find_game_manager()
 	if gm:
-		gm.connect("state_changed", _on_state_changed)
-	update_turn_display(gm)
+		if not gm.is_connected("state_changed", _on_state_changed):
+			gm.connect("state_changed", _on_state_changed)
+		update_turn_display(gm)
+		_on_state_changed(gm.current_state)
 
-func update_turn_display(gm):
-	var team_name = "红方" if gm.current_team == MarbleConst.Camp.RED else "蓝方"
-	turn_label.text = "当前回合: " + team_name
+func _build_ui():
+	# 加载自定义字体
+	var custom_font_data = load("res://HYPixel11pxU-2.ttf")
+	var custom_font = FontFile.new()
+	custom_font.font_data = custom_font_data
+	
+	# 创建容器 Control（固定尺寸）
+	var container = Control.new()
+	container.name = "UIContainer"
+	container.anchor_left = 0.0
+	container.anchor_top = 0.0
+	container.anchor_right = 0.0
+	container.anchor_bottom = 0.0
+	container.offset_left = 10
+	container.offset_top = 10
+	container.offset_right = 400
+	container.offset_bottom = 200
+	add_child(container)
+	
+	# 创建背景面板（填充容器）
+	background_panel = Panel.new()
+	background_panel.name = "Background"
+	background_panel.anchor_left = 0.0
+	background_panel.anchor_top = 0.0
+	background_panel.anchor_right = 1.0
+	background_panel.anchor_bottom = 1.0
+	# 设置半透明黑色背景
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.6)
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_left = 8
+	style.corner_radius_bottom_right = 8
+	background_panel.add_theme_stylebox_override("panel", style)
+	container.add_child(background_panel)
+	
+	# 创建回合标签
+	turn_label = Label.new()
+	turn_label.name = "TurnLabel"
+	turn_label.anchor_left = 0.0
+	turn_label.anchor_top = 0.0
+	turn_label.anchor_right = 1.0
+	turn_label.anchor_bottom = 0.0
+	turn_label.offset_left = 10
+	turn_label.offset_top = 10
+	turn_label.offset_right = -10
+	turn_label.offset_bottom = 50
+	# 设置字体样式
+	turn_label.add_theme_font_override("font", custom_font)
+	turn_label.add_theme_font_size_override("font_size", 32)
+	turn_label.add_theme_color_override("font_color", Color.WHITE)
+	turn_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	turn_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	container.add_child(turn_label)
+	
+	# 创建阵营标签
+	team_label = Label.new()
+	team_label.name = "TeamLabel"
+	team_label.anchor_left = 0.0
+	team_label.anchor_top = 0.0
+	team_label.anchor_right = 1.0
+	team_label.anchor_bottom = 0.0
+	team_label.offset_left = 10
+	team_label.offset_top = 60
+	team_label.offset_right = -10
+	team_label.offset_bottom = 100
+	team_label.add_theme_font_override("font", custom_font)
+	team_label.add_theme_font_size_override("font_size", 32)
+	team_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	team_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	container.add_child(team_label)
+	
+	# 创建消息标签
+	message_label = Label.new()
+	message_label.name = "MessageLabel"
+	message_label.anchor_left = 0.0
+	message_label.anchor_top = 0.0
+	message_label.anchor_right = 1.0
+	message_label.anchor_bottom = 0.0
+	message_label.offset_left = 10
+	message_label.offset_top = 110
+	message_label.offset_right = -10
+	message_label.offset_bottom = -10
+	message_label.add_theme_font_override("font", custom_font)
+	message_label.add_theme_font_size_override("font_size", 32)
+	message_label.add_theme_color_override("font_color", Color(1, 1, 0.8))
+	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	message_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	container.add_child(message_label)
+
+func _find_game_manager() -> GameManager:
+	# 简化查找：直接获取父节点
+	var parent = get_parent()
+	while parent:
+		if parent is GameManager:
+			return parent
+		parent = parent.get_parent()
+	return null
+
+func update_turn(text: String):
+	if turn_label:
+		turn_label.text = text
+
+func update_message(text: String):
+	if message_label:
+		message_label.text = text
+	else:
+		push_error("UI.gd: message_label 为 null，无法更新消息")
+
+func update_turn_display(gm: GameManager):
+	if not turn_label or not team_label:
+		return
+	var team_name = ""
+	var team_color = Color.WHITE
+	if gm.current_team == MarbleConst.Camp.RED:
+		team_name = "红方"
+		team_color = Color.RED
+	else:
+		team_name = "蓝方"
+		team_color = Color.BLUE
+	turn_label.text = "第 %d 回合行动：" % gm.turn_number
+	team_label.text = team_name
+	team_label.add_theme_color_override("font_color", team_color)
+
+func show_victory(team_name: String):
+	if message_label:
+		message_label.text = "%s 获胜！" % team_name
+		message_label.add_theme_color_override("font_color", Color(1, 0.8, 0))  # 金色
 
 func _on_state_changed(new_state):
-	var gm = get_node("/root/Main/GameManager")
-	update_turn_display(gm)
+	if not message_label:
+		return
+	
+	var gm = _find_game_manager()
+	if gm:
+		update_turn_display(gm)
+		
+		# 红球在MARBLE_SELECTED状态下提示选力度
+		if new_state == GameManager.TurnState.MARBLE_SELECTED and gm.selected_marble and gm.selected_marble.color == MarbleConst.MarbleColor.RED:
+			message_label.text = "红球：请选择力度 (按 1~5 键)"
+			return
+	
 	match new_state:
-		gm.IDLE:
+		GameManager.TurnState.IDLE:
 			message_label.text = "请点击己方弹珠"
-		gm.MARBLE_SELECTED:
+		GameManager.TurnState.MARBLE_SELECTED:
 			message_label.text = "请选择移动方向 (点击相邻格子)"
-		gm.DIRECTION_SELECTED:
+		GameManager.TurnState.DIRECTION_SELECTED:
 			message_label.text = "请选择力度 (按 1~5)"
-		gm.EXECUTING:
+		GameManager.TurnState.RED_DIRECTION_PICKING:
+			if gm:
+				message_label.text = "红球：请选择第 %d 步方向 (点击相邻格子)" % (gm.red_current_step_index + 1)
+			else:
+				message_label.text = "红球：请选择方向 (点击相邻格子)"
+		GameManager.TurnState.EXECUTING:
 			message_label.text = "移动中..."
+		GameManager.TurnState.VICTORY:
+			# 胜利信息已在 show_victory 中设置
+			pass

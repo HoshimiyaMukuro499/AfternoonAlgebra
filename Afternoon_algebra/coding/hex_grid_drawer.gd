@@ -12,9 +12,10 @@ extends Node2D
 
 func _ready() -> void:
 	if not hex_grid:
-		# 尝试自动查找兄弟节点中的 HexGrid2D
 		var parent = get_parent()
-		if parent:
+		if parent is HexGrid2D:
+			hex_grid = parent
+		elif parent:
 			hex_grid = parent.get_node_or_null("HexGrid2D")
 	queue_redraw()
 

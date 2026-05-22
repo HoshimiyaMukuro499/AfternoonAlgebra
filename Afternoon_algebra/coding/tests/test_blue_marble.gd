@@ -1,7 +1,7 @@
 # test_blue_marble.gd
 # 测试 BlueMarble 蓝球及随从机制（验证棋盘状态）
 class_name TestBlueMarble
-extends BaseTest
+extends "res://tests/base_test.gd"
 
 const WhiteMarbleScript = preload("res://white_marble.gd")
 
