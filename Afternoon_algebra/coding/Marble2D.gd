@@ -25,6 +25,8 @@ var hex_coord: Vector2 = Vector2.ZERO
 
 # 高亮状态
 var is_highlighted: bool = false
+var label_index: int = 0
+var _label_node: Label = null
 
 
 func _ready() -> void:
@@ -218,3 +220,47 @@ func _update_sprite_color() -> void:
 		MarbleConst.MarbleColor.RED:   s.modulate = Color.RED
 		MarbleConst.MarbleColor.BLACK: s.modulate = Color.BLACK
 		MarbleConst.MarbleColor.YELLOW:s.modulate = Color.YELLOW
+
+# 更新编号标签（由 GameManager 在分配编号后调用）
+func update_label() -> void:
+	if label_index <= 0:
+		return
+	var prefix = "R" if camp == MarbleConst.Camp.RED else "B"
+	var text = "%s%d" % [prefix, label_index]
+	
+	# 如果标签节点不存在则创建
+	if not _label_node:
+		_label_node = Label.new()
+		_label_node.name = "MarbleLabel"
+		_label_node.z_index = 2
+		add_child(_label_node)
+	
+	_label_node.text = text
+	_label_node.clip_text = false
+	_label_node.autowrap_mode = TextServer.AUTOWRAP_OFF
+	
+	# 加载自定义字体
+	var font_path = "res://HYPixel11pxU-2.ttf"
+	if ResourceLoader.exists(font_path):
+		var font_data = load(font_path)
+		var font = FontFile.new()
+		font.font_data = font_data
+		_label_node.add_theme_font_override("font", font)
+		_label_node.add_theme_font_size_override("font_size", 24)
+	
+	# 设置字体颜色
+	var font_color = Color.RED if camp == MarbleConst.Camp.RED else Color.BLUE
+	_label_node.add_theme_color_override("font_color", font_color)
+	
+	# 居中显示
+	var s = _get_sprite_node()
+	if s and s.texture:
+		var tex_size = s.texture.get_size()
+		_label_node.size = tex_size
+		_label_node.position = -tex_size / 2
+	else:
+		_label_node.size = Vector2(64, 64)
+		_label_node.position = Vector2(-32, -32)
+	
+	_label_node.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_label_node.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
