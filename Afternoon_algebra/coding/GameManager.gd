@@ -38,6 +38,18 @@ func _ready():
 		all_marbles = BoardInitializer.initialize_board(hex_grid)
 		_adjust_marble_visuals()
 	
+	# 创建背景
+	var background = ColorRect.new()
+	background.name = "Background"
+	background.color = Color(0.1, 0.1, 0.2)  # 深蓝灰色
+	background.anchor_left = 0.0
+	background.anchor_top = 0.0
+	background.anchor_right = 1.0
+	background.anchor_bottom = 1.0
+	add_child(background)
+	# 将背景移到最底层
+	move_child(background, 0)
+	
 	# 初始化 UI
 	_init_ui()
 	
