@@ -180,21 +180,27 @@ func execute_move():
 	start_turn()
 
 func cancel_selection():
-	if current_state == TurnState.IDLE or current_state == TurnState.EXECUTING: return
+	if current_state == TurnState.IDLE or current_state == TurnState.EXECUTING: 
+		return
 	
 	# 红球逐格选方向模式取消
 	if current_state == TurnState.RED_DIRECTION_PICKING:
 		if selected_marble:
 			selected_marble.unhighlight()
 		selected_marble = null
+		selected_direction = -1   # 添加：重置方向
+		selected_power = 0         # 添加：重置力度
 		red_step_directions = []
 		red_total_steps = 0
 		red_current_step_index = 0
 		current_state = TurnState.IDLE
 		print("已取消选择")
+		if ui:
+			ui.update_message("已取消选择，请点击己方弹珠")
 		state_changed.emit(current_state)
-		return
+		return  # 这里的 return 是正确的，避免执行后面的通用代码
 	
+	# 普通球取消选择
 	if selected_marble:
 		selected_marble.unhighlight()
 	selected_marble = null
@@ -202,4 +208,6 @@ func cancel_selection():
 	selected_power = 0
 	current_state = TurnState.IDLE
 	print("已取消选择")
+	if ui:
+		ui.update_message("已取消选择，请点击己方弹珠")
 	state_changed.emit(current_state)
