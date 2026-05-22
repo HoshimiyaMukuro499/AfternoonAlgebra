@@ -42,6 +42,9 @@ func _ready():
 	if hex_grid:
 		all_marbles = BoardInitializer.initialize_board(hex_grid)
 		_adjust_marble_visuals()
+		# 监听弹珠销毁事件，自动从数组中移除
+		for marble in all_marbles:
+			marble.tree_exited.connect(_on_marble_freed.bind(marble))
 	
 	# 创建背景
 	var background = ColorRect.new()
@@ -240,6 +243,8 @@ func _check_victory() -> int:
 	var red_alive = false
 	var blue_alive = false
 	for marble in all_marbles:
+		if not is_instance_valid(marble):
+			continue
 		if marble.is_alive:
 			if marble.camp == MarbleConst.Camp.RED:
 				red_alive = true
@@ -258,3 +263,14 @@ func _on_victory(winner: int):
 	print("游戏结束，%s 获胜！" % winner_name)
 	if ui:
 		ui.show_victory(winner_name)
+
+func _on_marble_freed(marble: Marble2D):
+	var idx = all_marbles.find(marble)
+	if idx != -1:
+		all_marbles.remove_at(idx)
+
+func remove_marble(marble: Marble2D):
+	# 供外部（如 DeathResolver）调用，手动移除弹珠
+	var idx = all_marbles.find(marble)
+	if idx != -1:
+		all_marbles.remove_at(idx)
