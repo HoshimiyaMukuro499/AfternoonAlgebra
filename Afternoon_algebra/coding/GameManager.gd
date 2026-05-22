@@ -41,7 +41,7 @@ func _ready():
 	# 创建背景
 	var background = ColorRect.new()
 	background.name = "Background"
-	background.color = Color(0.1, 0.1, 0.2)  # 深蓝灰色
+	background.color = Color.WHITE  # 白色背景
 	background.anchor_left = 0.0
 	background.anchor_top = 0.0
 	background.anchor_right = 1.0
