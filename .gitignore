@@ -1,3 +1,6 @@
 .aider*
 .aider.chat.history.md
 .aider.input.history
+
+.continue/
+.aider.tags.cache.v4/cache.db

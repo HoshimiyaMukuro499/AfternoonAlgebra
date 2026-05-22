@@ -6,6 +6,7 @@ extends "res://tests/base_test.gd"
 var gm: GameManager
 var grid: HexGrid2D
 var red_marble: Marble2D
+var blue_marble: Marble2D
 
 func before_each() -> void:
 	gm = GameManager.new()
@@ -24,17 +25,30 @@ func before_each() -> void:
 	red_marble.is_alive = true
 	grid.place_marble(red_marble, 0, 0)
 	
-	gm.all_marbles = [red_marble]
+	# 创建蓝方弹珠（放在远处），防止 _check_victory 误判
+	blue_marble = Marble2D.new()
+	blue_marble.hex_grid = grid
+	blue_marble.hex_coord = Vector2(10, 0)
+	blue_marble.camp = MarbleConst.Camp.BLUE
+	blue_marble.color = MarbleConst.MarbleColor.WHITE
+	blue_marble.is_alive = true
+	grid.place_marble(blue_marble, 10, 0)
+	
 	gm.selected_marble = null
 	gm.current_state = GameManager.TurnState.IDLE
 	gm.red_step_directions = []
 	gm.red_total_steps = 0
 	gm.red_current_step_index = 0
+	# 将双方弹珠添加到 all_marbles，使 _check_victory 判断无人获胜，从而正常切换回合
+	gm.all_marbles = [red_marble, blue_marble]
 
 func after_each() -> void:
 	if red_marble:
 		red_marble.queue_free()
 		red_marble = null
+	if blue_marble:
+		blue_marble.queue_free()
+		blue_marble = null
 	if grid:
 		grid.queue_free()
 		grid = null
@@ -217,6 +231,8 @@ func test_red_move_collision_triggers_continue() -> void:
 	enemy.color = MarbleConst.MarbleColor.WHITE
 	enemy.is_alive = true
 	grid.place_marble(enemy, 1, 0)
+	# 加入 all_marbles 以便后续清理
+	gm.all_marbles.append(enemy)
 	
 	var dirs: Array[int] = [MarbleConst.HexDirection.RIGHT, MarbleConst.HexDirection.RIGHT]
 	var success = RedMarbleHelper.move_with_step_directions(red_marble, dirs, 2)
