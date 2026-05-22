@@ -249,7 +249,7 @@ func update_label() -> void:
 		_label_node.add_theme_font_size_override("font_size", 24)
 	
 	# 设置字体颜色
-	var font_color = Color(1, 0.2, 0.2) if camp == MarbleConst.Camp.RED else Color(0.2, 0.4, 1)
+	var font_color = Color(1, 0.1, 0.1) if camp == MarbleConst.Camp.RED else Color(0.1, 0.3, 1)
 	_label_node.add_theme_color_override("font_color", font_color)
 	
 	# 居中显示
