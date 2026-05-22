@@ -28,6 +28,7 @@ static func push_neighbors(marble: Marble2D, push_range: int) -> void:
 		
 		# 推挤方向：从绿球指向相邻弹珠的方向（即远离绿球的方向）
 		# 目标格子 = 相邻格子 + (相邻格子 - 绿球格子) = 2*相邻格子 - 绿球格子
+		# 但推挤距离应为1格，所以使用方向向量 (neighbor_hex - current_hex) 本身
 		var target_hex = neighbor_hex + (neighbor_hex - current_hex)
 		
 		var will_die = marble.hex_grid.is_out_of_bounds(target_hex.x, target_hex.y)

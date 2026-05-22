@@ -59,7 +59,8 @@ func _try_red_select_direction(pos: Vector2):
 		if pos.distance_to(neighbor_pos) < game_manager.hex_grid.cell_size * 0.8:
 			game_manager.red_append_direction(dir)
 			return
-	# 点击位置不在任何相邻格子，不取消选择（红球需要连续选方向，误触不应取消）
+	# 点击位置不在任何相邻格子，取消选择
+	game_manager.cancel_selection()
 func _try_select_direction(pos: Vector2):
 	if not game_manager.selected_marble:
 		return

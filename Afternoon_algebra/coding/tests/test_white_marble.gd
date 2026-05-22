@@ -23,7 +23,7 @@ func before_each() -> void:
 func after_each() -> void:
 	# 清理可能残留的随从
 	if white and is_instance_valid(white):
-		BlueMarbleHelper.clear_followers(white, white.temp_followers)
+		BlueMarbleHelper.clear_followers(white, [])
 		white.queue_free()
 		white = null
 	if grid:
