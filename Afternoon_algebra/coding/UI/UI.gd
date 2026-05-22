@@ -141,6 +141,11 @@ func update_turn_display(gm: GameManager):
 	team_label.text = team_name
 	team_label.add_theme_color_override("font_color", team_color)
 
+func show_victory(team_name: String):
+	if message_label:
+		message_label.text = "%s 获胜！" % team_name
+		message_label.add_theme_color_override("font_color", Color(1, 0.8, 0))  # 金色
+
 func _on_state_changed(new_state):
 	if not message_label:
 		return
@@ -168,3 +173,6 @@ func _on_state_changed(new_state):
 				message_label.text = "红球：请选择方向 (点击相邻格子)"
 		GameManager.TurnState.EXECUTING:
 			message_label.text = "移动中..."
+		GameManager.TurnState.VICTORY:
+			# 胜利信息已在 show_victory 中设置
+			pass

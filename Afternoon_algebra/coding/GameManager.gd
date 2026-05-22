@@ -12,7 +12,8 @@ enum TurnState {
 	MARBLE_SELECTED,
 	DIRECTION_SELECTED,
 	RED_DIRECTION_PICKING,  # 红球逐格选方向状态
-	EXECUTING
+	EXECUTING,
+	VICTORY
 }
 var current_state = TurnState.IDLE
 var selected_marble = null
@@ -114,7 +115,7 @@ func start_turn():
 	state_changed.emit(current_state)
 
 func select_marble(marble):
-	if current_state != TurnState.IDLE: return
+	if current_state != TurnState.IDLE or current_state == TurnState.VICTORY: return
 	if marble.camp != current_team or not marble.is_alive: return
 	selected_marble = marble
 	selected_marble.highlight()
@@ -129,7 +130,7 @@ func select_marble(marble):
 	state_changed.emit(current_state)
 
 func select_direction(direction: int):
-	if current_state != TurnState.MARBLE_SELECTED: return
+	if current_state != TurnState.MARBLE_SELECTED or current_state == TurnState.VICTORY: return
 	selected_direction = direction
 	current_state = TurnState.DIRECTION_SELECTED
 	print("已选方向，请选择力度")
@@ -137,7 +138,7 @@ func select_direction(direction: int):
 
 # 红球选择力度（步数），然后进入逐格选方向模式
 func red_select_power(power: int):
-	if current_state != TurnState.MARBLE_SELECTED: return
+	if current_state != TurnState.MARBLE_SELECTED or current_state == TurnState.VICTORY: return
 	if selected_marble == null or selected_marble.color != MarbleConst.MarbleColor.RED:
 		return
 	
@@ -150,7 +151,7 @@ func red_select_power(power: int):
 
 # 红球追加一个方向
 func red_append_direction(direction: int):
-	if current_state != TurnState.RED_DIRECTION_PICKING: return
+	if current_state != TurnState.RED_DIRECTION_PICKING or current_state == TurnState.VICTORY: return
 	if selected_marble == null: return
 	
 	red_step_directions.append(direction)
@@ -175,12 +176,16 @@ func _red_execute_move():
 		selected_marble.unhighlight()
 	if is_inside_tree():
 		await get_tree().create_timer(0.5).timeout
+	var winner = _check_victory()
+	if winner != -1:
+		_on_victory(winner)
+		return
 	# 切换回合
 	current_team = MarbleConst.Camp.BLUE if current_team == MarbleConst.Camp.RED else MarbleConst.Camp.RED
 	start_turn()
 
 func select_power(power: int):
-	if current_state != TurnState.DIRECTION_SELECTED: return
+	if current_state != TurnState.DIRECTION_SELECTED or current_state == TurnState.VICTORY: return
 	selected_power = power
 	execute_move()
 
@@ -190,12 +195,16 @@ func execute_move():
 	if selected_marble and selected_marble.is_alive:
 		selected_marble.move(selected_direction, selected_power)
 	await get_tree().create_timer(0.5).timeout
-	# 检查胜负 + 切换回合
+	var winner = _check_victory()
+	if winner != -1:
+		_on_victory(winner)
+		return
+	# 切换回合
 	current_team = MarbleConst.Camp.BLUE if current_team == MarbleConst.Camp.RED else MarbleConst.Camp.RED
 	start_turn()
 
 func cancel_selection():
-	if current_state == TurnState.IDLE or current_state == TurnState.EXECUTING: 
+	if current_state == TurnState.IDLE or current_state == TurnState.EXECUTING or current_state == TurnState.VICTORY: 
 		return
 	
 	# 红球逐格选方向模式取消
@@ -226,3 +235,26 @@ func cancel_selection():
 	if ui:
 		ui.update_message("已取消选择，请点击己方弹珠")
 	state_changed.emit(current_state)
+
+func _check_victory() -> int:
+	var red_alive = false
+	var blue_alive = false
+	for marble in all_marbles:
+		if marble.is_alive:
+			if marble.camp == MarbleConst.Camp.RED:
+				red_alive = true
+			else:
+				blue_alive = true
+	if not red_alive:
+		return MarbleConst.Camp.BLUE
+	if not blue_alive:
+		return MarbleConst.Camp.RED
+	return -1
+
+func _on_victory(winner: int):
+	current_state = TurnState.VICTORY
+	state_changed.emit(current_state)
+	var winner_name = "红方" if winner == MarbleConst.Camp.RED else "蓝方"
+	print("游戏结束，%s 获胜！" % winner_name)
+	if ui:
+		ui.show_victory(winner_name)
