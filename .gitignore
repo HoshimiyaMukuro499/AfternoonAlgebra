@@ -4,3 +4,9 @@
 
 .continue/
 .aider.tags.cache.v4/cache.db
+
+# Obsidian workspace
+.obsidian/
+
+# Aider cache
+.aider.tags.cache.v4/
