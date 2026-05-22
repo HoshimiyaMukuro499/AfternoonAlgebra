@@ -42,6 +42,17 @@ func _ready():
 	if hex_grid:
 		all_marbles = BoardInitializer.initialize_board(hex_grid)
 		_adjust_marble_visuals()
+		# 为每个弹珠分配编号（R1~R6 / B1~B6）
+		var red_count = 0
+		var blue_count = 0
+		for marble in all_marbles:
+			if marble.camp == MarbleConst.Camp.RED:
+				red_count += 1
+				marble.label_index = red_count
+			else:
+				blue_count += 1
+				marble.label_index = blue_count
+			marble.update_label()
 		# 监听弹珠销毁事件，自动从数组中移除
 		for marble in all_marbles:
 			marble.tree_exited.connect(_on_marble_freed.bind(marble))

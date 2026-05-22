@@ -5,7 +5,7 @@ class_name RedMarbleHelper
 extends RefCounted
 
 # 红球逐格移动（支持每步不同方向）
-static func move_with_step_directions(marble: Marble2D, step_dirs: Array[int], total_steps: int) -> bool:
+static func move_with_step_directions(marble: Marble2D, step_dirs: Array, total_steps: int) -> bool:
 	if step_dirs.size() != total_steps:
 		return false
 	

@@ -25,6 +25,8 @@ var hex_coord: Vector2 = Vector2.ZERO
 
 # 高亮状态
 var is_highlighted: bool = false
+var label_index: int = 0
+var _label_node: Label = null
 
 
 func _ready() -> void:
@@ -106,7 +108,15 @@ func continue_move(steps: int, direction: int) -> void:
 
 # ---------- 核心逐格移动逻辑（私有） ----------
 # 返回值：是否成功完成全部步数（未中途死亡）
+var _recursion_depth: int = 0
+
 func _move_step_by_step(direction: int, steps: int) -> bool:
+	# 防止无限递归
+	if _recursion_depth > 10:
+		push_error("递归深度超过限制，强制停止移动")
+		return false
+	_recursion_depth += 1
+	
 	var remaining = steps
 	var current = hex_coord if hex_coord != Vector2.ZERO else hex_grid.get_marble_hex(self)
 	
@@ -117,6 +127,7 @@ func _move_step_by_step(direction: int, steps: int) -> bool:
 		# 1. 边界检查：超出棋盘半径则死亡
 		if hex_grid.is_out_of_bounds(next.x, next.y):
 			die()
+			_recursion_depth -= 1
 			return false
 		
 		# 2. 检查目标格子是否有其他弹珠
@@ -141,6 +152,8 @@ func _move_step_by_step(direction: int, steps: int) -> bool:
 			hex_coord = current   # 更新缓存坐标
 			# 每移动一步后的钩子（例如绿球推挤可在此触发）
 			on_step_moved(current)
+	
+	_recursion_depth -= 1
 	return true
 
 
@@ -218,3 +231,47 @@ func _update_sprite_color() -> void:
 		MarbleConst.MarbleColor.RED:   s.modulate = Color.RED
 		MarbleConst.MarbleColor.BLACK: s.modulate = Color.BLACK
 		MarbleConst.MarbleColor.YELLOW:s.modulate = Color.YELLOW
+
+# 更新编号标签（由 GameManager 在分配编号后调用）
+func update_label() -> void:
+	if label_index <= 0:
+		return
+	var prefix = "R" if camp == MarbleConst.Camp.RED else "B"
+	var text = "%s%d" % [prefix, label_index]
+	
+	# 如果标签节点不存在则创建
+	if not _label_node:
+		_label_node = Label.new()
+		_label_node.name = "MarbleLabel"
+		_label_node.z_index = 2
+		add_child(_label_node)
+	
+	_label_node.text = text
+	_label_node.clip_text = false
+	_label_node.autowrap_mode = TextServer.AUTOWRAP_OFF
+	
+	# 加载自定义字体
+	var font_path = "res://HYPixel11pxU-2.ttf"
+	if ResourceLoader.exists(font_path):
+		var font_data = load(font_path)
+		var font = FontFile.new()
+		font.font_data = font_data
+		_label_node.add_theme_font_override("font", font)
+		_label_node.add_theme_font_size_override("font_size", 24)
+	
+	# 设置字体颜色
+	var font_color = Color(1, 0.1, 0.1) if camp == MarbleConst.Camp.RED else Color(0.1, 0.3, 1)
+	_label_node.add_theme_color_override("font_color", font_color)
+	
+	# 居中显示
+	var s = _get_sprite_node()
+	if s and s.texture:
+		var tex_size = s.texture.get_size()
+		_label_node.size = tex_size
+		_label_node.position = -tex_size / 2
+	else:
+		_label_node.size = Vector2(64, 64)
+		_label_node.position = Vector2(-32, -32)
+	
+	_label_node.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_label_node.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
