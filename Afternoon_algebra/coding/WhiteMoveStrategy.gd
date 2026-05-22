@@ -2,6 +2,9 @@
 # 白色移动策略：基础移动，被友方碰撞时步数+1
 extends "res://MoveStrategyBase.gd"
 
+# 确保 MarbleConst 可用（如果未自动加载）
+const MarbleConst = preload("res://MarbleConst.gd.gd")
+
 func execute(marble: Marble2D, direction: int, steps: int) -> bool:
 	return marble._move_step_by_step(direction, steps)
 

@@ -87,6 +87,8 @@ var follower_safe: bool = false
 var push_range: int = 1
 # 红球增益：最大步数（默认5）
 var max_steps: int = 5
+# 蓝球随从列表（供测试和清理使用）
+var temp_followers: Array[Node2D] = []
 
 # ---------- 新增方法 ----------
 func set_follower_safe(value: bool) -> void:
@@ -230,6 +232,12 @@ func on_after_move(direction: int, steps: int, success: bool) -> void:
     # 如果是绿色，执行推挤
     if color == MarbleConst.MarbleColor.GREEN:
         GreenMarbleHelper.push_neighbors(self, push_range)
+    # 清理蓝球随从（如果有）
+    if temp_followers.size() > 0:
+        BlueMarbleHelper.clear_followers(self, temp_followers)
+    # 清理蓝球随从（如果有）
+    if temp_followers.size() > 0:
+        BlueMarbleHelper.clear_followers(self, temp_followers)
 
 # 每移动一步后调用（绿球推挤可用）
 func on_step_moved(new_hex: Vector2) -> void:
