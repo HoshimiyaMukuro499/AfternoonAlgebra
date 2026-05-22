@@ -198,6 +198,8 @@ func cancel_selection():
 	if selected_marble:
 		selected_marble.unhighlight()
 	selected_marble = null
+	selected_direction = -1
+	selected_power = 0
 	current_state = TurnState.IDLE
 	print("已取消选择")
 	state_changed.emit(current_state)
