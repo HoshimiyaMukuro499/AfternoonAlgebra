@@ -24,6 +24,7 @@ func before_each() -> void:
 	red_marble.is_alive = true
 	grid.place_marble(red_marble, 0, 0)
 	
+	gm.all_marbles = [red_marble]
 	gm.selected_marble = null
 	gm.current_state = GameManager.TurnState.IDLE
 	gm.red_step_directions = []
