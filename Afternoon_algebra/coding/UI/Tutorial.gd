@@ -8,30 +8,30 @@ signal tutorial_finished
 @onready var skip_button: Button = $SkipButton
 @onready var texture_rect: TextureRect = $TextureRect
 
-# 每页的文本内容
+# 每页的文本内容（每个弹珠一页）
 var page_texts: Array[String] = [
-	# Page 0
-	"[font_size=40][center][b]欢迎来到《六色弹珠：六边形碰撞战》[/b][/center][/font_size]\n\n[color=#FFD700][b]游戏目标[/b][/color]\n将对方所有弹珠击出棋盘或使其死亡即可获胜。\n\n[color=#FFD700][b]棋盘与坐标[/b][/color]\n棋盘为正六边形，每条边包含8个格点，共169个格点。坐标使用轴向六边形坐标 (q, r)。",
-	# Page 1
-	"[color=#FFD700][b]回合流程[/b][/color]\n1. 选择一个己方存活弹珠。\n2. 根据弹珠颜色执行其专属移动指令。\n3. 结算碰撞、出界、死亡等。\n4. 检查胜负，切换回合。",
-	# Page 2
-	"[color=#FFD700][b]六种弹珠能力简介[/b][/color]\n\n[color=#FFFFFF]白球（基础）[/color]\n- 指定方向 + 力度（1~5）移动。\n- 被友方碰撞时获得额外步数。\n- 己方其他颜色弹珠死亡时，白球可变为该颜色并获得其特性。",
-	# Page 3
-	"[color=#0000FF]蓝球（随从）[/color]\n- 移动前在两侧生成最多2个随从。\n- 随从与蓝球同方向同力度移动，移动后消失。\n- 若随从出界，蓝球死亡。\n\n[color=#00FF00]绿球（推挤）[/color]\n- 移动后推开相邻所有弹珠（不分敌我）1格。\n- 若目标格被占则推开失败，若出界则目标死亡。",
-	# Page 4
-	"[color=#FF0000]红球（定向步进）[/color]\n- 指定步数（1~4），每步可自选方向。\n- 每步移动后立即进行碰撞交换。\n\n[color=#000000]黑球（干扰）[/color]\n- 不能主动移动。\n- 选择一个敌方弹珠，强制其沿随机方向移动2~3格。",
-	# Page 5
-	"[color=#FFFF00]黄球（死亡增益）[/color]\n- 移动方式与白球相同。\n- 死亡时给予己方一个其他弹珠永久增益（如蓝球随从出界不死亡、绿球推挤范围扩大等）。\n\n[center][color=#FFD700]点击下方按钮开始游戏！[/color][/center]"
+	# Page 0 - 白球
+	"[font_size=40][center][b]白球（基础）[/b][/center][/font_size]\n\n[color=#FFFFFF][b]移动方式[/b][/color]\n指定方向（6选1）+ 指定基础力度（1~5）。实际移动步数 = 基础力度。\n\n[color=#FFFFFF][b]特殊能力[/b][/color]\n- 被友方弹珠碰撞时，额外获得+1剩余步数。\n- 每当己方其他颜色弹珠死亡时（黄球除外），若白球仍存活，则立即变为该死亡弹珠的颜色，并获得其全部特性。\n- 白球不会因黄球死亡而变色。",
+	# Page 1 - 蓝球
+	"[font_size=40][center][b]蓝球（随从）[/b][/center][/font_size]\n\n[color=#0000FF][b]移动方式[/b][/color]\n选择移动方向（6选1）+ 力度（1~5）。\n\n[color=#0000FF][b]特殊能力[/b][/color]\n- 移动前在两侧生成最多2个随从。\n- 随从与蓝球同方向同力度移动，移动后消失。\n- 若任意一个随从出界，蓝球死亡。\n- 若生成0个随从，蓝球移动后不会因随从出界而死亡。",
+	# Page 2 - 绿球
+	"[font_size=40][center][b]绿球（推挤）[/b][/center][/font_size]\n\n[color=#00FF00][b]移动方式[/b][/color]\n与白球相同（方向 + 力度1~5）。\n\n[color=#00FF00][b]特殊能力[/b][/color]\n- 移动停止后，检查相邻6个格点。\n- 对每个相邻格上的弹珠（不分敌我），将其沿远离绿球的方向推开1格。\n- 若目标格被占，则推开失败，该弹珠停留在原处且不死亡。\n- 若目标格出界，该弹珠死亡。\n- 所有推开同时结算。",
+	# Page 3 - 红球
+	"[font_size=40][center][b]红球（定向步进）[/b][/center][/font_size]\n\n[color=#FF0000][b]移动方式[/b][/color]\n指定步数（1~4），每步可自选方向（允许折返）。\n\n[color=#FF0000][b]特殊能力[/b][/color]\n- 每一步移动后立即与所在格点上的弹珠进行弹性碰撞（速度交换）。\n- 若某一步碰撞后导致自己或对方出界，则出界者立即死亡并终止后续移动。",
+	# Page 4 - 黑球
+	"[font_size=40][center][b]黑球（干扰）[/b][/center][/font_size]\n\n[color=#000000][b]移动方式[/b][/color]\n不能主动移动。\n\n[color=#000000][b]特殊能力[/b][/color]\n- 选择一个敌方弹珠，并指定一个大致方向（6个主方向之一）。\n- 系统随机从指定方向、顺时针偏60°、逆时针偏60°中选一个方向。\n- 系统随机从{2, 3}中选择移动格数。\n- 被指定的敌方弹珠强制沿选定的方向移动指定格数（移动过程中正常进行碰撞弹性交换）。\n- 若移动过程中或终点出界，则敌方弹珠死亡。",
+	# Page 5 - 黄球
+	"[font_size=40][center][b]黄球（死亡增益）[/b][/center][/font_size]\n\n[color=#FFFF00][b]移动方式[/b][/color]\n与白球相同（方向 + 力度1~5）。\n\n[color=#FFFF00][b]特殊能力[/b][/color]\n- 死亡时，立即手动选择己方一个其他弹珠（不能是白球或黄球），给予永久增益。\n- 对蓝球：随从出界不再导致蓝球死亡。\n- 对绿球：推挤范围从相邻1格变为相邻X格（X = 1 + 黄球增益次数）。\n- 对红球：移动步数上限从4提升至4 + 增益次数。\n- 对黑球：敌方弹珠被强制移动的格数固定为3。\n\n[center][color=#FFD700]点击下方按钮开始游戏！[/color][/center]"
 ]
 
 # 每页对应的图片路径（请替换为实际图片路径，无图片则留空字符串）
 var page_images: Array[String] = [
-	"res://UI/page0.png",   # 第0页图片
-	"res://UI/page1.png",   # 第1页图片
-	"res://UI/page2.png",   # 第2页图片
-	"res://UI/page3.png",   # 第3页图片
-	"res://UI/page4.png",   # 第4页图片
-	"res://UI/page5.png"    # 第5页图片
+	"res://UI/page0.png",   # 第0页图片（白球）
+	"res://UI/page1.png",   # 第1页图片（蓝球）
+	"res://UI/page2.png",   # 第2页图片（绿球）
+	"res://UI/page3.png",   # 第3页图片（红球）
+	"res://UI/page4.png",   # 第4页图片（黑球）
+	"res://UI/page5.png"    # 第5页图片（黄球）
 ]
 
 var current_page: int = 0
@@ -45,6 +45,9 @@ func _ready():
 func _update_page():
 	# 更新文本
 	rich_text_label.text = page_texts[current_page]
+	
+	# 增大整体字体
+	rich_text_label.add_theme_font_size_override("normal_font_size", 28)
 	
 	# 更新图片
 	var img_path = page_images[current_page]
