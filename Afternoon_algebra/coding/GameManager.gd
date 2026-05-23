@@ -425,15 +425,35 @@ func select_power(power: int):
 	selected_power = power
 	execute_move()
 
+
 func execute_move():
 	current_state = TurnState.EXECUTING
 	state_changed.emit(current_state)
-	if selected_marble and selected_marble.is_alive:
-		selected_marble.move(selected_direction, selected_power)
 	
-	# 在不处于场景树中的测试环境里，同步执行后续逻辑
-	if is_inside_tree():
-		await get_tree().create_timer(0.5).timeout
+	if selected_marble and selected_marble.is_alive:
+		var marble = selected_marble
+		var direction = selected_direction
+		var steps = selected_power
+		
+		# 移动前钩子（蓝球会在这里生成随从）
+		marble.on_before_move(direction, steps)
+		
+		# 逐格移动，每步之间加一点延迟（产生动画效果）
+		for step in range(steps):
+			if not marble.is_alive:
+				break
+			# 移动一格（1步）
+			var success = marble._move_step_by_step(direction, 1)
+			if not success:
+				break
+			# 等待一小段时间，让玩家看到这一格的移动
+			await get_tree().create_timer(0.15).timeout
+		
+		# 移动后钩子（蓝球会在这里清除随从）
+		marble.on_after_move(direction, steps, marble.is_alive)
+	
+	# 再稍微等一下，确保所有动画效果结束
+	await get_tree().create_timer(0.1).timeout
 	
 	_finish_turn()
 
