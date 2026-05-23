@@ -72,7 +72,7 @@ func _update_page():
 	
 	# 确保 TextureRect 保持比例并刷新大小
 	texture_rect.stretch_mode = 2
-	texture_rect.expand_mode = 0
+	texture_rect.expand_mode = 1
 	texture_rect.reset_size()
 	
 	# 更新按钮状态

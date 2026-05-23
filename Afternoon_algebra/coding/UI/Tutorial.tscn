@@ -37,8 +37,12 @@ anchor_left = 0.6
 anchor_top = 0.1
 anchor_right = 0.95
 anchor_bottom = 0.85
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
 texture = ExtResource("2_qouqw")
-expand_mode = 0
+expand_mode = 1
 stretch_mode = 2
 
 [node name="RichTextLabel" type="RichTextLabel" parent="." unique_id=2035809245]
