@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://dp7m5idrhcukr"]
 
 [ext_resource type="Script" uid="uid://ctalc0rabknjr" path="res://UI/Tutorial.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://pnn4561py2xd" path="res://UI/page0.png" id="2_qouqw"]
 [ext_resource type="FontFile" uid="uid://dvyi48lju62co" path="res://HYPixel11pxU-2.ttf" id="2_qu5wh"]
 
 [sub_resource type="Theme" id="Theme_qouqw"]
@@ -37,13 +36,7 @@ anchor_left = 0.6
 anchor_top = 0.1
 anchor_right = 0.95
 anchor_bottom = 0.85
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 0.0
-offset_bottom = 0.0
-texture = ExtResource("2_qouqw")
-expand_mode = 0
-stretch_mode = 2
+expand_mode = 1
 
 [node name="RichTextLabel" type="RichTextLabel" parent="." unique_id=2035809245]
 layout_mode = 1
