@@ -68,6 +68,20 @@ offset_right = 60.0
 offset_bottom = 25.0
 text = "跳过教程"
 
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.1
+anchor_right = 0.5
+anchor_bottom = 0.1
+offset_left = -100.0
+offset_top = -100.0
+offset_right = 100.0
+offset_bottom = 100.0
+expand_mode = 1
+stretch_mode = 1
+
 [connection signal="pressed" from="PrevButton" to="." method="_on_prev_button_pressed"]
 [connection signal="pressed" from="NextButton" to="." method="_on_next_button_pressed"]
 [connection signal="pressed" from="SkipButton" to="." method="_on_skip_button_pressed"]

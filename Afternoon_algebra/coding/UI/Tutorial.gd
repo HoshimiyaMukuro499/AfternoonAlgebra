@@ -6,10 +6,12 @@ signal tutorial_finished
 @onready var prev_button: Button = $PrevButton
 @onready var next_button: Button = $NextButton
 @onready var skip_button: Button = $SkipButton
+@onready var texture_rect: TextureRect = $TextureRect
 
-var pages: Array[String] = [
+# 每页的文本内容
+var page_texts: Array[String] = [
 	# Page 0
-	"[center][b]欢迎来到《六色弹珠：六边形碰撞战》[/b][/center]\n\n[color=#FFD700][b]游戏目标[/b][/color]\n将对方所有弹珠击出棋盘或使其死亡即可获胜。\n\n[color=#FFD700][b]棋盘与坐标[/b][/color]\n棋盘为正六边形，每条边包含8个格点，共169个格点。坐标使用轴向六边形坐标 (q, r)。",
+	"[font_size=40][center][b]欢迎来到《六色弹珠：六边形碰撞战》[/b][/center][/font_size]\n\n[color=#FFD700][b]游戏目标[/b][/color]\n将对方所有弹珠击出棋盘或使其死亡即可获胜。\n\n[color=#FFD700][b]棋盘与坐标[/b][/color]\n棋盘为正六边形，每条边包含8个格点，共169个格点。坐标使用轴向六边形坐标 (q, r)。",
 	# Page 1
 	"[color=#FFD700][b]回合流程[/b][/color]\n1. 选择一个己方存活弹珠。\n2. 根据弹珠颜色执行其专属移动指令。\n3. 结算碰撞、出界、死亡等。\n4. 检查胜负，切换回合。",
 	# Page 2
@@ -22,6 +24,16 @@ var pages: Array[String] = [
 	"[color=#FFFF00]黄球（死亡增益）[/color]\n- 移动方式与白球相同。\n- 死亡时给予己方一个其他弹珠永久增益（如蓝球随从出界不死亡、绿球推挤范围扩大等）。\n\n[center][color=#FFD700]点击下方按钮开始游戏！[/color][/center]"
 ]
 
+# 每页对应的图片路径（请替换为实际图片路径，无图片则留空字符串）
+var page_images: Array[String] = [
+	"res://UI/page0.png",   # 第0页图片
+	"res://UI/page1.png",   # 第1页图片
+	"res://UI/page2.png",   # 第2页图片
+	"res://UI/page3.png",   # 第3页图片
+	"res://UI/page4.png",   # 第4页图片
+	"res://UI/page5.png"    # 第5页图片
+]
+
 var current_page: int = 0
 
 func _ready():
@@ -31,9 +43,24 @@ func _ready():
 	skip_button.pressed.connect(_on_skip_button_pressed)
 
 func _update_page():
-	rich_text_label.text = pages[current_page]
+	# 更新文本
+	rich_text_label.text = page_texts[current_page]
+	
+	# 更新图片
+	var img_path = page_images[current_page]
+	if img_path != "":
+		var tex = load(img_path)
+		if tex:
+			texture_rect.texture = tex
+			texture_rect.visible = true
+		else:
+			texture_rect.visible = false
+	else:
+		texture_rect.visible = false
+	
+	# 更新按钮状态
 	prev_button.disabled = (current_page == 0)
-	next_button.text = "下一页" if current_page < pages.size() - 1 else "开始游戏"
+	next_button.text = "下一页" if current_page < page_texts.size() - 1 else "开始游戏"
 
 func _on_prev_button_pressed():
 	if current_page > 0:
@@ -41,12 +68,11 @@ func _on_prev_button_pressed():
 		_update_page()
 
 func _on_next_button_pressed():
-	if current_page < pages.size() - 1:
+	if current_page < page_texts.size() - 1:
 		current_page += 1
 		_update_page()
 	else:
 		get_tree().change_scene_to_file("res://main.tscn")
 
 func _on_skip_button_pressed():
-	
 	get_tree().change_scene_to_file("res://main.tscn")
