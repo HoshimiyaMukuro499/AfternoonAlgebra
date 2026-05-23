@@ -37,6 +37,40 @@ var setup_remaining_marbles = { MarbleConst.Camp.RED: 6, MarbleConst.Camp.BLUE: 
 var setup_selected_color = -1
 var setup_phase_active = false
 
+# 随机阵型名称列表
+const FORMATION_NAMES = [
+	"天罡北斗阵",
+	"八卦迷踪阵",
+	"九宫连环阵",
+	"十面埋伏阵",
+	"一字长蛇阵",
+	"二龙出水阵",
+	"天地三才阵",
+	"四门兜底阵",
+	"五虎群羊阵",
+	"六丁六甲阵",
+	"七星北斗阵",
+	"八门金锁阵",
+	"九曲黄河阵",
+	"十绝阵",
+	"混元一气阵",
+	"两仪微尘阵",
+	"三才化生阵",
+	"四象诛仙阵",
+	"五行颠倒阵",
+	"六合八荒阵",
+	"七星聚元阵",
+	"八卦伏魔阵",
+	"九幽玄冥阵",
+	"十方俱灭阵",
+	"万剑归宗阵",
+	"千机百变阵",
+	"百鸟朝凤阵",
+	"龙飞凤舞阵",
+	"虎啸龙吟阵",
+	"龟蛇盘结阵"
+]
+
 func _ready():
 	hex_grid = $HexGrid2D
 	
@@ -151,6 +185,12 @@ func setup_place_marble(q: int, r: int):
 	
 	# 检查是否完成
 	if setup_remaining_marbles[setup_current_team] <= 0:
+		# 生成随机阵型名称并显示
+		var formation_name = FORMATION_NAMES[randi() % FORMATION_NAMES.size()]
+		var team_name = "红方" if setup_current_team == MarbleConst.Camp.RED else "蓝方"
+		if ui:
+			ui.show_formation_name("哇，%s 竟然成功摆出了「%s」！" % [team_name, formation_name])
+		
 		# 切换到对方
 		if setup_current_team == MarbleConst.Camp.RED:
 			setup_current_team = MarbleConst.Camp.BLUE

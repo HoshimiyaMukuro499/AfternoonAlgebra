@@ -13,6 +13,10 @@ var setup_message_label: Label
 var color_buttons: Array[Button] = []
 var setup_active = false
 
+# 阵型名称显示标签
+var formation_label: Label
+var formation_timer: Timer
+
 func _ready():
 	# 创建UI结构
 	_build_ui()
@@ -211,6 +215,32 @@ func _setup_setup_ui(parent: Control):
 	setup_message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	setup_message_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	setup_container.add_child(setup_message_label)
+	
+	# 阵型名称标签（初始隐藏）
+	formation_label = Label.new()
+	formation_label.name = "FormationLabel"
+	formation_label.anchor_left = 0.0
+	formation_label.anchor_top = 0.0
+	formation_label.anchor_right = 1.0
+	formation_label.anchor_bottom = 0.0
+	formation_label.offset_left = 0
+	formation_label.offset_top = 0
+	formation_label.offset_right = 0
+	formation_label.offset_bottom = 0
+	formation_label.add_theme_font_override("font", load("res://HYPixel11pxU-2.ttf"))
+	formation_label.add_theme_font_size_override("font_size", 28)
+	formation_label.add_theme_color_override("font_color", Color(1, 0.8, 0))  # 金色
+	formation_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	formation_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	formation_label.visible = false
+	setup_container.add_child(formation_label)
+	
+	# 定时器用于自动隐藏阵型名称
+	formation_timer = Timer.new()
+	formation_timer.name = "FormationTimer"
+	formation_timer.one_shot = true
+	formation_timer.timeout.connect(_on_formation_timer_timeout)
+	add_child(formation_timer)
 
 func _on_color_button_pressed(color_index: int):
 	if not setup_active:
@@ -251,6 +281,29 @@ func highlight_available_positions(positions: Array):
 	# 简单实现：在消息中显示可放置位置数量
 	if setup_message_label:
 		setup_message_label.text = "可放置位置数量：%d" % positions.size()
+
+func show_formation_name(text: String):
+	if formation_label:
+		formation_label.text = text
+		formation_label.visible = true
+		# 隐藏其他标签
+		setup_team_label.visible = false
+		setup_remaining_label.visible = false
+		setup_message_label.visible = false
+		for btn in color_buttons:
+			btn.visible = false
+		# 启动定时器，3秒后隐藏
+		formation_timer.start(3.0)
+
+func _on_formation_timer_timeout():
+	if formation_label:
+		formation_label.visible = false
+		# 恢复其他标签
+		setup_team_label.visible = true
+		setup_remaining_label.visible = true
+		setup_message_label.visible = true
+		for btn in color_buttons:
+			btn.visible = true
 
 func _find_game_manager() -> GameManager:
 	# 简化查找：直接获取父节点
