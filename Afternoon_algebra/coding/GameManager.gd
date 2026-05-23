@@ -27,6 +27,7 @@ var red_step_directions: Array[int] = []
 var red_total_steps: int = 0
 var red_current_step_index: int = 0
 var red_moved_steps: int = 0
+var red_start_position: Vector2 = Vector2.ZERO  # 红球开始移动时的初始位置（用于取消时回退）
 
 func _ready():
 	hex_grid = $HexGrid2D
@@ -162,6 +163,8 @@ func red_select_power(power: int):
 	red_step_directions = []
 	red_current_step_index = 0
 	red_moved_steps = 0
+	# 保存起始位置（用于取消时回退）
+	red_start_position = selected_marble.hex_coord if selected_marble.hex_coord != Vector2.ZERO else selected_marble.hex_grid.get_marble_hex(selected_marble)
 	# 调用移动前钩子（方向暂时用0，后续每步会更新）
 	if selected_marble.is_alive:
 		selected_marble.on_before_move(0, power)
@@ -251,6 +254,20 @@ func cancel_selection():
 	if current_state == TurnState.RED_DIRECTION_PICKING:
 		if selected_marble:
 			selected_marble.unhighlight()
+			# 恢复红球到起始位置
+			var current_hex = selected_marble.hex_coord if selected_marble.hex_coord != Vector2.ZERO else selected_marble.hex_grid.get_marble_hex(selected_marble)
+			if current_hex != red_start_position and selected_marble.hex_grid:
+				# 需要把红球移回起始位置（交换位置，因为起始位置可能已被其他球占据或已清除）
+				# 先从当前位置移除
+				selected_marble.hex_grid.remove_marble_by_node(selected_marble)
+				# 放回起始位置（如果起始位置空闲）
+				if selected_marble.hex_grid.get_marble_at(red_start_position.x, red_start_position.y) == null:
+					selected_marble.hex_grid.place_marble(selected_marble, red_start_position.x, red_start_position.y)
+					selected_marble.hex_coord = red_start_position
+				else:
+					# 起始位置已被占用，重新放置到空位置
+					selected_marble.hex_grid.place_marble(selected_marble, red_start_position.x, red_start_position.y)
+					selected_marble.hex_coord = red_start_position
 		selected_marble = null
 		selected_direction = -1   # 添加：重置方向
 		selected_power = 0         # 添加：重置力度

@@ -1,4 +1,4 @@
-# RedMarbleHelper.gd
+﻿# RedMarbleHelper.gd
 # 红球（定向步进）公用逻辑，供 RedMarble 和 WhiteMarble（变色后）复用
 
 class_name RedMarbleHelper
@@ -40,7 +40,8 @@ static func move_with_step_directions(marble: Marble2D, step_dirs: Array, total_
 				continue
 			else:
 				# 被撞弹珠未离开（被阻挡或死亡），红球停止
-				break
+				# 红球停止但未死亡，视为成功（正常停止）
+				return true
 		else:
 			marble.hex_grid.move_marble(marble, current, next)
 			current = next
