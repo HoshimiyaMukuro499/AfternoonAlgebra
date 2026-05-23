@@ -6,7 +6,7 @@ signal tutorial_finished
 @onready var prev_button: Button = $PrevButton
 @onready var next_button: Button = $NextButton
 @onready var skip_button: Button = $SkipButton
-@onready var texture_rect: TextureRect = $TextureRect
+@onready var sprite: Sprite2D = $Sprite
 
 # 每页的文本内容（前3页为整体规则，后6页为每个弹珠一页）
 var page_texts: Array[String] = [
@@ -63,17 +63,18 @@ func _update_page():
 	if img_path != "":
 		var tex = load(img_path)
 		if tex:
-			texture_rect.texture = tex
-			texture_rect.visible = true
+			sprite.texture = tex
+			sprite.visible = true
+			# 根据区域大小自动计算缩放比例
+			var region_size = Vector2(0.35, 0.75) * get_viewport().get_visible_rect().size
+			var tex_size = tex.get_size()
+			if tex_size.x > 0 and tex_size.y > 0:
+				var scale_factor = min(region_size.x / tex_size.x, region_size.y / tex_size.y)
+				sprite.scale = Vector2(scale_factor, scale_factor)
 		else:
-			texture_rect.visible = false
+			sprite.visible = false
 	else:
-		texture_rect.visible = false
-	
-	# 确保 TextureRect 保持比例并刷新大小
-	texture_rect.stretch_mode = 2
-	texture_rect.expand_mode = 1
-	texture_rect.reset_size()
+		sprite.visible = false
 	
 	# 更新按钮状态
 	prev_button.disabled = (current_page == 0)
