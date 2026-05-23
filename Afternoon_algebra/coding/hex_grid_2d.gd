@@ -74,3 +74,26 @@ func move_marble(marble: Node2D, from_hex: Vector2, to_hex: Vector2) -> void:
 func remove_marble_by_node(marble: Node2D) -> void:
 	var hex = get_marble_hex(marble)
 	marbles.erase(hex)
+
+# 选珠阶段区域判定
+func is_in_red_zone(q: int, r: int) -> bool:
+	var s = -q - r
+	var D = max(abs(q), abs(r), abs(s))
+	return q >= -7 and q <= -2 and D <= 8
+
+func is_in_blue_zone(q: int, r: int) -> bool:
+	var s = -q - r
+	var D = max(abs(q), abs(r), abs(s))
+	return q >= 2 and q <= 7 and D <= 8
+
+func get_available_positions(camp: int) -> Array:
+	var positions = []
+	for q in range(-7, 8):
+		for r in range(-7, 8):
+			if is_out_of_bounds(q, r):
+				continue
+			if camp == MarbleConst.Camp.RED and is_in_red_zone(q, r):
+				positions.append(Vector2(q, r))
+			elif camp == MarbleConst.Camp.BLUE and is_in_blue_zone(q, r):
+				positions.append(Vector2(q, r))
+	return positions

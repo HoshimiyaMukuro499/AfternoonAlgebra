@@ -29,6 +29,14 @@ var red_current_step_index: int = 0
 var red_moved_steps: int = 0
 var red_start_position: Vector2 = Vector2.ZERO  # 红球开始移动时的初始位置（用于取消时回退）
 
+# 选珠布阵阶段变量
+enum SetupState { COLOR_SELECT, PLACEMENT, FINISHED }
+var setup_state = SetupState.COLOR_SELECT
+var setup_current_team = MarbleConst.Camp.RED
+var setup_remaining_marbles = { MarbleConst.Camp.RED: 6, MarbleConst.Camp.BLUE: 6 }
+var setup_selected_color = -1
+var setup_phase_active = false
+
 func _ready():
 	hex_grid = $HexGrid2D
 	
@@ -39,25 +47,6 @@ func _ready():
 	# 清理场景中的旧测试弹珠
 	if has_node("Marble_Rigid"):
 		$Marble_Rigid.queue_free()
-	
-	# 使用 BoardInitializer 初始化标准棋盘
-	if hex_grid:
-		all_marbles = BoardInitializer.initialize_board(hex_grid)
-		_adjust_marble_visuals()
-		# 为每个弹珠分配编号（R1~R6 / B1~B6）
-		var red_count = 0
-		var blue_count = 0
-		for marble in all_marbles:
-			if marble.camp == MarbleConst.Camp.RED:
-				red_count += 1
-				marble.label_index = red_count
-			else:
-				blue_count += 1
-				marble.label_index = blue_count
-			marble.update_label()
-		# 监听弹珠销毁事件，自动从数组中移除
-		for marble in all_marbles:
-			marble.tree_exited.connect(_on_marble_freed.bind(marble))
 	
 	# 创建背景
 	var background = ColorRect.new()
@@ -75,8 +64,393 @@ func _ready():
 	_init_ui()
 	
 	randomize()
+	# 先手随机
 	current_team = MarbleConst.Camp.RED if randi() % 2 == 0 else MarbleConst.Camp.BLUE
+	setup_current_team = current_team
+	start_setup_phase()
+
+func start_setup_phase():
+	setup_phase_active = true
+	setup_state = SetupState.COLOR_SELECT
+	setup_selected_color = -1
+	setup_remaining_marbles = { MarbleConst.Camp.RED: 6, MarbleConst.Camp.BLUE: 6 }
+	all_marbles.clear()
+	
+	if ui:
+		ui.show_setup_phase(setup_current_team, setup_remaining_marbles[setup_current_team])
+		ui.update_setup_message("请选择弹珠颜色（点击颜色按钮或按数字键1-6）")
+	
+	print("选珠阶段开始，%s 方先选" % ("红" if setup_current_team == MarbleConst.Camp.RED else "蓝"))
+
+func setup_select_color(color: int):
+	if not setup_phase_active:
+		return
+	if setup_state != SetupState.COLOR_SELECT:
+		return
+	if color < 0 or color >= MarbleConst.MarbleColor.size():
+		return
+	
+	setup_selected_color = color
+	setup_state = SetupState.PLACEMENT
+	
+	if ui:
+		ui.update_setup_message("请点击棋盘上的可放置位置（己方区域）")
+		ui.highlight_available_positions(hex_grid.get_available_positions(setup_current_team))
+	
+	print("已选择颜色 %d，请放置" % color)
+
+func setup_place_marble(q: int, r: int):
+	if not setup_phase_active:
+		return
+	if setup_state != SetupState.PLACEMENT:
+		return
+	if setup_selected_color < 0:
+		return
+	
+	# 检查是否在己方区域内
+	var in_zone = false
+	if setup_current_team == MarbleConst.Camp.RED:
+		in_zone = hex_grid.is_in_red_zone(q, r)
+	else:
+		in_zone = hex_grid.is_in_blue_zone(q, r)
+	
+	if not in_zone:
+		if ui:
+			ui.update_setup_message("此处为不可放置地块，可放置地块位于己方区域")
+		return
+	
+	# 检查是否已被占用
+	if hex_grid.get_marble_at(q, r) != null:
+		if ui:
+			ui.update_setup_message("该位置已被占用，请选择其他位置")
+		return
+	
+	# 创建弹珠
+	var marble = BoardInitializer.create_marble_for_setup(setup_selected_color, setup_current_team, hex_grid, q, r)
+	all_marbles.append(marble)
+	
+	# 编号
+	var count = 0
+	for m in all_marbles:
+		if m.camp == setup_current_team:
+			count += 1
+	marble.label_index = count
+	marble.update_label()
+	
+	# 减少剩余数量
+	setup_remaining_marbles[setup_current_team] -= 1
+	
+	if ui:
+		ui.update_setup_remaining(setup_remaining_marbles[setup_current_team])
+	
+	# 检查是否完成
+	if setup_remaining_marbles[setup_current_team] <= 0:
+		# 切换到对方
+		if setup_current_team == MarbleConst.Camp.RED:
+			setup_current_team = MarbleConst.Camp.BLUE
+		else:
+			setup_current_team = MarbleConst.Camp.RED
+		
+		if setup_remaining_marbles[setup_current_team] <= 0:
+			# 双方都完成
+			finish_setup_phase()
+		else:
+			setup_state = SetupState.COLOR_SELECT
+			setup_selected_color = -1
+			if ui:
+				ui.show_setup_phase(setup_current_team, setup_remaining_marbles[setup_current_team])
+				ui.update_setup_message("请选择弹珠颜色（点击颜色按钮或按数字键1-6）")
+			print("轮到 %s 方选珠" % ("红" if setup_current_team == MarbleConst.Camp.RED else "蓝"))
+	else:
+		# 继续选择颜色
+		setup_state = SetupState.COLOR_SELECT
+		setup_selected_color = -1
+		if ui:
+			ui.update_setup_message("请选择弹珠颜色（点击颜色按钮或按数字键1-6）")
+
+func finish_setup_phase():
+	setup_phase_active = false
+	setup_state = SetupState.FINISHED
+	
+	# 调整弹珠视觉
+	_adjust_marble_visuals()
+	
+	# 监听弹珠销毁事件
+	for marble in all_marbles:
+		marble.tree_exited.connect(_on_marble_freed.bind(marble))
+	
+	if ui:
+		ui.hide_setup_phase()
+		ui.update_message("布阵完成，游戏开始！")
+	
+	print("布阵完成，游戏开始")
+	
+	# 开始正常回合
+	current_team = setup_current_team  # 先手方
+	turn_number = 0
 	start_turn()
+
+func _unhandled_input(event: InputEvent):
+	if not setup_phase_active:
+		return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var world_pos = get_global_mouse_position()
+		var hex_coord = hex_grid.world_to_hex(world_pos)
+		var q = round(hex_coord.x)
+		var r = round(hex_coord.y)
+		setup_place_marble(q, r)
+
+func _adjust_marble_visuals():
+	if not hex_grid:
+		return
+	var target_size = hex_grid.cell_size * 1.2
+	for marble in all_marbles:
+		# 调整 Sprite 大小使其在棋盘上可见
+		var sprite = marble._get_sprite_node()
+		if sprite and sprite.texture:
+			var tex_size = sprite.texture.get_size()
+			var scale_factor = target_size / max(tex_size.x, tex_size.y)
+			sprite.scale = Vector2(scale_factor, scale_factor)
+		# 重置碰撞体到弹珠中心
+		for child in marble.get_children():
+			if child is CollisionShape2D:
+				child.position = Vector2.ZERO
+
+func _init_ui():
+	# 查找或创建 UI 节点
+	var ui_node = get_node_or_null("UI")
+	var need_add_child = false
+	if not ui_node:
+		ui_node = CanvasLayer.new()
+		ui_node.name = "UI"
+		need_add_child = true
+	
+	# 确保 UI 挂载了 UI.gd 脚本
+	if ui_node.get_script() == null:
+		var ui_script = load("res://UI/UI.gd")
+		if ui_script:
+			ui_node.set_script(ui_script)
+	
+	if need_add_child:
+		add_child(ui_node)
+	
+	# 保存引用以便后续使用
+	ui = ui_node
+
+func start_turn():
+	current_state = TurnState.IDLE
+	selected_marble = null
+	selected_direction = -1
+	selected_power = 0
+	red_step_directions = []
+	red_total_steps = 0
+	red_current_step_index = 0
+	red_moved_steps = 0
+	turn_number += 1
+	var turn_text = "第 %d 回合，%s 方行动" % [turn_number, "红" if current_team == MarbleConst.Camp.RED else "蓝"]
+	print(turn_text)
+	if ui:
+		ui.update_turn_display(self)
+	state_changed.emit(current_state)
+
+func select_marble(marble):
+	if current_state != TurnState.IDLE or current_state == TurnState.VICTORY: return
+	if marble.camp != current_team or not marble.is_alive: return
+	selected_marble = marble
+	selected_marble.highlight()
+	
+	# 红球特殊处理：先选力度（步数），再逐格选方向
+	if marble.color == MarbleConst.MarbleColor.RED:
+		current_state = TurnState.MARBLE_SELECTED
+		print("红球：请选择力度（按 1~5 键确定步数）")
+	else:
+		current_state = TurnState.MARBLE_SELECTED
+		print("选中弹珠，请选择方向")
+	state_changed.emit(current_state)
+
+func select_direction(direction: int):
+	if current_state != TurnState.MARBLE_SELECTED or current_state == TurnState.VICTORY: return
+	selected_direction = direction
+	current_state = TurnState.DIRECTION_SELECTED
+	print("已选方向，请选择力度")
+	state_changed.emit(current_state)
+
+# 红球选择力度（步数），然后进入逐格选方向模式
+func red_select_power(power: int):
+	if current_state != TurnState.MARBLE_SELECTED or current_state == TurnState.VICTORY: return
+	if selected_marble == null or selected_marble.color != MarbleConst.MarbleColor.RED:
+		return
+	
+	red_total_steps = power
+	red_step_directions = []
+	red_current_step_index = 0
+	red_moved_steps = 0
+	# 保存起始位置（用于取消时回退）
+	red_start_position = selected_marble.hex_coord if selected_marble.hex_coord != Vector2.ZERO else selected_marble.hex_grid.get_marble_hex(selected_marble)
+	# 调用移动前钩子（方向暂时用0，后续每步会更新）
+	if selected_marble.is_alive:
+		selected_marble.on_before_move(0, power)
+	current_state = TurnState.RED_DIRECTION_PICKING
+	print("红球：请选择第 1 步的方向（点击相邻格子）")
+	state_changed.emit(current_state)
+
+# 红球追加一个方向
+func red_append_direction(direction: int):
+	if current_state != TurnState.RED_DIRECTION_PICKING or current_state == TurnState.VICTORY: return
+	if selected_marble == null: return
+	
+	red_step_directions.append(direction)
+	red_current_step_index += 1
+	
+	# 执行一步移动
+	var success = _red_execute_single_step(direction)
+	
+	if not success:
+		# 移动失败（死亡），结束回合
+		_red_finish_turn()
+		return
+	
+	red_moved_steps += 1
+	
+	if red_moved_steps >= red_total_steps or not selected_marble.is_alive:
+		# 所有步数完成或死亡，结束回合
+		_red_finish_turn()
+	else:
+		print("红球：请选择第 %d 步的方向（点击相邻格子）" % (red_moved_steps + 1))
+		state_changed.emit(current_state)
+
+# 红球执行移动（传入方向列表）
+func _red_execute_single_step(direction: int) -> bool:
+	if not selected_marble or not selected_marble.is_alive:
+		return false
+	var success = selected_marble._move_step_by_step(direction, 1)
+	return success
+
+func _red_finish_turn():
+	current_state = TurnState.EXECUTING
+	state_changed.emit(current_state)
+	
+	if selected_marble and is_instance_valid(selected_marble):
+		var last_dir = red_step_directions[-1] if red_step_directions.size() > 0 else 0
+		selected_marble.on_after_move(last_dir, red_total_steps, selected_marble.is_alive)
+		selected_marble.unhighlight()
+	
+	# 在不处于场景树中的测试环境里，同步执行后续逻辑
+	if is_inside_tree():
+		await get_tree().create_timer(0.5).timeout
+	
+	_finish_turn()
+
+func select_power(power: int):
+	if current_state != TurnState.DIRECTION_SELECTED or current_state == TurnState.VICTORY: return
+	selected_power = power
+	execute_move()
+
+func execute_move():
+	current_state = TurnState.EXECUTING
+	state_changed.emit(current_state)
+	if selected_marble and selected_marble.is_alive:
+		selected_marble.move(selected_direction, selected_power)
+	
+	# 在不处于场景树中的测试环境里，同步执行后续逻辑
+	if is_inside_tree():
+		await get_tree().create_timer(0.5).timeout
+	
+	_finish_turn()
+
+# 提取回合结束公共逻辑，方便测试和代码复用
+func _finish_turn():
+	var winner = _check_victory()
+	if winner != -1:
+		_on_victory(winner)
+		return
+	# 切换回合
+	current_team = MarbleConst.Camp.BLUE if current_team == MarbleConst.Camp.RED else MarbleConst.Camp.RED
+	start_turn()
+
+func cancel_selection():
+	if current_state == TurnState.IDLE or current_state == TurnState.EXECUTING or current_state == TurnState.VICTORY: 
+		return
+	
+	# 红球逐格选方向模式取消
+	if current_state == TurnState.RED_DIRECTION_PICKING:
+		if selected_marble:
+			selected_marble.unhighlight()
+			# 恢复红球到起始位置
+			var current_hex = selected_marble.hex_coord if selected_marble.hex_coord != Vector2.ZERO else selected_marble.hex_grid.get_marble_hex(selected_marble)
+			if current_hex != red_start_position and selected_marble.hex_grid:
+				# 需要把红球移回起始位置（交换位置，因为起始位置可能已被其他球占据或已清除）
+				# 先从当前位置移除
+				selected_marble.hex_grid.remove_marble_by_node(selected_marble)
+				# 放回起始位置（如果起始位置空闲）
+				if selected_marble.hex_grid.get_marble_at(red_start_position.x, red_start_position.y) == null:
+					selected_marble.hex_grid.place_marble(selected_marble, red_start_position.x, red_start_position.y)
+					selected_marble.hex_coord = red_start_position
+				else:
+					# 起始位置已被占用，重新放置到空位置
+					selected_marble.hex_grid.place_marble(selected_marble, red_start_position.x, red_start_position.y)
+					selected_marble.hex_coord = red_start_position
+		selected_marble = null
+		selected_direction = -1   # 添加：重置方向
+		selected_power = 0         # 添加：重置力度
+		red_step_directions = []
+		red_total_steps = 0
+		red_current_step_index = 0
+		red_moved_steps = 0
+		current_state = TurnState.IDLE
+		print("已取消选择")
+		if ui:
+			ui.update_message("已取消选择，请点击己方弹珠")
+		state_changed.emit(current_state)
+		return  # 这里的 return 是正确的，避免执行后面的通用代码
+	
+	# 普通球取消选择
+	if selected_marble:
+		selected_marble.unhighlight()
+	selected_marble = null
+	selected_direction = -1
+	selected_power = 0
+	current_state = TurnState.IDLE
+	print("已取消选择")
+	if ui:
+		ui.update_message("已取消选择，请点击己方弹珠")
+	state_changed.emit(current_state)
+
+func _check_victory() -> int:
+	var red_alive = false
+	var blue_alive = false
+	for marble in all_marbles:
+		if not is_instance_valid(marble):
+			continue
+		if marble.is_alive:
+			if marble.camp == MarbleConst.Camp.RED:
+				red_alive = true
+			else:
+				blue_alive = true
+	if not red_alive:
+		return MarbleConst.Camp.BLUE
+	if not blue_alive:
+		return MarbleConst.Camp.RED
+	return -1
+
+func _on_victory(winner: int):
+	current_state = TurnState.VICTORY
+	state_changed.emit(current_state)
+	var winner_name = "红方" if winner == MarbleConst.Camp.RED else "蓝方"
+	print("游戏结束，%s 获胜！" % winner_name)
+	if ui:
+		ui.show_victory(winner_name)
+
+func _on_marble_freed(marble: Marble2D):
+	var idx = all_marbles.find(marble)
+	if idx != -1:
+		all_marbles.remove_at(idx)
+
+func remove_marble(marble: Marble2D):
+	# 供外部（如 DeathResolver）调用，手动移除弹珠
+	var idx = all_marbles.find(marble)
+	if idx != -1:
+		all_marbles.remove_at(idx)
 
 func _adjust_marble_visuals():
 	if not hex_grid:

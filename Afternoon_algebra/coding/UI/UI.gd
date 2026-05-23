@@ -5,6 +5,14 @@ var message_label: Label
 var background_panel: Panel
 var team_label: Label
 
+# 选珠阶段UI元素
+var setup_container: Control
+var setup_team_label: Label
+var setup_remaining_label: Label
+var setup_message_label: Label
+var color_buttons: Array[Button] = []
+var setup_active = false
+
 func _ready():
 	# 创建UI结构
 	_build_ui()
@@ -106,6 +114,143 @@ func _build_ui():
 	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	message_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	container.add_child(message_label)
+	
+	# 选珠阶段UI（初始隐藏）
+	_setup_setup_ui(container)
+
+func _setup_setup_ui(parent: Control):
+	setup_container = Control.new()
+	setup_container.name = "SetupContainer"
+	setup_container.anchor_left = 0.0
+	setup_container.anchor_top = 0.0
+	setup_container.anchor_right = 1.0
+	setup_container.anchor_bottom = 1.0
+	setup_container.offset_left = 10
+	setup_container.offset_top = 10
+	setup_container.offset_right = -10
+	setup_container.offset_bottom = -10
+	setup_container.visible = false
+	parent.add_child(setup_container)
+	
+	# 当前玩家标签
+	setup_team_label = Label.new()
+	setup_team_label.name = "SetupTeamLabel"
+	setup_team_label.anchor_left = 0.0
+	setup_team_label.anchor_top = 0.0
+	setup_team_label.anchor_right = 1.0
+	setup_team_label.anchor_bottom = 0.0
+	setup_team_label.offset_left = 0
+	setup_team_label.offset_top = 0
+	setup_team_label.offset_right = 0
+	setup_team_label.offset_bottom = 40
+	setup_team_label.add_theme_font_override("font", load("res://HYPixel11pxU-2.ttf"))
+	setup_team_label.add_theme_font_size_override("font_size", 28)
+	setup_team_label.add_theme_color_override("font_color", Color.WHITE)
+	setup_team_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	setup_team_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	setup_container.add_child(setup_team_label)
+	
+	# 剩余棋子标签
+	setup_remaining_label = Label.new()
+	setup_remaining_label.name = "SetupRemainingLabel"
+	setup_remaining_label.anchor_left = 0.0
+	setup_remaining_label.anchor_top = 0.0
+	setup_remaining_label.anchor_right = 1.0
+	setup_remaining_label.anchor_bottom = 0.0
+	setup_remaining_label.offset_left = 0
+	setup_remaining_label.offset_top = 45
+	setup_remaining_label.offset_right = 0
+	setup_remaining_label.offset_bottom = 85
+	setup_remaining_label.add_theme_font_override("font", load("res://HYPixel11pxU-2.ttf"))
+	setup_remaining_label.add_theme_font_size_override("font_size", 24)
+	setup_remaining_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	setup_remaining_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	setup_remaining_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	setup_container.add_child(setup_remaining_label)
+	
+	# 颜色选择按钮（6个）
+	var color_names = ["白", "蓝", "绿", "红", "黑", "黄"]
+	var color_values = [Color.WHITE, Color.BLUE, Color.GREEN, Color.RED, Color.BLACK, Color.YELLOW]
+	var button_container = HBoxContainer.new()
+	button_container.name = "ColorButtonContainer"
+	button_container.anchor_left = 0.0
+	button_container.anchor_top = 0.0
+	button_container.anchor_right = 1.0
+	button_container.anchor_bottom = 0.0
+	button_container.offset_left = 0
+	button_container.offset_top = 90
+	button_container.offset_right = 0
+	button_container.offset_bottom = 140
+	button_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	setup_container.add_child(button_container)
+	
+	for i in range(6):
+		var btn = Button.new()
+		btn.text = color_names[i]
+		btn.custom_minimum_size = Vector2(50, 40)
+		btn.add_theme_color_override("font_color", color_values[i])
+		btn.add_theme_font_size_override("font_size", 20)
+		btn.connect("pressed", Callable(self, "_on_color_button_pressed").bind(i))
+		button_container.add_child(btn)
+		color_buttons.append(btn)
+	
+	# 选珠阶段消息标签
+	setup_message_label = Label.new()
+	setup_message_label.name = "SetupMessageLabel"
+	setup_message_label.anchor_left = 0.0
+	setup_message_label.anchor_top = 0.0
+	setup_message_label.anchor_right = 1.0
+	setup_message_label.anchor_bottom = 0.0
+	setup_message_label.offset_left = 0
+	setup_message_label.offset_top = 145
+	setup_message_label.offset_right = 0
+	setup_message_label.offset_bottom = -10
+	setup_message_label.add_theme_font_override("font", load("res://HYPixel11pxU-2.ttf"))
+	setup_message_label.add_theme_font_size_override("font_size", 22)
+	setup_message_label.add_theme_color_override("font_color", Color(1, 1, 0.8))
+	setup_message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	setup_message_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	setup_container.add_child(setup_message_label)
+
+func _on_color_button_pressed(color_index: int):
+	if not setup_active:
+		return
+	var gm = _find_game_manager()
+	if gm:
+		gm.setup_select_color(color_index)
+
+func show_setup_phase(team: int, remaining: int):
+	setup_active = true
+	setup_container.visible = true
+	var team_name = "红方" if team == MarbleConst.Camp.RED else "蓝方"
+	var team_color = Color.RED if team == MarbleConst.Camp.RED else Color.BLUE
+	setup_team_label.text = "当前玩家：%s" % team_name
+	setup_team_label.add_theme_color_override("font_color", team_color)
+	setup_remaining_label.text = "剩余棋子：%d" % remaining
+	# 隐藏正常回合标签
+	turn_label.visible = false
+	team_label.visible = false
+	message_label.visible = false
+
+func hide_setup_phase():
+	setup_active = false
+	setup_container.visible = false
+	turn_label.visible = true
+	team_label.visible = true
+	message_label.visible = true
+
+func update_setup_message(text: String):
+	if setup_message_label:
+		setup_message_label.text = text
+
+func update_setup_remaining(remaining: int):
+	if setup_remaining_label:
+		setup_remaining_label.text = "剩余棋子：%d" % remaining
+
+func highlight_available_positions(positions: Array):
+	# 简单实现：在消息中显示可放置位置数量
+	if setup_message_label:
+		setup_message_label.text = "可放置位置数量：%d" % positions.size()
 
 func _find_game_manager() -> GameManager:
 	# 简化查找：直接获取父节点
