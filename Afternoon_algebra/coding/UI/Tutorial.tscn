@@ -5,7 +5,19 @@
 
 [sub_resource type="Theme" id="Theme_qouqw"]
 
+[sub_resource type="FontVariation" id="FontVariation_qu5wh"]
+base_font = ExtResource("2_qu5wh")
+
+[sub_resource type="FontVariation" id="FontVariation_qouqw"]
+base_font = ExtResource("2_qu5wh")
+
 [sub_resource type="FontVariation" id="FontVariation_apw85"]
+base_font = ExtResource("2_qu5wh")
+
+[sub_resource type="FontVariation" id="FontVariation_opivs"]
+base_font = ExtResource("2_qu5wh")
+
+[sub_resource type="FontVariation" id="FontVariation_5wnqk"]
 base_font = ExtResource("2_qu5wh")
 
 [node name="Tutorial" type="Control" unique_id=262446777]
@@ -25,7 +37,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = SubResource("Theme_qouqw")
-theme_override_fonts/normal_font = SubResource("FontVariation_apw85")
+theme_override_fonts/normal_font = SubResource("FontVariation_qu5wh")
+theme_override_fonts/bold_font = SubResource("FontVariation_qouqw")
+theme_override_fonts/bold_italics_font = SubResource("FontVariation_apw85")
+theme_override_fonts/italics_font = SubResource("FontVariation_opivs")
+theme_override_fonts/mono_font = SubResource("FontVariation_5wnqk")
 bbcode_enabled = true
 fit_content = true
 
@@ -68,7 +84,7 @@ offset_right = 60.0
 offset_bottom = 25.0
 text = "跳过教程"
 
-[node name="TextureRect" type="TextureRect" parent="."]
+[node name="TextureRect" type="TextureRect" parent="." unique_id=1226732683]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
