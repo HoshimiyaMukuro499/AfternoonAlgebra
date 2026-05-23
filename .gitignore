@@ -1,2 +1,5 @@
-.aider*".aider.chat.history.md" 
-".aider.input.history" 
+
+.obsidian/
+.aider.tags.cache.v4/
+.aider.chat.history.md
+.aider.input.history

@@ -26,6 +26,26 @@ var push_range: int = 1
 var max_steps: int = 4
 var enhanced: bool = false
 
+# 黄球增益：增加推挤范围（绿球特性）
+func increase_push_range(amount: int = 1) -> void:
+	push_range += amount
+	print("白球（绿球特性）推挤范围增加至: ", push_range)
+
+# 黄球增益：增加最大步数（红球特性）
+func increase_max_steps(amount: int = 1) -> void:
+	max_steps += amount
+	print("白球（红球特性）最大步数增加至: ", max_steps)
+
+# 黄球增益：设置增强状态（黑球特性）
+func set_enhanced(value: bool = true) -> void:
+	enhanced = value
+	print("白球（黑球特性）已增强，强制移动距离固定为3")
+
+# 黄球增益：设置随从安全模式（蓝球特性）
+func set_follower_safe(safe: bool) -> void:
+	follower_safe = safe
+	print("白球（蓝球特性）获得增益：随从出界不再导致死亡")
+
 # 策略字典
 var strategies: Dictionary = {}
 # 当前策略
