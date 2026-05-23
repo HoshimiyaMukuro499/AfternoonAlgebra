@@ -568,5 +568,5 @@ func show_tutorial():
 	tutorial_instance.tutorial_finished.connect(_on_tutorial_finished)
 
 func _on_tutorial_finished():
-	# 教程结束，开始游戏
-	start_turn()
+	# 跳转到主游戏场景
+	get_tree().change_scene_to_file("res://main.tscn")
