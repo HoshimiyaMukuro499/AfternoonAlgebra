@@ -32,9 +32,9 @@ var page_texts: Array[String] = [
 
 # 每页对应的图片路径（请替换为实际图片路径，无图片则留空字符串）
 var page_images: Array[String] = [
-	"",   # 第0页图片（游戏原则）
-	"",   # 第1页图片（游戏目标）
-	"",   # 第2页图片（移动整体规则）
+	"res://UI/b163c6d317906d18affe29d6de91fbbf.png",   # 第0页图片（游戏原则）
+	"res://UI/b163c6d317906d18affe29d6de91fbbf.png",   # 第1页图片（游戏目标）
+	"res://UI/b163c6d317906d18affe29d6de91fbbf.png",   # 第2页图片（移动整体规则）
 	"res://UI/page0.png",   # 第3页图片（白球）
 	"res://UI/page1.png",   # 第4页图片（蓝球）
 	"res://UI/page2.png",   # 第5页图片（绿球）
