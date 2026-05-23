@@ -173,7 +173,7 @@ func _setup_setup_ui(parent: Control):
 	setup_container.add_child(setup_remaining_label)
 	
 	# 颜色选择按钮（6个）
-	var color_names = ["白", "蓝", "绿", "红", "黑", "黄"]
+	var color_names = ["白（遗愿者）", "蓝（统领者）", "绿（推挤者）", "红（定向者）", "黑（干扰者）", "黄（牺牲者）"]
 	var color_values = [Color.WHITE, Color.BLUE, Color.GREEN, Color.RED, Color.BLACK, Color.YELLOW]
 	var button_container = HBoxContainer.new()
 	button_container.name = "ColorButtonContainer"
@@ -191,9 +191,9 @@ func _setup_setup_ui(parent: Control):
 	for i in range(6):
 		var btn = Button.new()
 		btn.text = color_names[i]
-		btn.custom_minimum_size = Vector2(50, 40)
+		btn.custom_minimum_size = Vector2(80, 40)
 		btn.add_theme_color_override("font_color", color_values[i])
-		btn.add_theme_font_size_override("font_size", 20)
+		btn.add_theme_font_size_override("font_size", 18)
 		btn.connect("pressed", Callable(self, "_on_color_button_pressed").bind(i))
 		button_container.add_child(btn)
 		color_buttons.append(btn)
