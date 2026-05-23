@@ -42,7 +42,7 @@ offset_top = 0.0
 offset_right = 0.0
 offset_bottom = 0.0
 texture = ExtResource("2_qouqw")
-expand_mode = 1
+expand_mode = 0
 stretch_mode = 2
 
 [node name="RichTextLabel" type="RichTextLabel" parent="." unique_id=2035809245]
