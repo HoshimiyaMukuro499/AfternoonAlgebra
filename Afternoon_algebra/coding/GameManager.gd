@@ -93,6 +93,9 @@ func setup_select_color(color: int):
 	setup_selected_color = color
 	setup_state = SetupState.PLACEMENT
 	
+	# 显示可放置区域高亮
+	hex_grid.draw_available_positions(setup_current_team)
+	
 	if ui:
 		ui.update_setup_message("请点击棋盘上的可放置位置（己方区域）")
 		ui.highlight_available_positions(hex_grid.get_available_positions(setup_current_team))
@@ -143,6 +146,9 @@ func setup_place_marble(q: int, r: int):
 	if ui:
 		ui.update_setup_remaining(setup_remaining_marbles[setup_current_team])
 	
+	# 清除高亮
+	hex_grid.clear_highlights()
+	
 	# 检查是否完成
 	if setup_remaining_marbles[setup_current_team] <= 0:
 		# 切换到对方
@@ -172,6 +178,9 @@ func finish_setup_phase():
 	setup_phase_active = false
 	setup_state = SetupState.FINISHED
 	
+	# 清除高亮
+	hex_grid.clear_highlights()
+	
 	# 调整弹珠视觉
 	_adjust_marble_visuals()
 	
@@ -194,8 +203,8 @@ func _unhandled_input(event: InputEvent):
 	if not setup_phase_active:
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		var world_pos = get_global_mouse_position()
-		var hex_coord = hex_grid.world_to_hex(world_pos)
+		var local_pos = hex_grid.to_local(get_global_mouse_position())
+		var hex_coord = hex_grid.world_to_hex(local_pos)
 		var q = round(hex_coord.x)
 		var r = round(hex_coord.y)
 		setup_place_marble(q, r)

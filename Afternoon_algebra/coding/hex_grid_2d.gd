@@ -97,3 +97,25 @@ func get_available_positions(camp: int) -> Array:
 			elif camp == MarbleConst.Camp.BLUE and is_in_blue_zone(q, r):
 				positions.append(Vector2(q, r))
 	return positions
+
+# 高亮显示可放置区域
+var highlight_positions: Array = []
+var highlight_color: Color = Color(0.5, 0.5, 1.0, 0.3)  # 淡蓝色
+
+func draw_available_positions(camp: int):
+	highlight_positions = get_available_positions(camp)
+	if camp == MarbleConst.Camp.RED:
+		highlight_color = Color(1.0, 0.5, 0.5, 0.3)  # 淡红色
+	else:
+		highlight_color = Color(0.5, 0.5, 1.0, 0.3)  # 淡蓝色
+	queue_redraw()
+
+func clear_highlights():
+	highlight_positions.clear()
+	queue_redraw()
+
+func _draw():
+	if highlight_positions.size() > 0:
+		for pos in highlight_positions:
+			var world_pos = hex_to_world(int(pos.x), int(pos.y))
+			draw_circle(world_pos, cell_size * 0.4, highlight_color)
