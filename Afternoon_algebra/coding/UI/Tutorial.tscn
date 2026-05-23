@@ -27,60 +27,44 @@ grow_vertical = 2
 theme = SubResource("Theme_qouqw")
 theme_override_fonts/normal_font = SubResource("FontVariation_apw85")
 bbcode_enabled = true
-text = "[center][b]欢迎来到《六色弹珠：六边形碰撞战》[/b][/center]
-
-[color=#FFD700][b]游戏目标[/b][/color]
-将对方所有弹珠击出棋盘或使其死亡即可获胜。
-
-[color=#FFD700][b]棋盘与坐标[/b][/color]
-棋盘为正六边形，每条边包含8个格点，共169个格点。坐标使用轴向六边形坐标 (q, r)。
-
-[color=#FFD700][b]回合流程[/b][/color]
-1. 选择一个己方存活弹珠。
-2. 根据弹珠颜色执行其专属移动指令。
-3. 结算碰撞、出界、死亡等。
-4. 检查胜负，切换回合。
-
-[color=#FFD700][b]六种弹珠能力简介[/b][/color]
-
-[color=#FFFFFF]白球（基础）[/color]
-- 指定方向 + 力度（1~5）移动。
-- 被友方碰撞时获得额外步数。
-- 己方其他颜色弹珠死亡时，白球可变为该颜色并获得其特性。
-
-[color=#0000FF]蓝球（随从）[/color]
-- 移动前在两侧生成最多2个随从。
-- 随从与蓝球同方向同力度移动，移动后消失。
-- 若随从出界，蓝球死亡。
-
-[color=#00FF00]绿球（推挤）[/color]
-- 移动后推开相邻所有弹珠（不分敌我）1格。
-- 若目标格被占则推开失败，若出界则目标死亡。
-
-[color=#FF0000]红球（定向步进）[/color]
-- 指定步数（1~4），每步可自选方向。
-- 每步移动后立即进行碰撞交换。
-
-[color=#000000]黑球（干扰）[/color]
-- 不能主动移动。
-- 选择一个敌方弹珠，强制其沿随机方向移动2~3格。
-
-[color=#FFFF00]黄球（死亡增益）[/color]
-- 移动方式与白球相同。
-- 死亡时给予己方一个其他弹珠永久增益（如蓝球随从出界不死亡、绿球推挤范围扩大等）。
-
-[center][color=#FFD700]点击下方按钮开始游戏！[/color][/center]"
+text = ""
 fit_content = true
 
-[node name="StartButton" type="Button" parent="." unique_id=1880354626]
+[node name="PrevButton" type="Button" parent="." unique_id=1880354627]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.1
+anchor_top = 0.95000005
+anchor_right = 0.1
+anchor_bottom = 0.95000005
+offset_left = -60.0
+offset_top = -25.0
+offset_right = 60.0
+offset_bottom = 25.0
+text = "上一页"
+
+[node name="NextButton" type="Button" parent="." unique_id=1880354628]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.95000005
 anchor_right = 0.5
 anchor_bottom = 0.95000005
-offset_left = -100.0
+offset_left = -60.0
 offset_top = -25.0
-offset_right = 100.0
+offset_right = 60.0
 offset_bottom = 25.0
-text = "开始游戏"
+text = "下一页"
+
+[node name="SkipButton" type="Button" parent="." unique_id=1880354629]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.9
+anchor_top = 0.95000005
+anchor_right = 0.9
+anchor_bottom = 0.95000005
+offset_left = -60.0
+offset_top = -25.0
+offset_right = 60.0
+offset_bottom = 25.0
+text = "跳过教程"
