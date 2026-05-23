@@ -261,6 +261,15 @@ func show_setup_phase(team: int, remaining: int):
 	turn_label.visible = false
 	team_label.visible = false
 	message_label.visible = false
+	# 恢复选珠阶段子节点可见性（可能被 show_formation_name 隐藏）
+	setup_team_label.visible = true
+	setup_remaining_label.visible = true
+	setup_message_label.visible = true
+	for btn in color_buttons:
+		btn.visible = true
+	# 隐藏阵型名称标签
+	if formation_label:
+		formation_label.visible = false
 
 func hide_setup_phase():
 	setup_active = false

@@ -191,6 +191,9 @@ func setup_place_marble(q: int, r: int):
 		if ui:
 			ui.show_formation_name("哇，%s 竟然成功摆出了「%s」！" % [team_name, formation_name])
 		
+		# 等待阵型名称显示完毕（3秒）后再继续
+		await get_tree().create_timer(3.0).timeout
+		
 		# 切换到对方
 		if setup_current_team == MarbleConst.Camp.RED:
 			setup_current_team = MarbleConst.Camp.BLUE
