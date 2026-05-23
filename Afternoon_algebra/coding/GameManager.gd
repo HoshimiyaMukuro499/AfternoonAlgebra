@@ -215,6 +215,12 @@ func setup_place_marble(q: int, r: int):
 			ui.update_setup_message("请选择弹珠颜色（点击颜色按钮或按数字键1-6）")
 
 func finish_setup_phase():
+	# 显示后手方阵型名称（此时 setup_current_team 已切换到后手方）
+	var formation_name = FORMATION_NAMES[randi() % FORMATION_NAMES.size()]
+	var team_name = "红方" if setup_current_team == MarbleConst.Camp.RED else "蓝方"
+	if ui:
+		ui.show_formation_name("哇，%s 竟然成功摆出了「%s」！" % [team_name, formation_name])
+	
 	setup_phase_active = false
 	setup_state = SetupState.FINISHED
 	
