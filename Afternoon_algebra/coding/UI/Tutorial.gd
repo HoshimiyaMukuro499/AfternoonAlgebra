@@ -45,11 +45,8 @@ func _on_next_button_pressed():
 		current_page += 1
 		_update_page()
 	else:
-		# 最后一页，开始游戏
-		tutorial_finished.emit()
-		queue_free()
+		get_tree().change_scene_to_file("res://main.tscn")
 
 func _on_skip_button_pressed():
-	# 直接跳转到游戏
-	tutorial_finished.emit()
-	queue_free()
+	
+	get_tree().change_scene_to_file("res://main.tscn")

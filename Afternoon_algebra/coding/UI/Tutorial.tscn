@@ -27,7 +27,6 @@ grow_vertical = 2
 theme = SubResource("Theme_qouqw")
 theme_override_fonts/normal_font = SubResource("FontVariation_apw85")
 bbcode_enabled = true
-text = ""
 fit_content = true
 
 [node name="PrevButton" type="Button" parent="." unique_id=1880354627]
@@ -68,3 +67,7 @@ offset_top = -25.0
 offset_right = 60.0
 offset_bottom = 25.0
 text = "跳过教程"
+
+[connection signal="pressed" from="PrevButton" to="." method="_on_prev_button_pressed"]
+[connection signal="pressed" from="NextButton" to="." method="_on_next_button_pressed"]
+[connection signal="pressed" from="SkipButton" to="." method="_on_skip_button_pressed"]
