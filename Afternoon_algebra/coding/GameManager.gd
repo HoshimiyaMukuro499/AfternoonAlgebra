@@ -29,6 +29,72 @@ var red_current_step_index: int = 0
 var red_moved_steps: int = 0
 var red_start_position: Vector2 = Vector2.ZERO  # 红球开始移动时的初始位置（用于取消时回退）
 
+# 选珠布阵阶段变量
+enum SetupState { COLOR_SELECT, PLACEMENT, FINISHED }
+var setup_state = SetupState.COLOR_SELECT
+var setup_current_team = MarbleConst.Camp.RED
+var setup_remaining_marbles = { MarbleConst.Camp.RED: 6, MarbleConst.Camp.BLUE: 6 }
+var setup_selected_color = -1
+var setup_phase_active = false
+
+# 随机阵型名称列表
+const FORMATION_NAMES = [
+	"天使夜莺阵",
+	"刻刻帝阵",
+	"冰结傀儡阵",
+	"破军歌姬阵",
+	"赝造魔女阵",
+	"飓风骑士阵",
+	"灼烂歼鬼阵",
+	"鏖杀公阵",
+	"神威灵装阵",
+	"从零开始阵",
+	"帕克冰封阵",
+	"雷姆流星锤阵",
+	"拉姆风刃阵",
+	"爱蜜莉雅冰阵",
+	"碧翠丝门阵",
+	"剑圣加护阵",
+	"嫉妒魔女阵",
+	"强欲魔女阵",
+	"为美好世界阵",
+	"爆裂魔法阵",
+	"惠惠爆裂阵",
+	"阿库娅神光阵",
+	"达克妮斯铁壁阵",
+	"悠悠上级魔法阵",
+	"维兹死亡冰阵",
+	"巴尼尔面具阵",
+	"御坂妹妹阵",
+	"超电磁炮阵",
+	"一方通行阵",
+	"未元物质阵",
+	"原子崩坏阵",
+	"心中探测阵",
+	"黑子瞬移阵",
+	"佐天泪子阵",
+	"初春饰利阵",
+	"北冥神功阵",
+	"八荒六合阵",
+	"小无相功阵",
+	"天山折梅阵",
+	"生死符法阵",
+	"化功大法阵",
+	"吸星大法阵",
+	"辟邪剑阵",
+	"葵花宝典阵",
+	"玉女素心阵",
+	"左右互搏阵",
+	"空明拳阵",
+	"黯然销魂阵",
+	"玄铁重剑阵",
+	"金蛇迷踪阵",
+	"神行百变阵",
+	"凝血神爪阵",
+	"化骨绵掌阵",
+	"吸功大法阵"
+]
+
 func _ready():
 	hex_grid = $HexGrid2D
 	
@@ -39,25 +105,6 @@ func _ready():
 	# 清理场景中的旧测试弹珠
 	if has_node("Marble_Rigid"):
 		$Marble_Rigid.queue_free()
-	
-	# 使用 BoardInitializer 初始化标准棋盘
-	if hex_grid:
-		all_marbles = BoardInitializer.initialize_board(hex_grid)
-		_adjust_marble_visuals()
-		# 为每个弹珠分配编号（R1~R6 / B1~B6）
-		var red_count = 0
-		var blue_count = 0
-		for marble in all_marbles:
-			if marble.camp == MarbleConst.Camp.RED:
-				red_count += 1
-				marble.label_index = red_count
-			else:
-				blue_count += 1
-				marble.label_index = blue_count
-			marble.update_label()
-		# 监听弹珠销毁事件，自动从数组中移除
-		for marble in all_marbles:
-			marble.tree_exited.connect(_on_marble_freed.bind(marble))
 	
 	# 创建背景
 	var background = ColorRect.new()
@@ -75,8 +122,162 @@ func _ready():
 	_init_ui()
 	
 	randomize()
+	# 先手随机
 	current_team = MarbleConst.Camp.RED if randi() % 2 == 0 else MarbleConst.Camp.BLUE
+	setup_current_team = current_team
+	start_setup_phase()
+
+func start_setup_phase():
+	setup_phase_active = true
+	setup_state = SetupState.COLOR_SELECT
+	setup_selected_color = -1
+	setup_remaining_marbles = { MarbleConst.Camp.RED: 6, MarbleConst.Camp.BLUE: 6 }
+	all_marbles.clear()
+	
+	if ui:
+		ui.show_setup_phase(setup_current_team, setup_remaining_marbles[setup_current_team])
+		ui.update_setup_message("请选择弹珠颜色（点击颜色按钮或按数字键1-6）")
+	
+	print("选珠阶段开始，%s 方先选" % ("红" if setup_current_team == MarbleConst.Camp.RED else "蓝"))
+
+func setup_select_color(color: int):
+	if not setup_phase_active:
+		return
+	if setup_state != SetupState.COLOR_SELECT:
+		return
+	if color < 0 or color >= MarbleConst.MarbleColor.size():
+		return
+	
+	setup_selected_color = color
+	setup_state = SetupState.PLACEMENT
+	
+	# 显示可放置区域高亮
+	hex_grid.draw_available_positions(setup_current_team)
+	
+	if ui:
+		ui.update_setup_message("请点击棋盘上的可放置位置（己方区域）")
+		ui.highlight_available_positions(hex_grid.get_available_positions(setup_current_team))
+	
+	print("已选择颜色 %d，请放置" % color)
+
+func setup_place_marble(q: int, r: int):
+	if not setup_phase_active:
+		return
+	if setup_state != SetupState.PLACEMENT:
+		return
+	if setup_selected_color < 0:
+		return
+	
+	# 检查是否在己方区域内
+	var in_zone = false
+	if setup_current_team == MarbleConst.Camp.RED:
+		in_zone = hex_grid.is_in_red_zone(q, r)
+	else:
+		in_zone = hex_grid.is_in_blue_zone(q, r)
+	
+	if not in_zone:
+		if ui:
+			ui.update_setup_message("此处为不可放置地块，可放置地块位于己方区域")
+		return
+	
+	# 检查是否已被占用
+	if hex_grid.get_marble_at(q, r) != null:
+		if ui:
+			ui.update_setup_message("该位置已被占用，请选择其他位置")
+		return
+	
+	# 创建弹珠
+	var marble = BoardInitializer.create_marble_for_setup(setup_selected_color, setup_current_team, hex_grid, q, r)
+	all_marbles.append(marble)
+	
+	# 编号
+	var count = 0
+	for m in all_marbles:
+		if m.camp == setup_current_team:
+			count += 1
+	marble.label_index = count
+	marble.update_label()
+	
+	# 减少剩余数量
+	setup_remaining_marbles[setup_current_team] -= 1
+	
+	if ui:
+		ui.update_setup_remaining(setup_remaining_marbles[setup_current_team])
+	
+	# 清除高亮
+	hex_grid.clear_highlights()
+	
+	# 检查是否完成
+	if setup_remaining_marbles[setup_current_team] <= 0:
+		# 生成随机阵型名称并显示
+		var formation_name = FORMATION_NAMES[randi() % FORMATION_NAMES.size()]
+		var team_name = "红方" if setup_current_team == MarbleConst.Camp.RED else "蓝方"
+		if ui:
+			ui.show_formation_name("哇，%s 竟然成功摆出了「%s」！" % [team_name, formation_name])
+		
+		# 等待阵型名称显示完毕（3秒）后再继续
+		await get_tree().create_timer(3.0).timeout
+		
+		# 切换到对方
+		if setup_current_team == MarbleConst.Camp.RED:
+			setup_current_team = MarbleConst.Camp.BLUE
+		else:
+			setup_current_team = MarbleConst.Camp.RED
+		
+		if setup_remaining_marbles[setup_current_team] <= 0:
+			# 双方都完成
+			finish_setup_phase()
+		else:
+			setup_state = SetupState.COLOR_SELECT
+			setup_selected_color = -1
+			if ui:
+				ui.show_setup_phase(setup_current_team, setup_remaining_marbles[setup_current_team])
+				ui.update_setup_message("请选择弹珠颜色（点击颜色按钮或按数字键1-6）")
+			print("轮到 %s 方选珠" % ("红" if setup_current_team == MarbleConst.Camp.RED else "蓝"))
+	else:
+		# 继续选择颜色
+		setup_state = SetupState.COLOR_SELECT
+		setup_selected_color = -1
+		if ui:
+			ui.update_setup_message("请选择弹珠颜色（点击颜色按钮或按数字键1-6）")
+
+func finish_setup_phase():
+	# 后手方阵型名称已在 setup_place_marble 中显示，此处不再重复显示
+	
+	setup_phase_active = false
+	setup_state = SetupState.FINISHED
+	
+	# 清除高亮
+	hex_grid.clear_highlights()
+	
+	# 调整弹珠视觉
+	_adjust_marble_visuals()
+	
+	# 监听弹珠销毁事件
+	for marble in all_marbles:
+		marble.tree_exited.connect(_on_marble_freed.bind(marble))
+	
+	if ui:
+		ui.hide_setup_phase()
+		ui.update_message("布阵完成，游戏开始！")
+	
+	print("布阵完成，游戏开始")
+	
+	# 开始正常回合
+	current_team = setup_current_team  # 先手方
+	turn_number = 0
 	start_turn()
+
+func _unhandled_input(event: InputEvent):
+	if not setup_phase_active:
+		return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var local_pos = hex_grid.to_local(get_global_mouse_position())
+		var hex_coord = hex_grid.world_to_hex(local_pos)
+		var q = round(hex_coord.x)
+		var r = round(hex_coord.y)
+		setup_place_marble(q, r)
+
 
 func _adjust_marble_visuals():
 	if not hex_grid:

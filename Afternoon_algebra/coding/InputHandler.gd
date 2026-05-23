@@ -18,6 +18,9 @@ func _ready():
 		game_manager = get_tree().get_first_node_in_group("game_manager")
 
 func _unhandled_input(event):
+	# 选珠阶段由 GameManager 处理点击
+	if game_manager.setup_phase_active:
+		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		# 将全局鼠标坐标转换为 HexGrid2D 的局部坐标
 		var local_pos = game_manager.hex_grid.to_local(get_global_mouse_position())
@@ -26,6 +29,9 @@ func _unhandled_input(event):
 		game_manager.cancel_selection()
 
 func _handle_click(pos: Vector2):
+	# 选珠阶段由 GameManager 处理
+	if game_manager.setup_phase_active:
+		return
 	match game_manager.current_state:
 		GameManager.TurnState.IDLE:
 			_try_select_marble(pos)

@@ -14,7 +14,7 @@ size = Vector2(20, 20)
 script = ExtResource("1_lquwl")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=433658316]
-position = Vector2(961.99994, 534)
+position = Vector2(960, 540)
 scale = Vector2(1, 0.8660254)
 
 [node name="DirectionalLight2D" type="DirectionalLight2D" parent="." unique_id=1789863138]
