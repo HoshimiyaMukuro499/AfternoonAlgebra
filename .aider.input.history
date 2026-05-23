@@ -387,3 +387,70 @@
 
 # 2026-05-23 20:32:41.758423
 +/quit
+
+# 2026-05-23 21:27:36.714643
++/add Afternoon_algebra\coding\BoardInitializer.gd
++Afternoon_algebra\coding\GameManager.gd
++Afternoon_algebra\coding\InputHandler.gd
++Afternoon_algebra\coding\MarbleConst.gd.gd
++Afternoon_algebra\coding\UI\UI.gd
++Afternoon_algebra\coding\hex_grid_2d.gd
++Afternoon_algebra\game_rule.md
+
+# 2026-05-23 21:27:42.189732
++/add Afternoon_algebra\coding\UI\Tutorial.gd
+
+# 2026-05-23 21:29:09.852684
++根据Tutorial里对于每一个弹珠的称呼，在选择弹珠的界面想一个办法再次提示一下每一个弹珠的功能，就用称呼提示就好了。
+
+# 2026-05-23 21:30:16.888071
++/add Afternoon_algebra\coding\BoardInitializer.gd
++Afternoon_algebra\coding\GameManager.gd
++Afternoon_algebra\coding\InputHandler.gd
++Afternoon_algebra\coding\MarbleConst.gd.gd
++Afternoon_algebra\coding\UI\Tutorial.gd
++Afternoon_algebra\coding\UI\UI.gd
++Afternoon_algebra\coding\hex_grid_2d.gd
++Afternoon_algebra\game_rule.md
+
+# 2026-05-23 21:30:22.472079
++> 根据Tutorial里对于每一个弹珠的称呼，在选择弹珠的界面
++> 想一个办法再次提示一下每一个弹珠的功能，就用称呼提示
++> 就好了。
+
+# 2026-05-23 21:32:08.791342
++现在选择弹珠的UI界面变得特别拥挤，内容超过了外面的框框。可以考虑分两行显示选项，也可以考虑额外在别的位置加一个框框显示每一种的称呼。都可以，看你吧。
+
+# 2026-05-23 21:33:57.679708
++黑色的那个字体颜色稍微浅一点，要不然深灰色背景下看不出来了
+
+# 2026-05-23 21:34:28.281436
++/quit
+
+# 2026-05-23 21:34:45.349881
++/add Afternoon_algebra\coding\BoardInitializer.gd
++Afternoon_algebra\coding\GameManager.gd
++Afternoon_algebra\coding\InputHandler.gd
++Afternoon_algebra\coding\MarbleConst.gd.gd
++Afternoon_algebra\coding\UI\Tutorial.gd
++Afternoon_algebra\coding\UI\UI.gd
++Afternoon_algebra\coding\hex_grid_2d.gd
++Afternoon_algebra\game_rule.md
+
+# 2026-05-23 21:35:28.289392
++帮助我的代码通过这个测试：res://tests/test_player_interaction_v2.gd
++- test_select_power_moves_marble
++    [Failed]:  [VECTOR2(1.0, 0.0)] expected to equal [VECTOR2(2.0, 0.0)]:  弹珠移动到(2,0)
++          at line 429
++    [Failed]:  Unexpected Errors:
++    [1] <engine-0>Parameter "data.tree" is null.
++    [2] <engine-2>Cannot call method 'create_timer' on a null value.
++          at line -1
++- test_test_runner_works
++    [Risky]:  Did not assert
+
+# 2026-05-23 21:35:46.688527
++Y
+
+# 2026-05-23 21:36:55.959839
++/quit
