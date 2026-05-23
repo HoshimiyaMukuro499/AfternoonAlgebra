@@ -266,7 +266,8 @@ func finish_setup_phase():
 	# 开始正常回合
 	current_team = setup_current_team  # 先手方
 	turn_number = 0
-	start_turn()
+	# 先显示新手文档，再开始游戏
+	show_tutorial()
 
 func _unhandled_input(event: InputEvent):
 	if not setup_phase_active:
@@ -550,3 +551,22 @@ func remove_marble(marble: Marble2D):
 	var idx = all_marbles.find(marble)
 	if idx != -1:
 		all_marbles.remove_at(idx)
+
+# 新手文档环节
+func show_tutorial():
+	# 加载教程场景
+	var tutorial_scene = load("res://UI/Tutorial.tscn")
+	if tutorial_scene == null:
+		push_error("无法加载教程场景")
+		start_turn()
+		return
+	
+	var tutorial_instance = tutorial_scene.instantiate()
+	add_child(tutorial_instance)
+	
+	# 连接信号
+	tutorial_instance.tutorial_finished.connect(_on_tutorial_finished)
+
+func _on_tutorial_finished():
+	# 教程结束，开始游戏
+	start_turn()
