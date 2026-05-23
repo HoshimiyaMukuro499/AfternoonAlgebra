@@ -70,9 +70,10 @@ func _update_page():
 	else:
 		texture_rect.visible = false
 	
-	# 确保 TextureRect 保持比例
+	# 确保 TextureRect 保持比例并刷新大小
 	texture_rect.stretch_mode = 2
-	texture_rect.expand_mode = 1
+	texture_rect.expand_mode = 0
+	texture_rect.reset_size()
 	
 	# 更新按钮状态
 	prev_button.disabled = (current_page == 0)
