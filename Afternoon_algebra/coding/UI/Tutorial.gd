@@ -70,6 +70,10 @@ func _update_page():
 	else:
 		texture_rect.visible = false
 	
+	# 确保 TextureRect 保持比例
+	texture_rect.stretch_mode = 2
+	texture_rect.expand_mode = 1
+	
 	# 更新按钮状态
 	prev_button.disabled = (current_page == 0)
 	next_button.text = "下一页" if current_page < page_texts.size() - 1 else "开始游戏"
