@@ -448,13 +448,15 @@ func execute_move():
 			if not success:
 				break
 			# 等待一小段时间，让玩家看到这一格的移动
-			await get_tree().create_timer(0.15).timeout
+			if is_inside_tree():
+				await get_tree().create_timer(0.15).timeout
 		
 		# 移动后钩子（蓝球会在这里清除随从）
 		marble.on_after_move(direction, steps, marble.is_alive)
 	
 	# 再稍微等一下，确保所有动画效果结束
-	await get_tree().create_timer(0.1).timeout
+	if is_inside_tree():
+		await get_tree().create_timer(0.1).timeout
 	
 	_finish_turn()
 
