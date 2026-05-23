@@ -174,7 +174,7 @@ func _setup_setup_ui(parent: Control):
 	
 	# 颜色选择按钮（6个）
 	var color_names = ["白（遗愿者）", "蓝（统领者）", "绿（推挤者）", "红（定向者）", "黑（干扰者）", "黄（牺牲者）"]
-	var color_values = [Color.WHITE, Color.BLUE, Color.GREEN, Color.RED, Color.BLACK, Color.YELLOW]
+	var color_values = [Color.WHITE, Color.BLUE, Color.GREEN, Color.RED, Color(0.8, 0.8, 0.8), Color.YELLOW]
 	var button_container = GridContainer.new()
 	button_container.name = "ColorButtonContainer"
 	button_container.columns = 3
