@@ -173,10 +173,11 @@ func _setup_setup_ui(parent: Control):
 	setup_container.add_child(setup_remaining_label)
 	
 	# 颜色选择按钮（6个）
-	var color_names = ["白", "蓝", "绿", "红", "黑", "黄"]
-	var color_values = [Color.WHITE, Color.BLUE, Color.GREEN, Color.RED, Color.BLACK, Color.YELLOW]
-	var button_container = HBoxContainer.new()
+	var color_names = ["白（遗愿者）", "蓝（统领者）", "绿（推挤者）", "红（定向者）", "黑（干扰者）", "黄（牺牲者）"]
+	var color_values = [Color.WHITE, Color.BLUE, Color.GREEN, Color.RED, Color(0.8, 0.8, 0.8), Color.YELLOW]
+	var button_container = GridContainer.new()
 	button_container.name = "ColorButtonContainer"
+	button_container.columns = 3
 	button_container.anchor_left = 0.0
 	button_container.anchor_top = 0.0
 	button_container.anchor_right = 1.0
@@ -184,16 +185,15 @@ func _setup_setup_ui(parent: Control):
 	button_container.offset_left = 0
 	button_container.offset_top = 90
 	button_container.offset_right = 0
-	button_container.offset_bottom = 140
-	button_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	button_container.offset_bottom = 180
 	setup_container.add_child(button_container)
 	
 	for i in range(6):
 		var btn = Button.new()
 		btn.text = color_names[i]
-		btn.custom_minimum_size = Vector2(50, 40)
+		btn.custom_minimum_size = Vector2(100, 40)
 		btn.add_theme_color_override("font_color", color_values[i])
-		btn.add_theme_font_size_override("font_size", 20)
+		btn.add_theme_font_size_override("font_size", 18)
 		btn.connect("pressed", Callable(self, "_on_color_button_pressed").bind(i))
 		button_container.add_child(btn)
 		color_buttons.append(btn)
@@ -206,7 +206,7 @@ func _setup_setup_ui(parent: Control):
 	setup_message_label.anchor_right = 1.0
 	setup_message_label.anchor_bottom = 0.0
 	setup_message_label.offset_left = 0
-	setup_message_label.offset_top = 145
+	setup_message_label.offset_top = 190
 	setup_message_label.offset_right = 0
 	setup_message_label.offset_bottom = -10
 	setup_message_label.add_theme_font_override("font", load("res://HYPixel11pxU-2.ttf"))

@@ -266,7 +266,8 @@ func finish_setup_phase():
 	# 开始正常回合
 	current_team = setup_current_team  # 先手方
 	turn_number = 0
-	start_turn()
+	# 先显示新手文档，再开始游戏
+	show_tutorial()
 
 func _unhandled_input(event: InputEvent):
 	if not setup_phase_active:
@@ -425,15 +426,37 @@ func select_power(power: int):
 	selected_power = power
 	execute_move()
 
+
 func execute_move():
 	current_state = TurnState.EXECUTING
 	state_changed.emit(current_state)
-	if selected_marble and selected_marble.is_alive:
-		selected_marble.move(selected_direction, selected_power)
 	
-	# 在不处于场景树中的测试环境里，同步执行后续逻辑
+	if selected_marble and selected_marble.is_alive:
+		var marble = selected_marble
+		var direction = selected_direction
+		var steps = selected_power
+		
+		# 移动前钩子（蓝球会在这里生成随从）
+		marble.on_before_move(direction, steps)
+		
+		# 逐格移动，每步之间加一点延迟（产生动画效果）
+		for step in range(steps):
+			if not marble.is_alive:
+				break
+			# 移动一格（1步）
+			var success = marble._move_step_by_step(direction, 1)
+			if not success:
+				break
+			# 等待一小段时间，让玩家看到这一格的移动
+			if is_inside_tree():
+				await get_tree().create_timer(0.15).timeout
+		
+		# 移动后钩子（蓝球会在这里清除随从）
+		marble.on_after_move(direction, steps, marble.is_alive)
+	
+	# 再稍微等一下，确保所有动画效果结束
 	if is_inside_tree():
-		await get_tree().create_timer(0.5).timeout
+		await get_tree().create_timer(0.1).timeout
 	
 	_finish_turn()
 
@@ -530,3 +553,22 @@ func remove_marble(marble: Marble2D):
 	var idx = all_marbles.find(marble)
 	if idx != -1:
 		all_marbles.remove_at(idx)
+
+# 新手文档环节
+func show_tutorial():
+	# 加载教程场景
+	var tutorial_scene = load("res://UI/Tutorial.tscn")
+	if tutorial_scene == null:
+		push_error("无法加载教程场景")
+		start_turn()
+		return
+	
+	var tutorial_instance = tutorial_scene.instantiate()
+	add_child(tutorial_instance)
+	
+	# 连接信号
+	tutorial_instance.tutorial_finished.connect(_on_tutorial_finished)
+
+func _on_tutorial_finished():
+	# 跳转到主游戏场景
+	get_tree().change_scene_to_file("res://main.tscn")
