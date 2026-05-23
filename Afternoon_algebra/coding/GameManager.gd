@@ -221,6 +221,9 @@ func finish_setup_phase():
 	if ui:
 		ui.show_formation_name("哇，%s 竟然成功摆出了「%s」！" % [team_name, formation_name])
 	
+	# 等待阵型名称显示完毕（3秒）后再继续
+	await get_tree().create_timer(3.0).timeout
+	
 	setup_phase_active = false
 	setup_state = SetupState.FINISHED
 	

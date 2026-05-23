@@ -292,18 +292,11 @@ func show_formation_name(text: String):
 		setup_message_label.visible = false
 		for btn in color_buttons:
 			btn.visible = false
-		# 启动定时器，3秒后隐藏
-		formation_timer.start(3.0)
+		# 不再启动定时器，由 GameManager 的 await 控制隐藏
 
 func _on_formation_timer_timeout():
-	if formation_label:
-		formation_label.visible = false
-		# 恢复其他标签
-		setup_team_label.visible = true
-		setup_remaining_label.visible = true
-		setup_message_label.visible = true
-		for btn in color_buttons:
-			btn.visible = true
+	# 不再使用定时器，此函数保留为空
+	pass
 
 func _find_game_manager() -> GameManager:
 	# 简化查找：直接获取父节点
