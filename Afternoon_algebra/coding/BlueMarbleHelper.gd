@@ -119,9 +119,12 @@ static func _move_follower(marble: Marble2D, follower: Node2D, start: Vector2, d
 		if marble.hex_grid.is_out_of_bounds(next.x, next.y):
 			return false
 		var other = marble.hex_grid.get_marble_at(next.x, next.y)
-		if other != null and other.is_alive:
-			# 随从撞到其他弹珠：随从停下，对方获得剩余步数继续移动
-			other.continue_move(remaining, dir)
+		if other != null:
+			# 随从撞到其他弹珠：随从停下
+			if other is Marble2D and other.is_alive:
+				# 对方获得剩余步数继续移动
+				other.continue_move(remaining, dir)
+			# 如果 other 是随从（非 Marble2D），则不做任何操作，随从停下
 			break
 		else:
 			# 空位：直接移动随从
