@@ -41,4 +41,3 @@ func execute(marble: Marble2D, direction: int, steps: int) -> bool:
 
 	# 返回 true 表示未死亡（即使未完成所有步数也没关系）
 	return marble.is_alive
-
