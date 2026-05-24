@@ -97,7 +97,7 @@ func _on_next_button_pressed():
 		current_page += 1
 		_update_page()
 	else:
-		tutorial_finished.emit()
+		get_tree().change_scene_to_file("res://main.tscn")
 
 func _on_skip_button_pressed():
-	tutorial_finished.emit()
+	get_tree().change_scene_to_file("res://main.tscn")
