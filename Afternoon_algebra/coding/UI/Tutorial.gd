@@ -57,9 +57,6 @@ var current_page: int = 0
 
 func _ready():
 	_update_page()
-	prev_button.pressed.connect(_on_prev_button_pressed)
-	next_button.pressed.connect(_on_next_button_pressed)
-	skip_button.pressed.connect(_on_skip_button_pressed)
 
 func _update_page():
 	# 更新文本
