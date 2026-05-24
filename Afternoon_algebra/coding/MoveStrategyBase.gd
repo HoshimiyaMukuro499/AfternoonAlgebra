@@ -14,4 +14,3 @@ func on_collision_as_target(marble: Marble2D, collider: Marble2D, incoming_steps
 # 死亡清理钩子
 func on_death(marble: Marble2D) -> void:
 	pass
-
