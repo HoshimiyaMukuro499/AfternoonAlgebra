@@ -482,23 +482,24 @@ func execute_move():
 		var direction = selected_direction
 		var steps = selected_power
 		
-		# 移动前钩子（蓝球会在这里生成随从）
-		marble.on_before_move(direction, steps)
-		
-		# 逐格移动，每步之间加一点延迟（产生动画效果）
-		for step in range(steps):
-			if not marble.is_alive:
-				break
-			# 移动一格（1步）
-			var success = marble._move_step_by_step(direction, 1)
-			if not success:
-				break
-			# 等待一小段时间，让玩家看到这一格的移动
-			if is_inside_tree():
-				await get_tree().create_timer(0.15).timeout
-		
-		# 移动后钩子（蓝球会在这里清除随从）
-		marble.on_after_move(direction, steps, marble.is_alive)
+		# 红球特殊处理：保持原有逐格移动逻辑
+		if marble.color == MarbleConst.MarbleColor.RED:
+			# 移动前钩子（红球在 red_select_power 中已调用）
+			marble.on_before_move(direction, steps)
+			
+			for step in range(steps):
+				if not marble.is_alive:
+					break
+				var success = marble._move_step_by_step(direction, 1)
+				if not success:
+					break
+				if is_inside_tree():
+					await get_tree().create_timer(0.15).timeout
+			
+			marble.on_after_move(direction, steps, marble.is_alive)
+		else:
+			# 非红球：使用弹珠自身的 move() 方法（蓝球、白球等）
+			marble.move(direction, steps)
 	
 	# 再稍微等一下，确保所有动画效果结束
 	if is_inside_tree():
