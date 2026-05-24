@@ -19,6 +19,7 @@ func execute(marble: Marble2D, direction: int, steps: int) -> bool:
 	if followers.is_empty():
 		followers = BlueMarbleHelper.spawn_followers(marble, direction)
 	
+
 	var remaining = steps
 	while remaining > 0 and marble.is_alive:
 		var before_hex = marble.hex_coord if marble.hex_coord != Vector2.ZERO else marble.hex_grid.get_marble_hex(marble)
@@ -33,11 +34,15 @@ func execute(marble: Marble2D, direction: int, steps: int) -> bool:
 		
 		var follower_ok = BlueMarbleHelper.move_followers(marble, followers, direction, 1)
 		if not follower_ok:
-			marble.die()
-			break
+			# 检查 follower_safe 标志：如果为 true，随从出界不导致蓝球死亡
+			var is_safe = false
+			if "follower_safe" in marble:
+				is_safe = marble.follower_safe
+			if not is_safe:
+				marble.die()
+			break   # 无论是否安全，随从移动失败后蓝球不应继续移动
 		
 		remaining -= 1
-	
 	BlueMarbleHelper.clear_followers(marble, followers)
 	return marble.is_alive
 
