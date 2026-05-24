@@ -170,6 +170,16 @@ func setup_place_marble(q: int, r: int):
 	if setup_selected_color < 0:
 		return
 	
+	# 检查是否已放置满6个弹珠
+	var current_count = 0
+	for m in all_marbles:
+		if m.camp == setup_current_team:
+			current_count += 1
+	if current_count >= MarbleConst.TOTAL_MARBLE_COUNT:
+		if ui:
+			ui.update_setup_message("该方已放置满6个弹珠，请等待对方完成")
+		return
+	
 	# 检查是否在己方区域内
 	var in_zone = false
 	if setup_current_team == MarbleConst.Camp.RED:
