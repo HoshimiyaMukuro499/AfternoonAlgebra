@@ -610,8 +610,12 @@ func show_tutorial():
 	tutorial_instance = tutorial_scene.instantiate()
 	add_child(tutorial_instance)
 	
-	# 连接信号
-	tutorial_instance.tutorial_finished.connect(_on_tutorial_finished)
+	# 延迟一帧连接信号，确保节点已进入场景树
+	call_deferred("_connect_tutorial_signal")
+
+func _connect_tutorial_signal():
+	if tutorial_instance and is_instance_valid(tutorial_instance):
+		tutorial_instance.tutorial_finished.connect(_on_tutorial_finished)
 
 func _on_tutorial_finished():
 	# 移除教程节点
