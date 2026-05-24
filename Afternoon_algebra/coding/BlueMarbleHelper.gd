@@ -19,6 +19,10 @@ static func spawn_followers(marble: Marble2D, direction: int) -> Array[Node2D]:
 		followers.append(_create_follower(marble, cell))
 	return followers
 
+# 初始生成随从（方向默认为0）
+static func spawn_initial_followers(marble: Marble2D) -> Array[Node2D]:
+	return spawn_followers(marble, 0)
+
 
 # 移动所有随从，按相同的方向和步数移动
 # 返回值：如果所有随从移动过程中均未出界，返回 true；只要有一个出界就返回 false
@@ -43,9 +47,12 @@ static func clear_followers(marble: Marble2D, followers: Array[Node2D]) -> void:
 # ---------- 私有实现细节（静态） ----------
 # 计算随从生成的位置（与移动方向不共线的相邻格子，最多2个）
 static func _get_follower_spawn_cells(marble: Marble2D, dir: int) -> Array[Vector2]:
-	# 与移动方向夹角 ±60° 的两个方向
+	# 与移动方向夹角 ±60° 的两个方向（优先位置）
 	var left = (dir + 1) % 6
 	var right = (dir + 5) % 6
+	# 与移动方向相反的方向（共线，不应生成随从）
+	var opposite = (dir + 3) % 6
+	
 	var candidates: Array[Vector2] = []
 	var start = marble.get_current_hex()
 	
@@ -59,7 +66,8 @@ static func _get_follower_spawn_cells(marble: Marble2D, dir: int) -> Array[Vecto
 	if candidates.size() < 2:
 		var other_dirs = []
 		for d in range(6):
-			if d != dir and d != left and d != right:
+			# 排除共线方向（dir 和 opposite）以及已考虑的优先方向（left, right）
+			if d != dir and d != opposite and d != left and d != right:
 				other_dirs.append(d)
 		other_dirs.shuffle()   # 随机顺序（网络版应由服务器决定）
 		for d in other_dirs:

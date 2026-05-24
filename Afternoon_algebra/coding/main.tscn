@@ -2,44 +2,8 @@
 
 [ext_resource type="Script" uid="uid://bmes0p5f4xlb2" path="res://InputHandler.gd" id="1_1bvp3"]
 [ext_resource type="Script" uid="uid://dw76x6xynmui5" path="res://GameManager.gd" id="1_lquwl"]
-[ext_resource type="Script" uid="uid://rxongw37k117" path="res://Marble2D.gd" id="2_7mycd"]
-[ext_resource type="PackedScene" uid="uid://ibkdkn0j4cgh" path="res://white_marble.tscn" id="3_2cqfq"]
-[ext_resource type="Script" uid="uid://e4ly1u2usr2f" path="res://blue_marble.gd" id="4_7mycd"]
 [ext_resource type="Script" uid="uid://b8ugwsr7b2cbf" path="res://hex_grid_2d.gd" id="5_7mycd"]
-[ext_resource type="Script" uid="uid://dkwsi85yatbam" path="res://green_marble.gd" id="5_efxa6"]
-[ext_resource type="Script" uid="uid://or3yeule5hx8" path="res://red_marble.gd" id="6_dg77c"]
-[ext_resource type="Texture2D" uid="uid://untm0cuhq4nt" path="res://72ecbf01174f9811d8d12cb4db99ff12.png" id="6_ycdy4"]
 [ext_resource type="Script" uid="uid://gji5k7jtkidb" path="res://hex_grid_drawer.gd" id="7_272bh"]
-[ext_resource type="Script" uid="uid://d2decfg5lat0m" path="res://black_marble.gd" id="7_ycdy4"]
-[ext_resource type="Script" uid="uid://dugqeam5wnmeo" path="res://yellow_marble.gd" id="8_w48qg"]
-[ext_resource type="Texture2D" uid="uid://7fa2hcthmnyx" path="res://e0b8bb4e61a2c84b61cb88da0639f13f.png" id="8_yaehf"]
-[ext_resource type="Texture2D" uid="uid://cvslydebirwfe" path="res://51aaad4f97bb00788f135d0f723e824b.png" id="10_074og"]
-[ext_resource type="Texture2D" uid="uid://d20doactpqupv" path="res://b764655fb551105500b3ff458d9a265f.png" id="12_cegan"]
-[ext_resource type="Texture2D" uid="uid://fk7x144uh6qy" path="res://448f9290e54cf220665a9acb90b58e08.png" id="14_82xsv"]
-
-[sub_resource type="SphereMesh" id="SphereMesh_272bh"]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_5vw27"]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_kek77"]
-
-[sub_resource type="SphereMesh" id="SphereMesh_vivmo"]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_2cqfq"]
-
-[sub_resource type="SphereMesh" id="SphereMesh_yaehf"]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_074og"]
-
-[sub_resource type="SphereMesh" id="SphereMesh_cegan"]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_82xsv"]
-
-[sub_resource type="SphereMesh" id="SphereMesh_getpj"]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_ryguw"]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_4c57u"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_h2yge"]
 size = Vector2(20, 20)
@@ -50,7 +14,7 @@ size = Vector2(20, 20)
 script = ExtResource("1_lquwl")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=433658316]
-position = Vector2(301, 195.00002)
+position = Vector2(960, 540)
 scale = Vector2(1, 0.8660254)
 
 [node name="DirectionalLight2D" type="DirectionalLight2D" parent="." unique_id=1789863138]
@@ -62,6 +26,9 @@ skew = 0.7137245
 position = Vector2(576, 324)
 script = ExtResource("5_7mycd")
 cell_size = 32.0
+
+[node name="HexGridDrawer" type="Node2D" parent="HexGrid2D" unique_id=1135638677]
+script = ExtResource("7_272bh")
 
 [node name="Ground" type="StaticBody2D" parent="." unique_id=135017203]
 position = Vector2(303, 112)
@@ -76,7 +43,3 @@ shape = SubResource("RectangleShape2D_efxa6")
 [node name="InputHandler" type="Node2D" parent="." unique_id=1446407286]
 position = Vector2(203, 89)
 script = ExtResource("1_1bvp3")
-
-[node name="HexGridDrawer" type="Node2D" parent="HexGrid2D" unique_id=1135638677]
-position = Vector2(0, 0)
-script = ExtResource("7_272bh")

@@ -2,6 +2,8 @@
 class_name BoardInitializer
 extends Node
 
+const BlueMarbleHelper = preload("res://BlueMarbleHelper.gd")
+
 # 初始化双方弹珠
 static func initialize_board(hex_grid: HexGrid2D) -> Array[Marble2D]:
 	var all_marbles: Array[Marble2D] = []
@@ -54,6 +56,13 @@ static func initialize_board(hex_grid: HexGrid2D) -> Array[Marble2D]:
 	print("初始化完成：创建了 %d 个弹珠" % all_marbles.size())
 	return all_marbles
 
+# 选珠阶段创建单个弹珠
+static func create_marble_for_setup(color: int, camp: int, hex_grid: HexGrid2D, q: int, r: int) -> Marble2D:
+	var marble = _create_marble(color, camp)
+	hex_grid.add_child(marble)
+	hex_grid.place_marble(marble, q, r)
+	return marble
+
 # 创建弹珠实例
 static func _create_marble(color: int, camp: int) -> Marble2D:
 	var scene_path = _get_marble_scene_path(color)
@@ -81,9 +90,13 @@ static func _create_marble(color: int, camp: int) -> Marble2D:
 		collision.shape = shape
 		marble.add_child(collision)
 	
-	marble.color = color
-	marble.camp = camp
-	marble.is_alive = true
+	# 确保 marble 是 Marble2D 类型
+	if marble is Marble2D:
+		marble.color = color
+		marble.camp = camp
+		marble.is_alive = true
+	else:
+		push_error("BoardInitializer: 创建弹珠失败，类型错误")
 	
 	return marble
 

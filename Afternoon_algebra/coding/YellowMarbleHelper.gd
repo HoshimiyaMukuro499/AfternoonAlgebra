@@ -12,7 +12,7 @@ static func get_randomized_steps(steps: int) -> int:
 
 # 应用增益到目标弹珠
 static func apply_boost(target: Marble2D, boost_type: int) -> void:
-	match target.color:
+	match boost_type:
 		MarbleConst.MarbleColor.BLUE:
 			if target.has_method("set_follower_safe"):
 				target.set_follower_safe(true)

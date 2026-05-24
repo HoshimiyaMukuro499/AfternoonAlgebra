@@ -6,16 +6,33 @@ extends Marble2D   # 改为 Marble2D
 var followers: Array[Node2D] = []
 var follower_safe: bool = false   # 黄球增益：随从出界是否导致死亡
 
+# 新增方法：设置临时随从列表（由 GameManager 在选定方向后调用）
+func set_temp_followers(f: Array[Node2D]) -> void:
+	followers = f
+
+# 新增方法：获取临时随从列表
+func get_temp_followers() -> Array[Node2D]:
+	return followers
+
+# 新增方法：清除临时随从
+func clear_temp_followers() -> void:
+	if followers.size() > 0:
+		BlueMarbleHelper.clear_followers(self, followers)
+		followers = []
 
 # 重写移动方法
 func move(direction: int, steps: int) -> void:
 	if not is_alive:
 		return
 	
+	# 清除已有的随从（初始或上次移动）
+	BlueMarbleHelper.clear_followers(self, followers)
+	
 	on_before_move(direction, steps)
 	
-	# 1. 生成随从
-	followers = BlueMarbleHelper.spawn_followers(self, direction)
+	# 1. 生成随从（如果还没有，即未通过 select_direction 生成）
+	if followers.is_empty():
+		followers = BlueMarbleHelper.spawn_followers(self, direction)
 	
 	# 2. 蓝球自身移动（使用基类的逐格移动）
 	var self_success = _move_step_by_step(direction, steps)

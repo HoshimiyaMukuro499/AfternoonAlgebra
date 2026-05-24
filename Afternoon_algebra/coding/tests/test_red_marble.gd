@@ -6,6 +6,7 @@ extends "res://tests/base_test.gd"
 var gm: GameManager
 var grid: HexGrid2D
 var red_marble: Marble2D
+var blue_marble: Marble2D
 
 func before_each() -> void:
 	gm = GameManager.new()
@@ -24,16 +25,30 @@ func before_each() -> void:
 	red_marble.is_alive = true
 	grid.place_marble(red_marble, 0, 0)
 	
+	# 创建蓝方弹珠（放在远处），防止 _check_victory 误判
+	blue_marble = Marble2D.new()
+	blue_marble.hex_grid = grid
+	blue_marble.hex_coord = Vector2(10, 0)
+	blue_marble.camp = MarbleConst.Camp.BLUE
+	blue_marble.color = MarbleConst.MarbleColor.WHITE
+	blue_marble.is_alive = true
+	grid.place_marble(blue_marble, 10, 0)
+	
 	gm.selected_marble = null
 	gm.current_state = GameManager.TurnState.IDLE
 	gm.red_step_directions = []
 	gm.red_total_steps = 0
 	gm.red_current_step_index = 0
+	# 将双方弹珠添加到 all_marbles，使 _check_victory 判断无人获胜，从而正常切换回合
+	gm.all_marbles = [red_marble, blue_marble]
 
 func after_each() -> void:
 	if red_marble:
 		red_marble.queue_free()
 		red_marble = null
+	if blue_marble:
+		blue_marble.queue_free()
+		blue_marble = null
 	if grid:
 		grid.queue_free()
 		grid = null
@@ -216,6 +231,8 @@ func test_red_move_collision_triggers_continue() -> void:
 	enemy.color = MarbleConst.MarbleColor.WHITE
 	enemy.is_alive = true
 	grid.place_marble(enemy, 1, 0)
+	# 加入 all_marbles 以便后续清理
+	gm.all_marbles.append(enemy)
 	
 	var dirs: Array[int] = [MarbleConst.HexDirection.RIGHT, MarbleConst.HexDirection.RIGHT]
 	var success = RedMarbleHelper.move_with_step_directions(red_marble, dirs, 2)
@@ -257,3 +274,73 @@ func test_non_red_marble_uses_normal_flow() -> void:
 	assert_eq(gm.current_state, GameManager.TurnState.MARBLE_SELECTED)
 	
 	white_marble.queue_free()
+
+# ========== 红球额外错误状态拒绝测试 ==========
+
+func test_red_append_direction_from_idle_state() -> void:
+	gm.current_state = GameManager.TurnState.IDLE
+	gm.selected_marble = red_marble
+	gm.red_step_directions = []
+	gm.red_append_direction(MarbleConst.HexDirection.RIGHT)
+	
+	assert_eq(gm.red_step_directions.size(), 0, "IDLE状态不应添加方向")
+
+func test_red_append_direction_from_marble_selected() -> void:
+	gm.current_state = GameManager.TurnState.MARBLE_SELECTED
+	gm.selected_marble = red_marble
+	gm.red_step_directions = []
+	gm.red_append_direction(MarbleConst.HexDirection.RIGHT)
+	
+	assert_eq(gm.red_step_directions.size(), 0, "MARBLE_SELECTED状态不应添加方向")
+
+func test_red_append_direction_from_direction_selected() -> void:
+	gm.current_state = GameManager.TurnState.DIRECTION_SELECTED
+	gm.selected_marble = red_marble
+	gm.red_step_directions = []
+	gm.red_append_direction(MarbleConst.HexDirection.RIGHT)
+	
+	assert_eq(gm.red_step_directions.size(), 0, "DIRECTION_SELECTED状态不应添加方向")
+
+# ========== 红球选力度错误状态 ==========
+
+func test_red_select_power_from_idle_state() -> void:
+	gm.current_state = GameManager.TurnState.IDLE
+	gm.selected_marble = red_marble
+	gm.red_select_power(3)
+	
+	assert_eq(gm.current_state, GameManager.TurnState.IDLE, "IDLE状态不应响应")
+	assert_eq(gm.red_total_steps, 0, "步数不变")
+
+func test_red_select_power_from_rdir_state() -> void:
+	gm.current_state = GameManager.TurnState.RED_DIRECTION_PICKING
+	gm.selected_marble = red_marble
+	gm.red_select_power(3)
+	
+	assert_eq(gm.current_state, GameManager.TurnState.RED_DIRECTION_PICKING, "RDIR状态不应响应")
+	assert_eq(gm.red_total_steps, 0, "步数不变")
+
+func test_red_select_power_from_empty_selection() -> void:
+	gm.current_state = GameManager.TurnState.MARBLE_SELECTED
+	gm.selected_marble = null
+	gm.red_select_power(3)
+	
+	assert_eq(gm.current_state, GameManager.TurnState.MARBLE_SELECTED, "无选中弹珠不应响应")
+
+# ========== 红球取消的棋盘状态验证 ==========
+
+func test_red_cancel_restores_position_and_grid() -> void:
+	gm.current_state = GameManager.TurnState.MARBLE_SELECTED
+	gm.selected_marble = red_marble
+	gm.red_select_power(3)
+	gm.red_append_direction(MarbleConst.HexDirection.RIGHT)
+	gm.red_append_direction(MarbleConst.HexDirection.RIGHT)
+	# 红球已移动2步到(2,0)
+	
+	gm.cancel_selection()
+	
+	# 验证棋盘状态
+	assert_eq(gm.current_state, GameManager.TurnState.IDLE, "取消后→IDLE")
+	assert_eq(red_marble.hex_coord, Vector2(0, 0), "红球回到(0,0)")
+	assert_eq(grid.get_marble_at(0, 0), red_marble, "棋盘上(0,0)有红球")
+	assert_null(grid.get_marble_at(1, 0), "(1,0)应为空")
+	assert_null(grid.get_marble_at(2, 0), "(2,0)应为空")

@@ -18,6 +18,9 @@ func _ready():
 		game_manager = get_tree().get_first_node_in_group("game_manager")
 
 func _unhandled_input(event):
+	# 选珠阶段由 GameManager 处理点击
+	if game_manager.setup_phase_active:
+		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		# 将全局鼠标坐标转换为 HexGrid2D 的局部坐标
 		var local_pos = game_manager.hex_grid.to_local(get_global_mouse_position())
@@ -26,6 +29,9 @@ func _unhandled_input(event):
 		game_manager.cancel_selection()
 
 func _handle_click(pos: Vector2):
+	# 选珠阶段由 GameManager 处理
+	if game_manager.setup_phase_active:
+		return
 	match game_manager.current_state:
 		GameManager.TurnState.IDLE:
 			_try_select_marble(pos)
@@ -56,10 +62,11 @@ func _try_red_select_direction(pos: Vector2):
 	for dir in range(6):
 		var neighbor = current_hex + NEIGHBOR_OFFSETS[dir]
 		var neighbor_pos = game_manager.hex_grid.hex_to_world(neighbor.x, neighbor.y)
-		if pos.distance_to(neighbor_pos) < 25:
+		if pos.distance_to(neighbor_pos) < game_manager.hex_grid.cell_size * 0.8:
 			game_manager.red_append_direction(dir)
 			return
-	# 点击位置不在任何相邻格子，不取消选择（红球需要连续选方向，误触不应取消）
+	# 点击位置不在任何相邻格子，不取消选择，等待玩家继续点击
+	return
 func _try_select_direction(pos: Vector2):
 	if not game_manager.selected_marble:
 		return
@@ -68,7 +75,7 @@ func _try_select_direction(pos: Vector2):
 		# 直接使用已知的偏移量计算邻居坐标，避免依赖 get_neighbor_hex 可能存在的错误
 		var neighbor = current_hex + NEIGHBOR_OFFSETS[dir]
 		var neighbor_pos = game_manager.hex_grid.hex_to_world(neighbor.x, neighbor.y)
-		if pos.distance_to(neighbor_pos) < 25:
+		if pos.distance_to(neighbor_pos) < game_manager.hex_grid.cell_size * 0.8:
 			game_manager.select_direction(dir)
 			return
 	game_manager.cancel_selection()
