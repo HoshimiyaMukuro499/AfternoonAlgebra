@@ -20,7 +20,7 @@ func clear_temp_followers() -> void:
 		BlueMarbleHelper.clear_followers(self, followers)
 		followers = []
 
-# 重写移动方法（随从与蓝球同步逐格移动）
+# 重写移动方法（随从与蓝球同步逐格移动，但随从一起结算）
 func move(direction: int, steps: int) -> void:
 	if not is_alive:
 		return
@@ -31,29 +31,27 @@ func move(direction: int, steps: int) -> void:
 	if followers.is_empty():
 		followers = BlueMarbleHelper.spawn_followers(self, direction)
 	
+	# 蓝球自身移动所有步数（逐格）
 	var remaining = steps
 	while remaining > 0 and is_alive:
 		var before_hex = hex_coord if hex_coord != Vector2.ZERO else hex_grid.get_marble_hex(self)
 		
-		# 蓝球自身移动一格
 		var step_ok = _move_step_by_step(direction, 1)
 		if not step_ok:
-			# 蓝球在这一格死亡
 			break
 		
 		var after_hex = hex_coord if hex_coord != Vector2.ZERO else hex_grid.get_marble_hex(self)
 		if before_hex == after_hex:
-			# 蓝球未移动（碰撞导致停下），停止后续步数
-			break
-		
-		# 随从同步移动一格
-		var follower_ok = BlueMarbleHelper.move_followers(self, followers, direction, 1)
-		if not follower_ok:
-			# 随从出界 → 蓝球死亡
-			die()
 			break
 		
 		remaining -= 1
+	
+	# 蓝球移动完成后，一次性移动随从（一起结算）
+	if is_alive and followers.size() > 0:
+		var follower_ok = BlueMarbleHelper.move_followers(self, followers, direction, steps)
+		if not follower_ok:
+			# 随从出界 → 蓝球死亡
+			die()
 	
 	# 清除所有随从（无论蓝球是否死亡）
 	BlueMarbleHelper.clear_followers(self, followers)
