@@ -2,12 +2,21 @@ class_name GameManager
 extends Node2D
 
 signal state_changed(new_state)
+signal ai_turn_started(camp)  # AI 开始决策
 
 const BlueMarbleHelper = preload("res://BlueMarbleHelper.gd")
+const RandomAIScript = preload("res://ai/RandomAI.gd")
+# GameModeManager 已注册为 Autoload，可直接通过全局名称访问
 
 var hex_grid: HexGrid2D
 var all_marbles: Array[Marble2D] = []
 var ui: CanvasLayer
+
+# AI 相关变量
+var ai_enabled: bool = false
+var ai_teams: Array[int] = []  # AI 控制的阵营列表
+var ai_strategies: Dictionary = {}  # camp -> AI策略实例
+var _ai_pending: bool = false  # 防止重复触发 AI
 
 enum TurnState {
 	IDLE,
@@ -124,6 +133,10 @@ func _ready():
 	_init_ui()
 	
 	randomize()
+	
+	# 读取菜单选择的游戏模式并配置 AI
+	_setup_ai_from_menu_mode()
+	
 	# 先手随机
 	current_team = MarbleConst.Camp.RED if randi() % 2 == 0 else MarbleConst.Camp.BLUE
 	setup_current_team = current_team
@@ -141,6 +154,10 @@ func start_setup_phase():
 		ui.update_setup_message("请选择弹珠颜色（点击颜色按钮或按数字键1-6）")
 	
 	print("选珠阶段开始，%s 方先选" % ("红" if setup_current_team == MarbleConst.Camp.RED else "蓝"))
+	
+	# 如果当前阵营是 AI，自动触发 AI 选珠
+	if ai_enabled and setup_current_team in ai_teams:
+		_trigger_ai_turn.call_deferred()
 
 func setup_select_color(color: int):
 	if not setup_phase_active:
@@ -281,6 +298,10 @@ func finish_setup_phase():
 	# 开始正常回合
 	current_team = setup_current_team  # 先手方
 	turn_number = 0
+	# 如果是 AI 对战，跳过后手文档
+	if ai_enabled and current_team in ai_teams:
+		start_turn()
+		return
 	# 先显示新手文档，再开始游戏
 	show_tutorial()
 
@@ -361,6 +382,10 @@ func start_turn():
 	if ui:
 		ui.update_turn_display(self)
 	state_changed.emit(current_state)
+	
+	# AI 回合触发
+	if ai_enabled and current_team in ai_teams:
+		_trigger_ai_turn.call_deferred()
 
 func select_marble(marble):
 	if current_state != TurnState.IDLE or current_state == TurnState.VICTORY: return
@@ -609,6 +634,129 @@ func remove_marble(marble: Marble2D):
 	var idx = all_marbles.find(marble)
 	if idx != -1:
 		all_marbles.remove_at(idx)
+
+# 从菜单模式配置 AI
+func _setup_ai_from_menu_mode():
+	var mode = GameModeManager.mode
+	
+	match mode:
+		GameModeManager.GameMode.PVAI_BLUE:
+			# 蓝方 AI（玩家 VS AI）
+			var ai = RandomAIScript.new()
+			set_ai_for_camp(MarbleConst.Camp.BLUE, ai)
+			print("[AI模式] 蓝方由 AI 控制")
+		GameModeManager.GameMode.PVAI_RED:
+			# 红方 AI（AI VS 玩家）
+			var ai = RandomAIScript.new()
+			set_ai_for_camp(MarbleConst.Camp.RED, ai)
+			print("[AI模式] 红方由 AI 控制")
+		GameModeManager.GameMode.AIVS_AI:
+			# 双方都是 AI
+			var ai_red = RandomAIScript.new()
+			var ai_blue = RandomAIScript.new()
+			set_ai_for_camp(MarbleConst.Camp.RED, ai_red)
+			set_ai_for_camp(MarbleConst.Camp.BLUE, ai_blue)
+			print("[AI模式] 双方都由 AI 控制")
+		_:
+			# PvP 模式，不需要 AI
+			print("[PvP模式] 玩家对战")
+
+# ── AI 相关方法 ──
+
+# 设置 AI 策略
+func set_ai_for_camp(camp: int, strategy):
+	ai_strategies[camp] = strategy
+	if camp not in ai_teams:
+		ai_teams.append(camp)
+	ai_enabled = true
+
+# 移除 AI 设置
+func remove_ai_for_camp(camp: int):
+	ai_strategies.erase(camp)
+	ai_teams.erase(camp)
+	if ai_teams.size() == 0:
+		ai_enabled = false
+
+# 检查当前回合是否是 AI 控制
+func is_ai_turn() -> bool:
+	return ai_enabled and current_team in ai_teams
+
+# 触发 AI 决策
+func _trigger_ai_turn():
+	if _ai_pending:
+		return
+	if not ai_enabled:
+		return
+	
+	# 选珠阶段使用 setup_current_team，正常回合使用 current_team
+	var active_team = setup_current_team if setup_phase_active else current_team
+	if active_team not in ai_teams:
+		return
+	if current_state == TurnState.VICTORY:
+		return
+	
+	_ai_pending = true
+	ai_turn_started.emit(active_team)
+	
+	var strategy = ai_strategies.get(active_team)
+	if not strategy:
+		_ai_pending = false
+		return
+	
+	var action = strategy.decide(self)
+	if action.is_empty():
+		_ai_pending = false
+		return
+	
+	# 需要用 await 来执行，因为 setup_place 分支含有 await 协程
+	await _execute_ai_action(action)
+	_ai_pending = false
+
+# 执行 AI 动作（async 函数，因为 setup_place 分支需要 await setup_place_marble）
+func _execute_ai_action(action: Dictionary):
+	match action.get("action"):
+		"select_marble":
+			select_marble(action.marble)
+			# 选中后，如果是非红球，进入 MARBLE_SELECTED 状态，AI 需要继续决策方向
+			if ai_enabled and current_team in ai_teams:
+				_trigger_ai_turn.call_deferred()
+		"select_direction":
+			select_direction(action.direction)
+			# 选完方向后进入 DIRECTION_SELECTED，AI 需要继续选力度
+			if ai_enabled and current_team in ai_teams:
+				_trigger_ai_turn.call_deferred()
+		"select_power":
+			select_power(action.power)
+			# select_power 会触发 execute_move，然后 _finish_turn -> start_turn
+			# start_turn 中会再次触发 AI
+		"red_power":
+			red_select_power(action.power)
+			# 进入 RED_DIRECTION_PICKING，AI 需要继续选方向（逐格）
+			if ai_enabled and current_team in ai_teams:
+				_trigger_ai_turn.call_deferred()
+		"red_direction":
+			red_append_direction(action.direction)
+			# red_append_direction 内部可能会调用 _red_finish_turn -> _finish_turn
+			# 如果红球还没走完，留在 RED_DIRECTION_PICKING，需要继续触发 AI
+			if ai_enabled and current_team in ai_teams and current_state == TurnState.RED_DIRECTION_PICKING:
+				_trigger_ai_turn.call_deferred()
+		"setup_color":
+			setup_select_color(action.color)
+			# 选完颜色后进入 PLACEMENT，AI 需要继续放置
+			if ai_enabled and setup_phase_active and setup_current_team in ai_teams:
+				_trigger_ai_turn.call_deferred()
+		"setup_place":
+			# 必须 await：setup_place_marble 是协程（含有 await），
+			# 不 await 的话最后一颗弹珠显示阵型名称时的3秒等待会触发并发 AI 决策，
+			# 导致 AI 在无可用位置时反复尝试（返回无效的(0,0)），造成死循环
+			await setup_place_marble(action.q, action.r)
+			# setup_place_marble 会内部切换颜色选择或切换阵营，AI 继续
+			if ai_enabled and setup_phase_active:
+				if setup_current_team in ai_teams:
+					_trigger_ai_turn.call_deferred()
+				# 如果 setup_current_team 切换到另一方且那方也是 AI
+				elif setup_phase_active and ai_enabled and ai_teams.size() > 1:
+					_trigger_ai_turn.call_deferred()
 
 # 新手文档环节
 func show_tutorial():

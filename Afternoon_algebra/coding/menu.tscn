@@ -14,6 +14,16 @@ base_font = ExtResource("3_mae5d")
 [sub_resource type="FontVariation" id="FontVariation_4hy44"]
 base_font = ExtResource("3_mae5d")
 
+[sub_resource type="FontVariation" id="FontVariation_ai_pvp"]
+base_font = ExtResource("3_mae5d")
+
+[sub_resource type="FontVariation" id="FontVariation_ai_vs_ai"]
+base_font = ExtResource("3_mae5d")
+
+[sub_resource type="Theme" id="Theme_ai_pvp"]
+
+[sub_resource type="Theme" id="Theme_ai_vs_ai"]
+
 [node name="Menu" type="Control" unique_id=1085796656]
 layout_mode = 3
 anchors_preset = 15
@@ -37,8 +47,8 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -128.0
-offset_top = -104.0
+offset_left = -228.0
+offset_top = -204.0
 grow_horizontal = 0
 grow_vertical = 0
 
@@ -48,7 +58,22 @@ size_flags_vertical = 4
 theme = SubResource("Theme_lti8b")
 theme_override_fonts/font = SubResource("FontVariation_ouk20")
 theme_override_font_sizes/font_size = 50
-text = "开始游戏"
+text = "玩家对战 (PvP)"
+[node name="ai_start" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+theme = SubResource("Theme_ai_pvp")
+theme_override_fonts/font = SubResource("FontVariation_ai_pvp")
+theme_override_font_sizes/font_size = 50
+text = "人机对战 (vs AI)"
+
+[node name="ai_vs_ai" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+theme = SubResource("Theme_ai_vs_ai")
+theme_override_fonts/font = SubResource("FontVariation_ai_vs_ai")
+theme_override_font_sizes/font_size = 50
+text = "AI 对战 (AI vs AI)"
 
 [node name="quit" type="Button" parent="VBoxContainer" unique_id=421480167]
 layout_mode = 2
@@ -59,3 +84,6 @@ text = "退出"
 
 [connection signal="pressed" from="VBoxContainer/start" to="." method="_on_start_pressed"]
 [connection signal="pressed" from="VBoxContainer/quit" to="." method="_on_quit_pressed"]
+[connection signal="pressed" from="VBoxContainer/ai_start" to="." method="_on_ai_start_pressed"]
+[connection signal="pressed" from="VBoxContainer/ai_vs_ai" to="." method="_on_ai_vs_ai_pressed"]
+

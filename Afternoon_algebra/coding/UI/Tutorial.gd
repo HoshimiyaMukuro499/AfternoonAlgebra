@@ -99,11 +99,21 @@ func _on_next_button_pressed():
 		current_page += 1
 		_update_page()
 	else:
+		# 先尝试发射 signal（当作为 GameManager 的子节点嵌入时使用）
+		if tutorial_finished.get_connections().size() > 0:
+			tutorial_finished.emit()
+		else:
+			# 没有连接 signal 则直接切换场景（作为独立场景运行时使用）
+			var tree = get_tree()
+			if tree and tree.get_root():
+				tree.change_scene_to_file("res://main.tscn")
+
+func _on_skip_button_pressed():
+	# 先尝试发射 signal（当作为 GameManager 的子节点嵌入时使用）
+	if tutorial_finished.get_connections().size() > 0:
+		tutorial_finished.emit()
+	else:
+		# 没有连接 signal 则直接切换场景（作为独立场景运行时使用）
 		var tree = get_tree()
 		if tree and tree.get_root():
 			tree.change_scene_to_file("res://main.tscn")
-
-func _on_skip_button_pressed():
-	var tree = get_tree()
-	if tree and tree.get_root():
-		tree.change_scene_to_file("res://main.tscn")
