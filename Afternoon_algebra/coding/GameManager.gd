@@ -170,6 +170,16 @@ func setup_place_marble(q: int, r: int):
 	if setup_selected_color < 0:
 		return
 	
+	# 检查是否已放置满6个弹珠
+	var current_count = 0
+	for m in all_marbles:
+		if m.camp == setup_current_team:
+			current_count += 1
+	if current_count >= MarbleConst.TOTAL_MARBLE_COUNT:
+		if ui:
+			ui.update_setup_message("该方已放置满6个弹珠，请等待对方完成")
+		return
+	
 	# 检查是否在己方区域内
 	var in_zone = false
 	if setup_current_team == MarbleConst.Camp.RED:
@@ -264,6 +274,9 @@ func finish_setup_phase():
 		ui.update_message("布阵完成，游戏开始！")
 	
 	print("布阵完成，游戏开始")
+	
+	# 等待1秒让玩家看到消息
+	await get_tree().create_timer(1.0).timeout
 	
 	# 开始正常回合
 	current_team = setup_current_team  # 先手方
