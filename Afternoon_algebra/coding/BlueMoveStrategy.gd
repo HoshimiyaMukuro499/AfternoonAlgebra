@@ -23,7 +23,12 @@ func execute(marble: Marble2D, direction: int, steps: int) -> bool:
 	if marble.is_alive and self_success:
 		var ok = BlueMarbleHelper.move_followers(marble, followers, direction, steps)
 		if not ok:
-			marble.die()
+			# 检查 follower_safe 标志：如果为 true，随从出界不导致蓝球死亡
+			var is_safe = false
+			if "follower_safe" in marble:
+				is_safe = marble.follower_safe
+			if not is_safe:
+				marble.die()
 	BlueMarbleHelper.clear_followers(marble, followers)
 	return self_success
 
