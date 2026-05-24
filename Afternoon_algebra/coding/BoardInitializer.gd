@@ -2,6 +2,8 @@
 class_name BoardInitializer
 extends Node
 
+const BlueMarbleHelper = preload("res://BlueMarbleHelper.gd")
+
 # 初始化双方弹珠
 static func initialize_board(hex_grid: HexGrid2D) -> Array[Marble2D]:
 	var all_marbles: Array[Marble2D] = []

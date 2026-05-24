@@ -3,6 +3,8 @@ extends Node2D
 
 signal state_changed(new_state)
 
+const BlueMarbleHelper = preload("res://BlueMarbleHelper.gd")
+
 var hex_grid: HexGrid2D
 var all_marbles: Array[Marble2D] = []
 var ui: CanvasLayer
@@ -151,6 +153,23 @@ func select_direction(direction: int):
 	current_state = TurnState.DIRECTION_SELECTED
 	print("已选方向，请选择力度")
 	state_changed.emit(current_state)
+	
+	# 蓝球（或变色后具有蓝色特性的白球）在选定方向后立即生成随从
+	if selected_marble and selected_marble.is_alive:
+		var is_blue = false
+		if selected_marble.color == MarbleConst.MarbleColor.BLUE:
+			is_blue = true
+		elif selected_marble is WhiteMarble and selected_marble.current_strategy is BlueMoveStrategy:
+			is_blue = true
+		if is_blue:
+			var followers = BlueMarbleHelper.spawn_followers(selected_marble, direction)
+			# 存储到弹珠的临时变量中
+			if selected_marble.has_method("set_temp_followers"):
+				selected_marble.set_temp_followers(followers)
+			elif "temp_followers" in selected_marble:
+				selected_marble.temp_followers = followers
+			elif "followers" in selected_marble:
+				selected_marble.followers = followers
 
 # 红球选择力度（步数），然后进入逐格选方向模式
 func red_select_power(power: int):
@@ -268,6 +287,15 @@ func cancel_selection():
 	# 普通球取消选择
 	if selected_marble:
 		selected_marble.unhighlight()
+		# 清除蓝球随从
+		if selected_marble.has_method("clear_temp_followers"):
+			selected_marble.clear_temp_followers()
+		elif "temp_followers" in selected_marble and selected_marble.temp_followers.size() > 0:
+			BlueMarbleHelper.clear_followers(selected_marble, selected_marble.temp_followers)
+			selected_marble.temp_followers = []
+		elif "followers" in selected_marble and selected_marble.followers.size() > 0:
+			BlueMarbleHelper.clear_followers(selected_marble, selected_marble.followers)
+			selected_marble.followers = []
 	selected_marble = null
 	selected_direction = -1
 	selected_power = 0

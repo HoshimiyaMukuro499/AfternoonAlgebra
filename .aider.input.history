@@ -203,3 +203,140 @@
 
 # 2026-05-23 11:24:42.339086
 +/exit
+
+# 2026-05-24 13:06:34.431467
++/add "Afternoon_algebra\coding\*.gd"
+
+# 2026-05-24 13:07:14.639038
++目前蓝球的随从无法正常生成，请你帮我完善一下蓝球随从相关逻辑
+
+# 2026-05-24 13:10:09.141797
++/add "Afternoon_algebra\coding\*.gd
+
+# 2026-05-24 13:10:21.983741
++/add "Afternoon_algebra\coding\*.gd"
+
+# 2026-05-24 13:10:50.303010
++目前蓝球随从没有生成，请你帮我完善随从相关的逻辑
+
+# 2026-05-24 13:12:18.312594
++/add "Afternoon_algebra\coding\*.gd"
+
+# 2026-05-24 13:13:02.308534
++目前蓝球随从没有生成，疑似相关函数没有被调用，请你完善代码让蓝球在生成的时候就生成随从
+
+# 2026-05-24 13:17:21.510753
++问题在于蓝球的随从没有产生，而非场景文件缺失
+
+# 2026-05-24 13:18:44.151731
++把你之前改的都删掉还原成最初的版本
+
+# 2026-05-24 13:20:46.461780
++目前蓝球生成的随从没有出现在棋盘上，是缺少什么逻辑？
+
+# 2026-05-24 13:22:47.036978
++Parser Error: Function "_get_marble_script()" not found in base self.这是报错
+
+# 2026-05-24 13:23:33.776074
++取消你刚刚的更改
+
+# 2026-05-24 13:24:13.668209
++不需要排查没有对应场景的问题
+
+# 2026-05-24 13:25:37.596733
++我需要蓝球随从能直观的出现在棋盘上
+
+# 2026-05-24 13:26:40.562199
++是缺少蓝球随从的图片文件吗？
+
+# 2026-05-24 13:27:19.335060
++	# 无论场景是否存在，都强制附加对应颜色的脚本（确保移动逻辑正确）
++	var script_to_attach = _get_marble_script(color)
++	if script_to_attach:
++		marble.set_script(script_to_attach)
+
+# 2026-05-24 13:27:44.400223
++这个函数是干什么的
+
+# 2026-05-24 13:28:33.037762
++取消你之前的更改
+
+# 2026-05-24 13:30:30.230699
++static func _get_marble_scene_path(color: int) -> String:
++	match color:
++		MarbleConst.MarbleColor.WHITE:
++			return "res://white_marble.tscn"
++		MarbleConst.MarbleColor.BLUE:
++			return "res://blue_marble.tscn"
++		MarbleConst.MarbleColor.GREEN:
++			return "res://green_marble.tscn"
++		MarbleConst.MarbleColor.RED:
++			return "res://red_marble.tscn"
++		MarbleConst.MarbleColor.BLACK:
++			return "res://black_marble.tscn"
++		MarbleConst.MarbleColor.YELLOW:
++			return "res://yellow_marble.tscn"
++		_:
++			return ""是不是这个函数缺少蓝球随从的相关逻辑
+
+# 2026-05-24 13:31:05.968685
++取消你刚才的修改
+
+# 2026-05-24 13:33:11.006029
++/add "Afternoon_algebra\coding\*.tscn
+
+# 2026-05-24 13:33:50.355096
++/add "Afternoon_algebra\coding\*.tscn"
+
+# 2026-05-24 13:35:02.593231
++是缺少蓝球随从相关的.tscn文件和图片导致蓝球随从无法生成的问题吗
+
+# 2026-05-24 13:35:55.361951
++/add "Afternoon_algebra\coding\*.gd"
+
+# 2026-05-24 13:36:07.191145
++/add "Afternoon_algebra\coding\*.tscn"
+
+# 2026-05-24 13:37:03.393985
++目前蓝球的随从无法正常在棋盘上观察到，也没有正常生成，请你帮我检查是代码逻辑问题还是缺少什么文件
+
+# 2026-05-24 13:37:54.237146
++/add "Afternoon_algebra\coding\*.gd"
+
+# 2026-05-24 13:38:02.817588
++/add "Afternoon_algebra\coding\*.tscn"
+
+# 2026-05-24 13:38:33.782371
++我需要蓝球随从在蓝球生成时同步生成，
+
+# 2026-05-24 13:43:27.660120
++刚才是我描述错误了，蓝球随从生成逻辑如下，
++蓝球先选择⼀个移动⽅向（共 6 个可能⽅向，与六边形⽹格相邻⽅向⼀致）。
++⽣成随从（在移动前）：
++在与所选移动⽅向不共线的相邻 4 个格点中，选择未被占据的格点⽣成随从。
++优先选择位于移动路线两侧各⼀格（即与移动⽅向夹⻆为 ±60∘±60∘ 的两个位置）。
++若某个优先位置被占据，则从剩余的不共线邻格中随机挑选空闲格补⾜。
++最多⽣成 2 个随从。若可选空闲格少于 2 个，则能⽣成⼏个就⽣成⼏个（可能 0 个）。
+
+# 2026-05-24 13:44:31.847408
++不是在蓝球生成时同步生成随从，而是在每次选择蓝球确定方向后生成随从
+
+# 2026-05-24 13:45:47.840407
++/add "Afternoon_algebra\coding\*.gd"
+
+# 2026-05-24 13:45:53.733039
++/add "Afternoon_algebra\coding\*.tscn"
+
+# 2026-05-24 13:46:02.749325
++不是在蓝球生成时同步生成随从，而是在每次选择蓝球确定方向后生成随从
+
+# 2026-05-24 13:48:07.886410
++报错如下 第 162 行：Could not find type "WhiteMarble" in the current scope.
++第 162 行：Could not find type "BlueMoveStrategy" in the current scope.
++
+
+# 2026-05-24 13:49:19.505246
++呃为什么我一运行游戏蓝方的蓝球就自带俩个随从
+
+# 2026-05-24 13:50:05.048886
++/exit
