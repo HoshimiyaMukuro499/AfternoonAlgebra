@@ -12,7 +12,7 @@ signal tutorial_finished
 
 var page_texts: Array[String] = [
 	# Page 0 - 游戏原则
-	"[font_size=40][center][b]游戏原则[/b][/center][/font_size]\n\n[font_size=30]《六色弹珠：六边形碰撞战》是一款[u]双人对战的策略游戏[/u]。\n\n将对方[u]所有弹珠击出棋盘[/u]即可获胜！\n\n屏幕右侧显示的是AI生成的弹珠拟人形象，可爱吧？[/font_size]",
+	"[font_size=40][center][b]游戏原则[/b][/center][/font_size]\n\n[font_size=30]《六色弹珠：六边形碰撞战》是一款[u]双人对战的策略游戏[/u]。\n\n将对方[u]所有弹珠击出棋盘[/u]即可获胜！[/font_size]",
 	
 	# Page 1 - 游戏目标
 	"[font_size=40][center][b]游戏目标[/b][/center][/font_size]\n\n[font_size=30][color=#FFD700][b]目标[/b][/color]\n在六边形棋盘上，利用[u]弹性碰撞与棋子特性[/u]，将对方所有弹珠击出棋盘（或使其死亡），即获得胜利。\n\n双方轮流行动，选择自己的颜色弹珠并且对其实行[b]专属指令[/b]便可以获胜！[/font_size]",
@@ -42,8 +42,8 @@ var page_texts: Array[String] = [
 
 # 每页对应的图片路径（请替换为实际图片路径，无图片则留空字符串）
 var page_images: Array[String] = [
-	"res://UI/b163c6d317906d18affe29d6de91fbbf.png",   # 第0页图片（游戏原则）
-	"res://UI/b163c6d317906d18affe29d6de91fbbf.png",   # 第1页图片（游戏目标）
+	"",   # 第0页图片（游戏原则）
+	"",   # 第1页图片（游戏目标）
 	"res://UI/b163c6d317906d18affe29d6de91fbbf.png",   # 第2页图片（移动整体规则）
 	"res://UI/page0.png",   # 第3页图片（白球）
 	"res://UI/page1.png",   # 第4页图片（蓝球）
