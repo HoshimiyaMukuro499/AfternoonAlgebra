@@ -275,6 +275,9 @@ func finish_setup_phase():
 	
 	print("布阵完成，游戏开始")
 	
+	# 等待1秒让玩家看到消息
+	await get_tree().create_timer(1.0).timeout
+	
 	# 开始正常回合
 	current_team = setup_current_team  # 先手方
 	turn_number = 0
