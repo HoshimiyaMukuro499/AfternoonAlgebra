@@ -597,6 +597,8 @@ func remove_marble(marble: Marble2D):
 		all_marbles.remove_at(idx)
 
 # 新手文档环节
+var tutorial_instance: Node = null
+
 func show_tutorial():
 	# 加载教程场景
 	var tutorial_scene = load("res://UI/Tutorial.tscn")
@@ -605,12 +607,17 @@ func show_tutorial():
 		start_turn()
 		return
 	
-	var tutorial_instance = tutorial_scene.instantiate()
+	tutorial_instance = tutorial_scene.instantiate()
 	add_child(tutorial_instance)
 	
 	# 连接信号
 	tutorial_instance.tutorial_finished.connect(_on_tutorial_finished)
 
 func _on_tutorial_finished():
-	# 跳转到主游戏场景
-	get_tree().change_scene_to_file("res://main.tscn")
+	# 移除教程节点
+	if tutorial_instance and is_instance_valid(tutorial_instance):
+		tutorial_instance.queue_free()
+		tutorial_instance = null
+	
+	# 开始游戏
+	start_turn()
