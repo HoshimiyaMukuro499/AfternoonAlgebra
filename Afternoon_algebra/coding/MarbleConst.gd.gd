@@ -25,3 +25,13 @@ enum Camp {
 const GRID_RADIUS: int = 7          # 棋盘有效半径
 const TOTAL_MARBLE_COUNT: int = 6    # 每方弹珠数
 const CELL_SIZE: float = 1.0         # 每个六边形格子的世界单位大小
+
+# 颜色名称映射（用于UI）
+const COLOR_NAMES = {
+	MarbleColor.WHITE: "白",
+	MarbleColor.BLUE: "蓝",
+	MarbleColor.GREEN: "绿",
+	MarbleColor.RED: "红",
+	MarbleColor.BLACK: "黑",
+	MarbleColor.YELLOW: "黄"
+}

@@ -274,3 +274,73 @@ func test_non_red_marble_uses_normal_flow() -> void:
 	assert_eq(gm.current_state, GameManager.TurnState.MARBLE_SELECTED)
 	
 	white_marble.queue_free()
+
+# ========== 红球额外错误状态拒绝测试 ==========
+
+func test_red_append_direction_from_idle_state() -> void:
+	gm.current_state = GameManager.TurnState.IDLE
+	gm.selected_marble = red_marble
+	gm.red_step_directions = []
+	gm.red_append_direction(MarbleConst.HexDirection.RIGHT)
+	
+	assert_eq(gm.red_step_directions.size(), 0, "IDLE状态不应添加方向")
+
+func test_red_append_direction_from_marble_selected() -> void:
+	gm.current_state = GameManager.TurnState.MARBLE_SELECTED
+	gm.selected_marble = red_marble
+	gm.red_step_directions = []
+	gm.red_append_direction(MarbleConst.HexDirection.RIGHT)
+	
+	assert_eq(gm.red_step_directions.size(), 0, "MARBLE_SELECTED状态不应添加方向")
+
+func test_red_append_direction_from_direction_selected() -> void:
+	gm.current_state = GameManager.TurnState.DIRECTION_SELECTED
+	gm.selected_marble = red_marble
+	gm.red_step_directions = []
+	gm.red_append_direction(MarbleConst.HexDirection.RIGHT)
+	
+	assert_eq(gm.red_step_directions.size(), 0, "DIRECTION_SELECTED状态不应添加方向")
+
+# ========== 红球选力度错误状态 ==========
+
+func test_red_select_power_from_idle_state() -> void:
+	gm.current_state = GameManager.TurnState.IDLE
+	gm.selected_marble = red_marble
+	gm.red_select_power(3)
+	
+	assert_eq(gm.current_state, GameManager.TurnState.IDLE, "IDLE状态不应响应")
+	assert_eq(gm.red_total_steps, 0, "步数不变")
+
+func test_red_select_power_from_rdir_state() -> void:
+	gm.current_state = GameManager.TurnState.RED_DIRECTION_PICKING
+	gm.selected_marble = red_marble
+	gm.red_select_power(3)
+	
+	assert_eq(gm.current_state, GameManager.TurnState.RED_DIRECTION_PICKING, "RDIR状态不应响应")
+	assert_eq(gm.red_total_steps, 0, "步数不变")
+
+func test_red_select_power_from_empty_selection() -> void:
+	gm.current_state = GameManager.TurnState.MARBLE_SELECTED
+	gm.selected_marble = null
+	gm.red_select_power(3)
+	
+	assert_eq(gm.current_state, GameManager.TurnState.MARBLE_SELECTED, "无选中弹珠不应响应")
+
+# ========== 红球取消的棋盘状态验证 ==========
+
+func test_red_cancel_restores_position_and_grid() -> void:
+	gm.current_state = GameManager.TurnState.MARBLE_SELECTED
+	gm.selected_marble = red_marble
+	gm.red_select_power(3)
+	gm.red_append_direction(MarbleConst.HexDirection.RIGHT)
+	gm.red_append_direction(MarbleConst.HexDirection.RIGHT)
+	# 红球已移动2步到(2,0)
+	
+	gm.cancel_selection()
+	
+	# 验证棋盘状态
+	assert_eq(gm.current_state, GameManager.TurnState.IDLE, "取消后→IDLE")
+	assert_eq(red_marble.hex_coord, Vector2(0, 0), "红球回到(0,0)")
+	assert_eq(grid.get_marble_at(0, 0), red_marble, "棋盘上(0,0)有红球")
+	assert_null(grid.get_marble_at(1, 0), "(1,0)应为空")
+	assert_null(grid.get_marble_at(2, 0), "(2,0)应为空")

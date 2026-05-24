@@ -145,7 +145,7 @@ func test_white_changed_to_green_push_kills_if_out_of_bounds() -> void:
 	grid.place_marble(white_green, r - 1, 0)
 	white_green.hex_coord = Vector2(r - 1, 0)
 	var victim = _make_marble(Vector2(r, 0), MarbleConst.Camp.BLUE, MarbleConst.MarbleColor.WHITE)
-	white_green.move(MarbleConst.HexDirection.LEFT, 1)
+	white_green.move(MarbleConst.HexDirection.RIGHT, 1)
 	assert_true(white_green.is_alive, "绿球应存活")
 	assert_false(victim.is_alive, "被推挤出界的弹珠应死亡")
 
