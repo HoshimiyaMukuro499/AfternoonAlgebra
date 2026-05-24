@@ -7,6 +7,7 @@
 # 策略模式重构：各颜色移动逻辑由 MoveStrategyBase 子类实现，
 # change_color() 时自动切换 current_strategy。
 
+class_name WhiteMarble
 extends Marble2D
 
 # preload 策略脚本
@@ -16,6 +17,7 @@ const _GreenMoveStrategy := preload("res://GreenMoveStrategy.gd")
 const _RedMoveStrategy := preload("res://RedMoveStrategy.gd")
 const _BlackMoveStrategy := preload("res://BlackMoveStrategy.gd")
 const _YellowMoveStrategy := preload("res://YellowMoveStrategy.gd")
+const BlueMarbleHelper = preload("res://BlueMarbleHelper.gd")
 
 # 记录是否已经变色过（用于外部优先选择未变色的白球）
 var has_changed: bool = false
@@ -25,6 +27,20 @@ var follower_safe: bool = false
 var push_range: int = 1
 var max_steps: int = 4
 var enhanced: bool = false
+
+# 新增方法：设置临时随从列表（由 GameManager 在选定方向后调用）
+func set_temp_followers(f: Array[Node2D]) -> void:
+	temp_followers = f
+
+# 新增方法：获取临时随从列表
+func get_temp_followers() -> Array[Node2D]:
+	return temp_followers
+
+# 新增方法：清除临时随从
+func clear_temp_followers() -> void:
+	if temp_followers.size() > 0:
+		BlueMarbleHelper.clear_followers(self, temp_followers)
+		temp_followers = []
 
 # 黄球增益：增加推挤范围（绿球特性）
 func increase_push_range(amount: int = 1) -> void:
