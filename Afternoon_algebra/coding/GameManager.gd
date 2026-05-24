@@ -280,6 +280,20 @@ func _unhandled_input(event: InputEvent):
 		var q = round(hex_coord.x)
 		var r = round(hex_coord.y)
 		setup_place_marble(q, r)
+	# 键盘 1~6 对应颜色选择
+	if event is InputEventKey and event.pressed and not event.echo:
+		var key_to_color = {
+			KEY_1: 0,  # 白
+			KEY_2: 1,  # 蓝
+			KEY_3: 2,  # 绿
+			KEY_4: 3,  # 红
+			KEY_5: 4,  # 黑
+			KEY_6: 5   # 黄
+		}
+		if event.keycode in key_to_color:
+			var color_index = key_to_color[event.keycode]
+			if setup_state == SetupState.COLOR_SELECT:
+				setup_select_color(color_index)
 
 
 func _adjust_marble_visuals():
