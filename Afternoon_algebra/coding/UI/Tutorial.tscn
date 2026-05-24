@@ -1,0 +1,93 @@
+[gd_scene format=3 uid="uid://dp7m5idrhcukr"]
+
+[ext_resource type="Script" uid="uid://ctalc0rabknjr" path="res://UI/Tutorial.gd" id="1"]
+[ext_resource type="FontFile" uid="uid://dvyi48lju62co" path="res://HYPixel11pxU-2.ttf" id="2_qu5wh"]
+
+[sub_resource type="Theme" id="Theme_qouqw"]
+
+[sub_resource type="FontVariation" id="FontVariation_qu5wh"]
+base_font = ExtResource("2_qu5wh")
+
+[sub_resource type="FontVariation" id="FontVariation_qouqw"]
+base_font = ExtResource("2_qu5wh")
+
+[sub_resource type="FontVariation" id="FontVariation_apw85"]
+base_font = ExtResource("2_qu5wh")
+
+[sub_resource type="FontVariation" id="FontVariation_opivs"]
+base_font = ExtResource("2_qu5wh")
+
+[sub_resource type="FontVariation" id="FontVariation_5wnqk"]
+base_font = ExtResource("2_qu5wh")
+
+[node name="Tutorial" type="Control" unique_id=262446777]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=1226732683]
+position = Vector2(1515, 640)
+scale = Vector2(0.5, 0.5)
+
+[node name="RichTextLabel" type="RichTextLabel" parent="." unique_id=2035809245]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_qouqw")
+theme_override_fonts/normal_font = SubResource("FontVariation_qu5wh")
+theme_override_fonts/bold_font = SubResource("FontVariation_qouqw")
+theme_override_fonts/bold_italics_font = SubResource("FontVariation_apw85")
+theme_override_fonts/italics_font = SubResource("FontVariation_opivs")
+theme_override_fonts/mono_font = SubResource("FontVariation_5wnqk")
+bbcode_enabled = true
+fit_content = true
+
+[node name="PrevButton" type="Button" parent="." unique_id=1880354627]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.1
+anchor_top = 0.95000005
+anchor_right = 0.1
+anchor_bottom = 0.95000005
+offset_left = -60.0
+offset_top = -25.0
+offset_right = 60.0
+offset_bottom = 25.0
+text = "上一页"
+
+[node name="NextButton" type="Button" parent="." unique_id=1880354628]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.95000005
+anchor_right = 0.5
+anchor_bottom = 0.95000005
+offset_left = -60.0
+offset_top = -25.0
+offset_right = 60.0
+offset_bottom = 25.0
+text = "下一页"
+
+[node name="SkipButton" type="Button" parent="." unique_id=1880354629]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.9
+anchor_top = 0.95000005
+anchor_right = 0.9
+anchor_bottom = 0.95000005
+offset_left = -60.0
+offset_top = -25.0
+offset_right = 60.0
+offset_bottom = 25.0
+text = "跳过教程"
+
+[connection signal="pressed" from="PrevButton" to="." method="_on_prev_button_pressed"]
+[connection signal="pressed" from="NextButton" to="." method="_on_next_button_pressed"]
+[connection signal="pressed" from="SkipButton" to="." method="_on_skip_button_pressed"]

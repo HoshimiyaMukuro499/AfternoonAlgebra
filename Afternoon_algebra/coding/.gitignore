@@ -1,3 +1,9 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+.continue/
+
+# GUT test report
+gut.md
+
+.aider.tags.cache.v4/

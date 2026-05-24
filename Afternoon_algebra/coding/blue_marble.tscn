@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://dnfxg8qiu2u5w"]
+
+[ext_resource type="Script" uid="uid://e4ly1u2usr2f" path="res://blue_marble.gd" id="1_2hpm7"]
+[ext_resource type="Texture2D" uid="uid://untm0cuhq4nt" path="res://72ecbf01174f9811d8d12cb4db99ff12.png" id="2_ut57a"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_272bh"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_5vw27"]
+
+[node name="BlueMarble" type="Area2D" unique_id=1712787069 groups=["marbles"]]
+script = ExtResource("1_2hpm7")
+color = 1
+
+[node name="Mesh" type="MeshInstance2D" parent="." unique_id=934443917]
+mesh = SubResource("SphereMesh_272bh")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=3216547]
+shape = SubResource("CircleShape2D_5vw27")
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=364871186]
+scale = Vector2(0.01, 0.01)
+texture = ExtResource("2_ut57a")

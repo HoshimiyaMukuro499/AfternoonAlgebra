@@ -1,132 +1,153 @@
 # WhiteMarble.gd
-# 白球（变色者）弹珠。
+# 白球（变色者）弹珠（2D版）。
 # 特性1：当当前颜色为白色时，被友方碰撞步数+1。
 # 特性2：己方其他颜色弹珠死亡时，白球变为该颜色，并继承该颜色的全部移动特性（如变蓝后能生成随从）。
 # 特性3：可以多次变色（覆盖）。
+#
+# 策略模式重构：各颜色移动逻辑由 MoveStrategyBase 子类实现，
+# change_color() 时自动切换 current_strategy。
 
+class_name WhiteMarble
 extends Marble2D
+
+# preload 策略脚本
+const _WhiteMoveStrategy := preload("res://WhiteMoveStrategy.gd")
+const _BlueMoveStrategy := preload("res://BlueMoveStrategy.gd")
+const _GreenMoveStrategy := preload("res://GreenMoveStrategy.gd")
+const _RedMoveStrategy := preload("res://RedMoveStrategy.gd")
+const _BlackMoveStrategy := preload("res://BlackMoveStrategy.gd")
+const _YellowMoveStrategy := preload("res://YellowMoveStrategy.gd")
+const BlueMarbleHelper = preload("res://BlueMarbleHelper.gd")
 
 # 记录是否已经变色过（用于外部优先选择未变色的白球）
 var has_changed: bool = false
 # 临时存储随从列表（仅当当前颜色为蓝色时使用，每次移动后即清空）
-var temp_followers: Array[Node3D] = []
+var temp_followers: Array[Node2D] = []
+var follower_safe: bool = false
+var push_range: int = 1
+var max_steps: int = 4
+var enhanced: bool = false
+
+# 新增方法：设置临时随从列表（由 GameManager 在选定方向后调用）
+func set_temp_followers(f: Array[Node2D]) -> void:
+	temp_followers = f
+
+# 新增方法：获取临时随从列表
+func get_temp_followers() -> Array[Node2D]:
+	return temp_followers
+
+# 新增方法：清除临时随从
+func clear_temp_followers() -> void:
+	if temp_followers.size() > 0:
+		BlueMarbleHelper.clear_followers(self, temp_followers)
+		temp_followers = []
+
+# 黄球增益：增加推挤范围（绿球特性）
+func increase_push_range(amount: int = 1) -> void:
+	push_range += amount
+	print("白球（绿球特性）推挤范围增加至: ", push_range)
+
+# 黄球增益：增加最大步数（红球特性）
+func increase_max_steps(amount: int = 1) -> void:
+	max_steps += amount
+	print("白球（红球特性）最大步数增加至: ", max_steps)
+
+# 黄球增益：设置增强状态（黑球特性）
+func set_enhanced(value: bool = true) -> void:
+	enhanced = value
+	print("白球（黑球特性）已增强，强制移动距离固定为3")
+
+# 黄球增益：设置随从安全模式（蓝球特性）
+func set_follower_safe(safe: bool) -> void:
+	follower_safe = safe
+	print("白球（蓝球特性）获得增益：随从出界不再导致死亡")
+
+# 策略字典
+var strategies: Dictionary = {}
+# 当前策略
+var current_strategy = null
+
+# 获取弹珠的 Sprite 节点（场景中实际节点名为 "SpriteWhite"）
+@onready var spritewhite: Sprite2D = $SpriteWhite
+
+
+func _init() -> void:
+	strategies = {
+		MarbleConst.MarbleColor.WHITE:  _WhiteMoveStrategy.new(),
+		MarbleConst.MarbleColor.BLUE:   _BlueMoveStrategy.new(),
+		MarbleConst.MarbleColor.GREEN:  _GreenMoveStrategy.new(),
+		MarbleConst.MarbleColor.RED:    _RedMoveStrategy.new(),
+		MarbleConst.MarbleColor.BLACK:  _BlackMoveStrategy.new(),
+		MarbleConst.MarbleColor.YELLOW: _YellowMoveStrategy.new(),
+	}
+	current_strategy = strategies[MarbleConst.MarbleColor.WHITE]
 
 
 # ---------- 碰撞步数调整 ----------
-# 作为被撞者时，如果当前颜色为白色且碰撞者为友方，则步数+1
-func on_collision_as_target(collider: Marble3D, incoming_steps: int, direction: int) -> int:
-	if color == MarbleConst.MarbleColor.WHITE and collider.camp == camp:
-		return incoming_steps + 1
+# 委托给当前策略
+func on_collision_as_target(collider: Marble2D, incoming_steps: int, direction: int) -> int:
+	if current_strategy:
+		return current_strategy.on_collision_as_target(self, collider, incoming_steps, direction)
 	return incoming_steps
-
-
 # ---------- 移动分发 ----------
-# 根据当前颜色，调用对应的移动实现
+# 根据当前策略执行移动（替代旧的 match color）
 func move(direction: int, steps: int) -> void:
 	if not is_alive:
 		return
 	
+	# 确保策略与当前颜色一致（兼容外部直接设 color 的场景）
+	_sync_strategy_with_color()
+
 	on_before_move(direction, steps)
 	var success = false
-	match color:
-		MarbleConst.MarbleColor.WHITE:
-			success = _move_as_white(direction, steps)
-		MarbleConst.MarbleColor.BLUE:
-			success = _move_as_blue(direction, steps)
-		MarbleConst.MarbleColor.GREEN:
-			success = _move_as_green(direction, steps)   # TODO: 后续实现
-		MarbleConst.MarbleColor.RED:
-			success = _move_as_red(direction, steps)     # TODO: 后续实现
-		MarbleConst.MarbleColor.BLACK:
-			success = _move_as_black(direction, steps)   # 黑球不能主动移动
-		MarbleConst.MarbleColor.YELLOW:
-			success = _move_as_yellow(direction, steps)  # TODO: 后续实现
-		_:
-			success = _move_step_by_step(direction, steps)  # 保底
+	if current_strategy:
+		success = current_strategy.execute(self, direction, steps)
+	else:
+		success = _move_step_by_step(direction, steps)
 	on_after_move(direction, steps, success)
 
 
-# ---------- 各颜色移动的具体实现 ----------
-# 白色：无额外能力，仅基础移动
-func _move_as_white(direction: int, steps: int) -> bool:
-	return _move_step_by_step(direction, steps)
-
-
-# 蓝色：生成随从（复用 BlueMarbleHelper）
-func _move_as_blue(direction: int, steps: int) -> bool:
-	# 1. 生成随从
-	temp_followers = BlueMarbleHelper.spawn_followers(self, direction)
-	# 2. 自身移动
-	var self_success = _move_step_by_step(direction, steps)
-	# 3. 随从移动
-	if is_alive and self_success:
-		var ok = BlueMarbleHelper.move_followers(self, temp_followers, direction, steps)
-		if not ok:
-			die()
-			return false
-	# 4. 清除随从
-	BlueMarbleHelper.clear_followers(self, temp_followers)
-	return self_success
-
-
-# 绿色：推挤（暂未实现，占位）
-func _move_as_green(direction: int, steps: int) -> bool:
-	# TODO: 实现绿球推挤逻辑
-	return _move_step_by_step(direction, steps)
-
-
-# 红色：逐步选方向（暂未实现）
-func _move_as_red(direction: int, steps: int) -> bool:
-	# TODO: 实现红球每步可选方向
-	return _move_step_by_step(direction, steps)
-
-
-# 黑色：不能主动移动，直接返回失败
-func _move_as_black(direction: int, steps: int) -> bool:
-	return false
-
-
-# 黄色：力度随机 ±1（暂未实现）
-func _move_as_yellow(direction: int, steps: int) -> bool:
-	# TODO: 实现黄球力度随机偏移
-	return _move_step_by_step(direction, steps)
+# 确保 current_strategy 与 color 一致
+func _sync_strategy_with_color() -> void:
+	if color in strategies and current_strategy != strategies[color]:
+		current_strategy = strategies[color]
 
 
 # ---------- 变色逻辑 ----------
 # 由外部（GameManager / Board）在己方其他颜色弹珠死亡时调用
 func on_teammate_died(dead_color: int) -> void:
 	if dead_color == MarbleConst.MarbleColor.YELLOW:
-		return   # 黄球死亡不触发白球变色
+		return
 	if not has_changed:
 		change_color(dead_color)
 		has_changed = true
 	else:
-		change_color(dead_color)   # 允许覆盖变色
+		change_color(dead_color)
 
 
-# 改变颜色并更新外观材质
+# 改变颜色并更新外观，同时切换策略
 func change_color(new_color: int) -> void:
 	color = new_color
 	_update_appearance(new_color)
+	if new_color in strategies:
+		current_strategy = strategies[new_color]
 	print("白球变为颜色: ", new_color)
 
 
-# 根据颜色设置弹珠材质
+# 根据颜色设置 Sprite 的 modulate（2D 着色）
 func _update_appearance(new_color: int) -> void:
-	var mat = StandardMaterial3D.new()
+	if not sprite:
+		return
 	match new_color:
-		MarbleConst.MarbleColor.WHITE: mat.albedo_color = Color.WHITE
-		MarbleConst.MarbleColor.BLUE:  mat.albedo_color = Color.BLUE
-		MarbleConst.MarbleColor.GREEN: mat.albedo_color = Color.GREEN
-		MarbleConst.MarbleColor.RED:   mat.albedo_color = Color.RED
-		MarbleConst.MarbleColor.BLACK: mat.albedo_color = Color.BLACK
-		MarbleConst.MarbleColor.YELLOW:mat.albedo_color = Color.YELLOW
-	# 查找弹珠的网格节点（兼容多种命名）
-	var mesh_instance = find_child("MeshInstance3D") or $MeshInstance3D
-	if mesh_instance:
-		mesh_instance.material_override = mat
+		MarbleConst.MarbleColor.WHITE: sprite.modulate = Color.WHITE
+		MarbleConst.MarbleColor.BLUE:  sprite.modulate = Color.BLUE
+		MarbleConst.MarbleColor.GREEN: sprite.modulate = Color.GREEN
+		MarbleConst.MarbleColor.RED:   sprite.modulate = Color.RED
+		MarbleConst.MarbleColor.BLACK: sprite.modulate = Color.BLACK
+		MarbleConst.MarbleColor.YELLOW:sprite.modulate = Color.YELLOW
 
 
-# 死亡时清理可能残留的随从（防御）
+# 死亡时清理（委托给策略）
 func on_death() -> void:
-	BlueMarbleHelper.clear_followers(self, temp_followers)
+	if current_strategy:
+		current_strategy.on_death(self)
