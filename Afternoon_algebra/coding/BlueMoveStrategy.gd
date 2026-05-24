@@ -19,13 +19,27 @@ func execute(marble: Marble2D, direction: int, steps: int) -> bool:
 	if followers.is_empty():
 		followers = BlueMarbleHelper.spawn_followers(marble, direction)
 	
-	var self_success = marble._move_step_by_step(direction, steps)
-	if marble.is_alive and self_success:
-		var ok = BlueMarbleHelper.move_followers(marble, followers, direction, steps)
-		if not ok:
+	var remaining = steps
+	while remaining > 0 and marble.is_alive:
+		var before_hex = marble.hex_coord if marble.hex_coord != Vector2.ZERO else marble.hex_grid.get_marble_hex(marble)
+		
+		var step_ok = marble._move_step_by_step(direction, 1)
+		if not step_ok:
+			break
+		
+		var after_hex = marble.hex_coord if marble.hex_coord != Vector2.ZERO else marble.hex_grid.get_marble_hex(marble)
+		if before_hex == after_hex:
+			break
+		
+		var follower_ok = BlueMarbleHelper.move_followers(marble, followers, direction, 1)
+		if not follower_ok:
 			marble.die()
+			break
+		
+		remaining -= 1
+	
 	BlueMarbleHelper.clear_followers(marble, followers)
-	return self_success
+	return marble.is_alive
 
 func on_death(marble: Marble2D) -> void:
 	# 清除可能残留的随从
@@ -37,4 +51,3 @@ func on_death(marble: Marble2D) -> void:
 	elif "followers" in marble and marble.followers.size() > 0:
 		BlueMarbleHelper.clear_followers(marble, marble.followers)
 		marble.followers = []
-
