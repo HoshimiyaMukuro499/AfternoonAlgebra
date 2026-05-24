@@ -24,15 +24,51 @@ static func spawn_initial_followers(marble: Marble2D) -> Array[Node2D]:
 	return spawn_followers(marble, 0)
 
 
-# 移动所有随从，按相同的方向和步数移动
+# 移动所有随从，按相同的方向和步数移动（一起结算）
 # 返回值：如果所有随从移动过程中均未出界，返回 true；只要有一个出界就返回 false
 static func move_followers(marble: Marble2D, followers: Array[Node2D], direction: int, steps: int) -> bool:
+	# 先计算每个随从的最终位置
+	var final_positions: Array[Vector2] = []
 	for f in followers:
 		var start = marble.hex_grid.get_marble_hex(f)
-		var ok = _move_follower(marble, f, start, direction, steps)
-		if not ok:
+		var final_pos = _calculate_final_position(marble, start, direction, steps)
+		if final_pos == Vector2(-9999, -9999):  # 出界标记
 			return false
+		final_positions.append(final_pos)
+	
+	# 然后一次性移动所有随从到最终位置
+	for i in range(followers.size()):
+		var f = followers[i]
+		var target = final_positions[i]
+		# 从棋盘移除旧位置
+		marble.hex_grid.remove_marble_by_node(f)
+		# 放置到新位置
+		marble.hex_grid.place_marble(f, target.x, target.y)
+	
 	return true
+
+
+# 计算单个随从的最终位置（考虑碰撞和边界）
+static func _calculate_final_position(marble: Marble2D, start: Vector2, dir: int, steps: int) -> Vector2:
+	var current = start
+	var remaining = steps
+	while remaining > 0:
+		var next = marble.get_neighbor_hex(current, dir)
+		# 出界
+		if marble.hex_grid.is_out_of_bounds(next.x, next.y):
+			return Vector2(-9999, -9999)  # 出界标记
+		var other = marble.hex_grid.get_marble_at(next.x, next.y)
+		if other != null:
+			# 随从撞到其他弹珠：随从停下
+			if other is Marble2D and other.is_alive:
+				# 对方获得剩余步数继续移动
+				other.continue_move(remaining, dir)
+			# 如果 other 是随从（非 Marble2D），则不做任何操作，随从停下
+			break
+		else:
+			current = next
+			remaining -= 1
+	return current
 
 
 # 清除所有随从（从棋盘移除并释放节点）
