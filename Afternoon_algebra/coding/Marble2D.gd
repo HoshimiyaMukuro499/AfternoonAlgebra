@@ -63,13 +63,15 @@ func highlight() -> void:
 	is_highlighted = true
 	var s = _get_sprite_node()
 	if s:
-		s.modulate = s.modulate * Color(1.5, 1.5, 1.5, 1)
+		s.modulate = Color(1.5, 1.5, 1.5, 1)
 
 
 # 取消高亮
 func unhighlight() -> void:
 	is_highlighted = false
-	_update_sprite_color()
+	var s = _get_sprite_node()
+	if s:
+		s.modulate = Color.WHITE
 
 
 # 获取实际存在的 Sprite 节点（兼容白球的 SpriteWhite）
@@ -219,18 +221,6 @@ func get_neighbor_hex(hex: Vector2, dir: int) -> Vector2:
 	]
 	return hex + dirs[dir]
 
-# 根据当前颜色更新 Sprite 的 modulate
-func _update_sprite_color() -> void:
-	var s = _get_sprite_node()
-	if not s:
-		return
-	match color:
-		MarbleConst.MarbleColor.WHITE: s.modulate = Color.WHITE
-		MarbleConst.MarbleColor.BLUE:  s.modulate = Color.BLUE
-		MarbleConst.MarbleColor.GREEN: s.modulate = Color.GREEN
-		MarbleConst.MarbleColor.RED:   s.modulate = Color.RED
-		MarbleConst.MarbleColor.BLACK: s.modulate = Color.BLACK
-		MarbleConst.MarbleColor.YELLOW:s.modulate = Color.YELLOW
 
 # 更新编号标签（由 GameManager 在分配编号后调用）
 func update_label() -> void:

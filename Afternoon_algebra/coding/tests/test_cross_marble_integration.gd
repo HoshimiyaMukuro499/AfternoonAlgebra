@@ -251,3 +251,94 @@ func test_changed_white_initial_position() -> void:
 	white_red.push_range = 1
 	white_red.max_steps = 4
 	assert_eq(grid.get_marble_at(5, -2), white_red, "变色后弹珠应在初始位置")
+
+# ========== 第九组：黄球+蓝球 follower_safe 综合测试 ==========
+
+func test_yellow_boost_blue_follower_safe_allows_follower_out_of_bounds() -> void:
+	"""黄球对蓝球的 follower_safe 增益：随从出界不导致蓝球死亡"""
+	white_blue = _make_white_marble(Vector2(0, 0))
+	white_blue.change_color(MarbleConst.MarbleColor.BLUE)
+	white_blue.push_range = 1
+	white_blue.max_steps = 4
+	white_blue.follower_safe = false
+	YellowMarbleHelper.apply_boost(white_blue, MarbleConst.MarbleColor.BLUE)
+	assert_true(white_blue.follower_safe, "增益后 follower_safe=true")
+
+func test_blue_with_follower_safe_survives_follower_out_of_bounds() -> void:
+	"""follower_safe=true 时，随从出界蓝球不应死亡"""
+	white_blue = _make_white_marble(Vector2(0, 0))
+	white_blue.change_color(MarbleConst.MarbleColor.BLUE)
+	white_blue.push_range = 1
+	white_blue.max_steps = 4
+	white_blue.follower_safe = true
+	# 放在边界内安全位置：移动后随从可能出界，但蓝球自身安全
+	# GRID_RADIUS=6，放在 (3,0)，向右移动2步到(5,0)，但随从在两侧可能出界
+	white_blue.move(MarbleConst.HexDirection.RIGHT, 2)
+	assert_true(white_blue.is_alive, "follower_safe 时随从出界蓝球不应死亡")
+
+# ========== 第十组：黄球+绿球 push_range 综合测试 ==========
+
+func test_yellow_boost_green_push_range_actually_pushes_multi_step() -> void:
+	"""黄球增益绿球 push_range 后，多步移动时推挤范围有效"""
+	white_green = _make_white_marble(Vector2(0, 0))
+	white_green.change_color(MarbleConst.MarbleColor.GREEN)
+	white_green.push_range = 1
+	white_green.max_steps = 5
+	YellowMarbleHelper.apply_boost(white_green, MarbleConst.MarbleColor.GREEN)
+	assert_eq(white_green.push_range, 2, "增益后 push_range=2")
+	var neighbor1 = _make_marble(Vector2(1, 0), MarbleConst.Camp.BLUE, MarbleConst.MarbleColor.WHITE)
+	white_green.move(MarbleConst.HexDirection.RIGHT, 2)
+	assert_true(white_green.is_alive, "绿球增益后移动应存活")
+	assert_eq(white_green.hex_coord, Vector2(2, 0), "绿球应到(2,0)")
+	neighbor1.queue_free()
+
+# ========== 第十一组：黄球+红球 max_steps 综合测试 ==========
+
+func test_yellow_boost_red_limits_steps_correctly() -> void:
+	"""黄球增益红球 max_steps 后，实际移动步数受限制"""
+	white_red = _make_white_marble(Vector2(0, 0))
+	white_red.change_color(MarbleConst.MarbleColor.RED)
+	white_red.push_range = 1
+	white_red.max_steps = 3
+	YellowMarbleHelper.apply_boost(white_red, MarbleConst.MarbleColor.RED)
+	assert_eq(white_red.max_steps, 4, "增益后 max_steps=4")
+	white_red.move(MarbleConst.HexDirection.RIGHT, 5)
+	assert_eq(white_red.hex_coord, Vector2(4, 0), "应受限 max_steps=4 到(4,0)")
+
+# ========== 第十二组：白球变色为黄（黄球特性） ==========
+
+func test_white_changed_to_yellow_random_movement() -> void:
+	"""白球变色为黄后移动步数随机 ±1（至少应在1~5范围内）"""
+	var target = _make_white_marble(Vector2(0, 0))
+	target.change_color(MarbleConst.MarbleColor.YELLOW)
+	target.move(MarbleConst.HexDirection.RIGHT, 3)
+	var final_pos = target.hex_coord
+	assert_true(final_pos.x >= 1 && final_pos.x <= 5, "黄球移动步数应在1~5范围内")
+	assert_eq(final_pos.y, 0, "黄球y坐标应不变")
+
+func test_white_changed_to_yellow_stays_alive_after_move() -> void:
+	"""白球变色为黄后移动应该存活"""
+	var target = _make_white_marble(Vector2(0, 0))
+	target.change_color(MarbleConst.MarbleColor.YELLOW)
+	target.move(MarbleConst.HexDirection.RIGHT, 2)
+	assert_true(target.is_alive, "变黄移动后应存活")
+
+# ========== 第十三组：白球变色为绿 push_range 实际推挤验证 ==========
+
+func test_green_white_pushes_along_path() -> void:
+	"""白球变色为绿后沿路径推挤：连续路径上的棋子应依次被推"""
+	white_green = _make_white_marble(Vector2(0, 0))
+	white_green.change_color(MarbleConst.MarbleColor.GREEN)
+	white_green.push_range = 1
+	white_green.max_steps = 5
+	var m1 = _make_marble(Vector2(1, 0), MarbleConst.Camp.BLUE, MarbleConst.MarbleColor.WHITE)
+	var m2 = _make_marble(Vector2(2, 0), MarbleConst.Camp.BLUE, MarbleConst.MarbleColor.WHITE)
+	# 绿球路径上有两个棋子：m1在(1,0)，m2在(2,0)
+	# 绿球推 m1 到(2,0)，但(2,0)有 m2 阻挡，所以 m1 无法被推离
+	# 因此绿球无法进入 (1,0)，停留在 (0,0)
+	white_green.move(MarbleConst.HexDirection.RIGHT, 3)
+	assert_true(white_green.is_alive, "绿球应存活")
+	# 绿球应停在 (0,0)（因为 m1 推不走）
+	assert_eq(white_green.hex_coord, Vector2(0, 0), "绿球路径被阻应停在(0,0)")
+	m1.queue_free()
+	m2.queue_free()
