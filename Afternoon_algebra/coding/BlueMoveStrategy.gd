@@ -19,20 +19,24 @@ func execute(marble: Marble2D, direction: int, steps: int) -> bool:
 	if followers.is_empty():
 		followers = BlueMarbleHelper.spawn_followers(marble, direction)
 	
-	# 记录移动前的位置
-	var before_pos = marble.hex_coord if marble.hex_coord != Vector2.ZERO else marble.hex_grid.get_marble_hex(marble)
-	
-	# 蓝球自身一次性移动所有步数（包含碰撞处理）
-	# 使用一次性 _move_step_by_step 而非逐1步移动，以确保碰撞时剩余步数正确传递
-	marble._move_step_by_step(direction, steps)
-	
-	# 计算蓝球实际移动的步数（用于随从同步移动）
-	var after_pos = marble.hex_coord if marble.hex_coord != Vector2.ZERO else marble.hex_grid.get_marble_hex(marble)
-	var actual_steps = max(0, int(abs(after_pos.x - before_pos.x) + abs(after_pos.y - before_pos.y)))
+	# 蓝球自身移动所有步数（逐格）
+	var remaining = steps
+	while remaining > 0 and marble.is_alive:
+		var before_hex = marble.hex_coord if marble.hex_coord != Vector2.ZERO else marble.hex_grid.get_marble_hex(marble)
+		
+		var step_ok = marble._move_step_by_step(direction, 1)
+		if not step_ok:
+			break
+		
+		var after_hex = marble.hex_coord if marble.hex_coord != Vector2.ZERO else marble.hex_grid.get_marble_hex(marble)
+		if before_hex == after_hex:
+			break
+		
+		remaining -= 1
 	
 	# 蓝球移动完成后，一次性移动随从（一起结算）
-	if marble.is_alive and followers.size() > 0 and actual_steps > 0:
-		var follower_ok = BlueMarbleHelper.move_followers(marble, followers, direction, actual_steps)
+	if marble.is_alive and followers.size() > 0:
+		var follower_ok = BlueMarbleHelper.move_followers(marble, followers, direction, steps)
 		if not follower_ok:
 			# 检查 follower_safe 标志：如果为 true，随从出界不导致蓝球死亡
 			var is_safe = false
