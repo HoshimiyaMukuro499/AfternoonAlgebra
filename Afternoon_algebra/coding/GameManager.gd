@@ -533,8 +533,13 @@ func select_black_direction(direction: int):
 		var enemy = selected_enemy
 		var success = false
 		if is_instance_valid(enemy) and enemy.is_alive:
+			# 保存引用，防止移动过程中 enemy 被销毁
+			var enemy_ref = weakref(enemy)
 			enemy.move(actual_direction, actual_steps)
-			success = enemy.is_alive
+			if enemy_ref.get_ref():
+				success = enemy.is_alive
+			else:
+				success = false
 		
 		if success:
 			print("黑球强制移动成功")
