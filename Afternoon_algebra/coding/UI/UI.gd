@@ -26,6 +26,8 @@ func _ready():
 	if gm:
 		if not gm.is_connected("state_changed", _on_state_changed):
 			gm.connect("state_changed", _on_state_changed)
+		if not gm.is_connected("yellow_boost_requested", _on_yellow_boost_requested):
+			gm.connect("yellow_boost_requested", _on_yellow_boost_requested)
 		update_turn_display(gm)
 		_on_state_changed(gm.current_state)
 
@@ -354,6 +356,49 @@ func enter_black_select_direction_mode() -> void:
 	if message_label:
 		message_label.text = "请指定敌方弹珠的大致移动方向（点击相邻六个方向之一）"
 
+func _on_yellow_boost_requested(dead_yellow: Marble2D, candidates: Array[Marble2D]):
+	# 显示增益选择对话框
+	show_yellow_boost_dialog(dead_yellow, candidates)
+
+func show_yellow_boost_dialog(dead_yellow: Marble2D, candidates: Array[Marble2D]):
+	# 创建弹出对话框
+	var dialog = AcceptDialog.new()
+	dialog.title = "黄球增益选择"
+	dialog.dialog_text = "黄球已死亡！请选择一个己方弹珠获得增益："
+	dialog.size = Vector2(400, 300)
+	add_child(dialog)
+	
+	# 创建候选按钮列表
+	var vbox = VBoxContainer.new()
+	vbox.name = "CandidateList"
+	vbox.anchor_left = 0.0
+	vbox.anchor_top = 0.0
+	vbox.anchor_right = 1.0
+	vbox.anchor_bottom = 1.0
+	dialog.add_child(vbox)
+	
+	for candidate in candidates:
+		if not is_instance_valid(candidate) or not candidate.is_alive:
+			continue
+		var btn = Button.new()
+		var color_name = MarbleConst.COLOR_NAMES.get(candidate.color, "未知")
+		var camp_name = "红" if candidate.camp == MarbleConst.Camp.RED else "蓝"
+		var boost_text = ""
+		if candidate.boost_count > 0:
+			boost_text = " (增益次数: %d)" % candidate.boost_count
+		btn.text = "%s方 %s%s" % [camp_name, color_name, boost_text]
+		btn.connect("pressed", Callable(self, "_on_boost_target_selected").bind(candidate, dialog))
+		vbox.add_child(btn)
+	
+	dialog.popup_centered()
+
+func _on_boost_target_selected(target: Marble2D, dialog: AcceptDialog):
+	var gm = _find_game_manager()
+	if gm:
+		gm.apply_yellow_boost(target)
+	if dialog and is_instance_valid(dialog):
+		dialog.queue_free()
+
 func _on_state_changed(new_state):
 	if not message_label:
 		return
@@ -384,3 +429,5 @@ func _on_state_changed(new_state):
 		GameManager.TurnState.VICTORY:
 			# 胜利信息已在 show_victory 中设置
 			pass
+		GameManager.TurnState.YELLOW_BOOST:
+			message_label.text = "请选择增益目标（点击按钮）"

@@ -653,6 +653,28 @@ func _handle_deaths_and_white_change() -> bool:
 			yellow_boost_requested.emit(dead_yellow, candidates)
 			return true   # 表示暂停回合，等待 UI 选择
 	return false
+
+# 应用黄球增益到指定目标
+func apply_yellow_boost(target: Marble2D):
+	if current_state != TurnState.YELLOW_BOOST:
+		return
+	if not is_instance_valid(target) or not target.is_alive:
+		print("增益目标无效")
+		return
+	if target.color == MarbleConst.MarbleColor.WHITE or target.color == MarbleConst.MarbleColor.YELLOW:
+		print("不能对白球或黄球施加增益")
+		return
+	
+	# 增加增益计数
+	target.boost_count += 1
+	target.update_boost_label()
+	
+	print("黄球增益已施加到 %s，当前增益次数：%d" % [target.get_class(), target.boost_count])
+	
+	# 恢复回合
+	current_state = TurnState.IDLE
+	state_changed.emit(current_state)
+	_finish_turn()
 # 提取回合结束公共逻辑，方便测试和代码复用
 # 根据起点、终点和方向反推实际经过的格子（不包括起点，包括终点）
 func _get_actual_path(start: Vector2, end: Vector2, direction: int) -> Array[Vector2]:
