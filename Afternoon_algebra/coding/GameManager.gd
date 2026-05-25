@@ -529,7 +529,13 @@ func select_black_direction(direction: int):
 		var actual_direction = (direction + offset + 6) % 6
 		var actual_steps = 2 + randi() % 2  # 2 或 3
 		
-		var success = selected_marble.force_enemy_move(selected_enemy, actual_direction)
+		# 直接执行强制移动（不使用不存在的 force_enemy_move 方法）
+		var enemy = selected_enemy
+		var success = false
+		if is_instance_valid(enemy) and enemy.is_alive:
+			enemy.move(actual_direction, actual_steps)
+			success = enemy.is_alive
+		
 		if success:
 			print("黑球强制移动成功")
 		else:
