@@ -428,6 +428,13 @@ func _on_boost_target_selected(target: Marble2D, dialog: AcceptDialog):
 	if dialog and is_instance_valid(dialog):
 		dialog.queue_free()
 
+func show_black_move_result(offset_text: String, steps: int):
+	if message_label:
+		message_label.text = "黑球强制移动：%s，移动了 %d 格" % [offset_text, steps]
+		# 3秒后自动清除
+		await get_tree().create_timer(3.0).timeout
+		message_label.text = ""
+
 func _on_state_changed(new_state):
 	if not message_label:
 		return
