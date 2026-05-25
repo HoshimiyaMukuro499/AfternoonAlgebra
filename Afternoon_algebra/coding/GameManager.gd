@@ -529,13 +529,14 @@ func select_black_direction(direction: int):
 		var actual_direction = (direction + offset + 6) % 6
 		var actual_steps = 2 + randi() % 2  # 2 或 3
 		
-		# 直接执行强制移动（不使用不存在的 force_enemy_move 方法）
+		# 直接执行强制移动（使用 _move_step_by_step 避免触发钩子）
 		var enemy = selected_enemy
 		var success = false
 		if is_instance_valid(enemy) and enemy.is_alive:
 			# 保存引用，防止移动过程中 enemy 被销毁
 			var enemy_ref = weakref(enemy)
-			enemy.move(actual_direction, actual_steps)
+			# 使用 _move_step_by_step 而不是 move，避免触发 on_before_move/on_after_move
+			enemy._move_step_by_step(actual_direction, actual_steps)
 			if enemy_ref.get_ref():
 				success = enemy.is_alive
 			else:
