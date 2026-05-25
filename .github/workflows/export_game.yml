@@ -24,14 +24,23 @@ jobs:
         id: export
         uses: firebelley/godot-export@v7.0.0
         with:
-          # 将下载源更换为 GitHub 官方高速 CDN 镜像
           godot_executable_download_url: https://github.com/godotengine/godot/releases/download/4.2.2-stable/Godot_v4.2.2-stable_linux.x86_64.zip
           godot_export_templates_download_url: https://github.com/godotengine/godot/releases/download/4.2.2-stable/Godot_v4.2.2-stable_export_templates.tpz
-          
           relative_project_path: ./Afternoon_algebra/coding
           archive_output: true # 导出并自动压缩为 zip
 
-      # 3. 创建 GitHub Release 并将打包好的游戏包作为附件上传
+      # 2.5 自动重命名（使其符合行业标准规范：游戏名-版本号-平台）
+      - name: rename artifact
+        run: |
+          # 获取打包输出目录
+          ARCHIVE_DIR="${{ steps.export.outputs.archive_directory }}"
+          # 获取当前的 Tag 名字（例如 v1.0.4）
+          TAG_NAME="${{ github.ref_name }}"
+          
+          # 执行重命名：将默认的 Windows.Desktop.zip 改为 AfternoonAlgebra-vX.Y.Z-Windows.zip
+          mv "$ARCHIVE_DIR/Windows.Desktop.zip" "$ARCHIVE_DIR/AfternoonAlgebra-$TAG_NAME-Windows_x86_64.zip"
+
+      # 3. 创建 GitHub Release 并将重命名后的游戏包上传
       - name: create release
         uses: ncipollo/release-action@v1.14.0
         with:
