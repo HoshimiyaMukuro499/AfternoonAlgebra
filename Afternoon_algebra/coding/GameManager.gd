@@ -292,7 +292,7 @@ func finish_setup_phase():
 	
 	# 开始正常回合
 	current_team = setup_current_team  # 先手方
-	turn_number = 0
+	turn_number = -1  # 这样第一次 start_turn 后变成 0
 	# 先显示新手文档，再开始游戏
 	show_tutorial()
 
@@ -880,5 +880,5 @@ func show_tutorial():
 	tutorial_instance.tutorial_finished.connect(_on_tutorial_finished)
 
 func _on_tutorial_finished():
-	# 跳转到主游戏场景
-	get_tree().change_scene_to_file("res://main.tscn")
+	# 直接开始游戏，不跳转场景
+	start_turn()
