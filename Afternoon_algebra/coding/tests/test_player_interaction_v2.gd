@@ -720,3 +720,11 @@ func test_gm_execute_move_all_enemy_dies_victory() -> void:
 	
 	var winner = gm._check_victory()
 	assert_eq(winner, RED_CAMP, "红方应胜利")
+
+
+# ================================================================
+# 第17组：测试运行器正常工作
+# ================================================================
+
+func test_test_runner_works() -> void:
+	assert_true(true, "测试运行器正常工作")
