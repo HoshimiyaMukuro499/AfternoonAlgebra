@@ -284,7 +284,6 @@ func finish_setup_phase():
 	
 	if ui:
 		ui.hide_setup_phase()
-		ui.update_message("布阵完成，游戏开始！")
 	
 	print("布阵完成，游戏开始")
 	
@@ -390,8 +389,8 @@ func select_marble(marble):
 		current_state = TurnState.BLACK_SELECT_ENEMY
 		print("黑球：请点击一个敌方弹珠作为目标")
 		# 通知 UI 进入黑球选择模式（例如高亮敌方弹珠）
-		if ui:
-			ui.enter_black_select_enemy_mode()   # 假设 UI 有这个函数
+		if ui and ui.has_method("enter_black_select_enemy_mode"):
+			ui.enter_black_select_enemy_mode()
 	else:
 		current_state = TurnState.MARBLE_SELECTED
 		print("选中弹珠，请选择方向")
@@ -426,6 +425,12 @@ func select_direction(direction: int):
 func red_select_power(power: int):
 	if current_state != TurnState.MARBLE_SELECTED or current_state == TurnState.VICTORY: return
 	if selected_marble == null or selected_marble.color != MarbleConst.MarbleColor.RED:
+		return
+	
+	# 红球最大步数 = 4 + 增益次数
+	var max_steps = 4 + (selected_marble.boost_count if selected_marble else 0)
+	if power > max_steps:
+		print("红球步数不能超过 %d" % max_steps)
 		return
 	
 	red_total_steps = power
@@ -490,6 +495,10 @@ func _red_finish_turn():
 
 func select_power(power: int):
 	if current_state != TurnState.DIRECTION_SELECTED or current_state == TurnState.VICTORY: return
+	# 普通球最大步数 = 5（默认），红球由 red_select_power 处理
+	if power > 5:
+		print("步数不能超过5")
+		return
 	selected_power = power
 	execute_move()
 # 黑球选择敌方弹珠
@@ -503,7 +512,7 @@ func select_black_enemy(enemy: Marble2D):
 	selected_enemy = enemy
 	# 进入选方向状态
 	current_state = TurnState.BLACK_SELECT_DIRECTION
-	print("请选择方向（点击相邻六个方向之一）")
+	print("请指定敌方弹珠的大致移动方向（点击相邻六个方向之一）")
 	# 通知 UI 进入方向选择模式（如果有 UI 方法）
 	if ui and ui.has_method("enter_black_select_direction_mode"):
 		ui.enter_black_select_direction_mode()
@@ -544,11 +553,15 @@ func execute_move():
 		marble.move(direction, steps)
 		
 		# 处理死亡与白球变色
-		await _handle_deaths_and_white_change()
+		if get_tree() != null:
+			await _handle_deaths_and_white_change()
+		else:
+			_handle_deaths_and_white_change()
 		
 		var end_hex = marble.get_current_hex() if marble.is_alive else start_hex
 		var path = _get_actual_path(start_hex, end_hex, direction)
-		await _play_path_animation(path)
+		if get_tree() != null:
+			await _play_path_animation(path)
 	
 	_finish_turn()
 # 处理死亡事件和白球变色
@@ -588,6 +601,14 @@ func _play_path_animation(path: Array[Vector2]) -> void:
 func _handle_deaths_and_white_change() -> bool:
 	var death_events: Array = []
 	var yellow_deaths: Array[Marble2D] = []
+	
+	# 确保 last_alive_status 包含所有弹珠的初始状态
+	for m in all_marbles:
+		if not is_instance_valid(m):
+			continue
+		var id = m.get_instance_id()
+		if not last_alive_status.has(id):
+			last_alive_status[id] = m.is_alive
 	
 	# 收集死亡的弹珠
 	for m in all_marbles:
@@ -649,6 +670,45 @@ func _handle_deaths_and_white_change() -> bool:
 			yellow_boost_requested.emit(dead_yellow, candidates)
 			return true   # 表示暂停回合，等待 UI 选择
 	return false
+
+# 应用黄球增益到指定目标
+func apply_yellow_boost(target: Marble2D):
+	if current_state != TurnState.YELLOW_BOOST:
+		return
+	if not is_instance_valid(target) or not target.is_alive:
+		print("增益目标无效")
+		return
+	if target.color == MarbleConst.MarbleColor.WHITE or target.color == MarbleConst.MarbleColor.YELLOW:
+		print("不能对白球或黄球施加增益")
+		return
+	
+	# 增加增益计数
+	target.boost_count += 1
+	# 确保标签存在并更新
+	target.update_label()
+	target.update_boost_label()
+	
+	# 根据目标颜色应用增益效果
+	match target.color:
+		MarbleConst.MarbleColor.RED:
+			# 红球：移动步数上限增加1
+			print("红球获得增益：移动步数上限+1")
+		MarbleConst.MarbleColor.GREEN:
+			# 绿球：推挤距离增加1格
+			print("绿球获得增益：推挤距离+1")
+		MarbleConst.MarbleColor.BLUE:
+			# 蓝球：随从出界不再导致蓝球死亡
+			print("蓝球获得增益：随从出界不再导致死亡")
+		MarbleConst.MarbleColor.BLACK:
+			# 黑球：敌方弹珠被强制移动的格数固定为3
+			print("黑球获得增益：强制移动格数固定为3")
+	
+	print("黄球增益已施加到 %s，当前增益次数：%d" % [target.get_class(), target.boost_count])
+	
+	# 恢复回合
+	current_state = TurnState.IDLE
+	state_changed.emit(current_state)
+	_finish_turn()
 # 提取回合结束公共逻辑，方便测试和代码复用
 # 根据起点、终点和方向反推实际经过的格子（不包括起点，包括终点）
 func _get_actual_path(start: Vector2, end: Vector2, direction: int) -> Array[Vector2]:
@@ -691,8 +751,8 @@ func cancel_selection():
 					selected_marble.hex_grid.place_marble(selected_marble, red_start_position.x, red_start_position.y)
 					selected_marble.hex_coord = red_start_position
 		selected_marble = null
-		selected_direction = -1   # 添加：重置方向
-		selected_power = 0         # 添加：重置力度
+		selected_direction = -1
+		selected_power = 0
 		red_step_directions = []
 		red_total_steps = 0
 		red_current_step_index = 0
@@ -702,19 +762,21 @@ func cancel_selection():
 		if ui:
 			ui.update_message("已取消选择，请点击己方弹珠")
 		state_changed.emit(current_state)
-		return  # 这里的 return 是正确的，避免执行后面的通用代码
+		return
 	# 黑球逐格选择模式取消
 	if current_state == TurnState.BLACK_SELECT_ENEMY or current_state == TurnState.BLACK_SELECT_DIRECTION:
 		if selected_marble:
 			selected_marble.unhighlight()
-	selected_marble = null
-	selected_enemy = null
-	current_state = TurnState.IDLE
-	print("已取消黑球操作")
-	if ui:
-		ui.update_message("已取消选择，请点击己方弹珠")
-	state_changed.emit(current_state)
-	return
+		selected_marble = null
+		selected_enemy = null
+		selected_direction = -1
+		selected_power = 0
+		current_state = TurnState.IDLE
+		print("已取消黑球操作")
+		if ui:
+			ui.update_message("已取消选择，请点击己方弹珠")
+		state_changed.emit(current_state)
+		return
 	# 普通球取消选择
 	if selected_marble:
 		selected_marble.unhighlight()

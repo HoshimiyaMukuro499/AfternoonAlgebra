@@ -27,6 +27,8 @@ var hex_coord: Vector2 = Vector2.ZERO
 var is_highlighted: bool = false
 var label_index: int = 0
 var _label_node: Label = null
+# 黄球增益次数
+var boost_count: int = 0
 
 
 func _ready() -> void:
@@ -265,3 +267,21 @@ func update_label() -> void:
 	
 	_label_node.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_label_node.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+
+# 更新增益标签显示
+func update_boost_label() -> void:
+	# 确保标签存在
+	if not _label_node:
+		# 如果标签不存在，先调用 update_label 创建
+		update_label()
+		if not _label_node:
+			return
+	# 重新构建完整文本（包括编号和增益后缀）
+	var prefix = "R" if camp == MarbleConst.Camp.RED else "B"
+	var text = "%s%d" % [prefix, label_index]
+	var suffix = ""
+	for i in range(boost_count):
+		suffix += "+"
+	if suffix != "":
+		text += suffix
+	_label_node.text = text
