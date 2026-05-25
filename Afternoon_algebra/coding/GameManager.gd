@@ -305,7 +305,7 @@ func finish_setup_phase():
 	
 	# 开始正常回合
 	current_team = setup_current_team  # 先手方
-	turn_number = 0
+	turn_number = -1  # 这样第一次 start_turn 后变成 0
 	# 先显示新手文档，再开始游戏
 	show_tutorial()
 
@@ -536,11 +536,41 @@ func select_black_direction(direction: int):
 		return
 	if selected_marble and selected_marble.is_alive and selected_enemy:
 		selected_marble.unhighlight()
-		var success = selected_marble.force_enemy_move(selected_enemy, direction)
+		
+		# 记录移动结果
+		var offset = randi() % 3 - 1  # -1, 0, 1
+		var actual_direction = (direction + offset + 6) % 6
+		var actual_steps = 2 + randi() % 2  # 2 或 3
+		
+		# 直接执行强制移动（使用 _move_step_by_step 避免触发钩子）
+		var enemy = selected_enemy
+		var success = false
+		if is_instance_valid(enemy) and enemy.is_alive:
+			# 保存引用，防止移动过程中 enemy 被销毁
+			var enemy_ref = weakref(enemy)
+			# 使用 _move_step_by_step 而不是 move，避免触发 on_before_move/on_after_move
+			enemy._move_step_by_step(actual_direction, actual_steps)
+			if enemy_ref.get_ref():
+				success = enemy.is_alive
+			else:
+				success = false
+		
 		if success:
 			print("黑球强制移动成功")
 		else:
 			print("强制移动失败")
+		
+		# 显示移动结果
+		if ui and ui.has_method("show_black_move_result"):
+			var offset_text = ""
+			if offset == 0:
+				offset_text = "无偏移"
+			elif offset == 1:
+				offset_text = "顺时针偏移60°"
+			else:
+				offset_text = "逆时针偏移60°"
+			ui.show_black_move_result(offset_text, actual_steps)
+	
 	# 清理状态并结束回合
 	selected_marble = null
 	selected_enemy = null

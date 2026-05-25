@@ -99,11 +99,7 @@ func _on_next_button_pressed():
 		current_page += 1
 		_update_page()
 	else:
-		var tree = get_tree()
-		if tree and tree.get_root():
-			tree.change_scene_to_file("res://main.tscn")
+		tutorial_finished.emit()
 
 func _on_skip_button_pressed():
-	var tree = get_tree()
-	if tree and tree.get_root():
-		tree.change_scene_to_file("res://main.tscn")
+	tutorial_finished.emit()
