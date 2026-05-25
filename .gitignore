@@ -6,3 +6,5 @@
 .aider*
 
 .continue/rules/*.md
+
+/build
