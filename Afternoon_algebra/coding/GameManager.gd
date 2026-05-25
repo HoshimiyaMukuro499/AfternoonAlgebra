@@ -523,11 +523,29 @@ func select_black_direction(direction: int):
 		return
 	if selected_marble and selected_marble.is_alive and selected_enemy:
 		selected_marble.unhighlight()
-		var success = selected_marble.force_enemy_move(selected_enemy, direction)
+		
+		# 记录移动结果
+		var offset = randi() % 3 - 1  # -1, 0, 1
+		var actual_direction = (direction + offset + 6) % 6
+		var actual_steps = 2 + randi() % 2  # 2 或 3
+		
+		var success = selected_marble.force_enemy_move(selected_enemy, actual_direction)
 		if success:
 			print("黑球强制移动成功")
 		else:
 			print("强制移动失败")
+		
+		# 显示移动结果
+		if ui and ui.has_method("show_black_move_result"):
+			var offset_text = ""
+			if offset == 0:
+				offset_text = "无偏移"
+			elif offset == 1:
+				offset_text = "顺时针偏移60°"
+			else:
+				offset_text = "逆时针偏移60°"
+			ui.show_black_move_result(offset_text, actual_steps)
+	
 	# 清理状态并结束回合
 	selected_marble = null
 	selected_enemy = null
