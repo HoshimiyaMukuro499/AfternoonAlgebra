@@ -29,16 +29,17 @@ jobs:
           relative_project_path: ./Afternoon_algebra/coding
           archive_output: true # 导出并自动压缩为 zip
 
-      # 2.5 自动重命名（使其符合行业标准规范：游戏名-版本号-平台）
+      # 2.5 自动重命名（采用通配符匹配，100% 兼容任何预设名称和空格）
       - name: rename artifact
         run: |
-          # 获取打包输出目录
-          ARCHIVE_DIR="${{ steps.export.outputs.archive_directory }}"
-          # 获取当前的 Tag 名字（例如 v1.0.4）
-          TAG_NAME="${{ github.ref_name }}"
-          
-          # 执行重命名：将默认的 Windows.Desktop.zip 改为 AfternoonAlgebra-vX.Y.Z-Windows.zip
-          mv "$ARCHIVE_DIR/Windows.Desktop.zip" "$ARCHIVE_DIR/AfternoonAlgebra-$TAG_NAME-Windows_x86_64.zip"
+          cd "${{ steps.export.outputs.archive_directory }}"
+          # 寻找当前目录下所有的 .zip 文件，并自动将它们重命名
+          for file in *.zip; do
+            if [ -f "$file" ]; then
+              echo "发现打包文件: $file，正在重命名..."
+              mv "$file" "AfternoonAlgebra-${{ github.ref_name }}-Windows.zip"
+            fi
+          done
 
       # 3. 创建 GitHub Release 并将重命名后的游戏包上传
       - name: create release
