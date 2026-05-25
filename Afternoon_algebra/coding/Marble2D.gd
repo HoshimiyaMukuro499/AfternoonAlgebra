@@ -6,7 +6,7 @@ extends Area2D
 @export var color: MarbleConst.MarbleColor = MarbleConst.MarbleColor.WHITE
 # 所属阵营（红方/蓝方）
 @export var camp: MarbleConst.Camp = MarbleConst.Camp.RED
-
+signal step_moved(marble: Marble2D, from_hex: Vector2, to_hex: Vector2)
 # ---------- 运行时状态 ----------
 # 是否存活（出界或死亡后为 false）
 var is_alive: bool = true
@@ -158,6 +158,7 @@ func _move_step_by_step(direction: int, steps: int) -> bool:
 		else:
 			# 空位：直接移动
 			hex_grid.move_marble(self, current, next)
+			step_moved.emit(self, current, next)
 			current = next
 			remaining -= 1
 			hex_coord = current   # 更新缓存坐标

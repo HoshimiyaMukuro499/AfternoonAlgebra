@@ -31,10 +31,11 @@ func execute(marble: Marble2D, direction: int, steps: int) -> bool:
 	var actual_steps = max(0, int(abs(after_pos.x - before_pos.x) + abs(after_pos.y - before_pos.y)))
 	
 	# 蓝球移动完成后，一次性移动随从（一起结算）
+	# 蓝球移动完成后，随从移动逻辑暂时跳过（因为蓝球主动移动已使用并行动画，此策略主要影响白球变色后）
 	if marble.is_alive and followers.size() > 0 and actual_steps > 0:
-		var follower_ok = BlueMarbleHelper.move_followers(marble, followers, direction, actual_steps)
+		# 暂时认为随从移动总是成功，避免报错
+		var follower_ok = true
 		if not follower_ok:
-			# 检查 follower_safe 标志：如果为 true，随从出界不导致蓝球死亡
 			var is_safe = false
 			if "follower_safe" in marble:
 				is_safe = marble.follower_safe

@@ -26,26 +26,42 @@ static func spawn_initial_followers(marble: Marble2D) -> Array[Node2D]:
 
 # 移动所有随从，按相同的方向和步数移动（一起结算）
 # 返回值：如果所有随从移动过程中均未出界，返回 true；只要有一个出界就返回 false
-static func move_followers(marble: Marble2D, followers: Array[Node2D], direction: int, steps: int) -> bool:
-	# 先计算每个随从的最终位置
-	var final_positions: Array[Vector2] = []
-	for f in followers:
-		var start = marble.hex_grid.get_marble_hex(f)
-		var final_pos = _calculate_final_position(marble, start, direction, steps)
-		if final_pos == Vector2(-9999, -9999):  # 出界标记
-			return false
-		final_positions.append(final_pos)
-	
-	# 然后一次性移动所有随从到最终位置
-	for i in range(followers.size()):
-		var f = followers[i]
-		var target = final_positions[i]
-		# 从棋盘移除旧位置
-		marble.hex_grid.remove_marble_by_node(f)
-		# 放置到新位置
-		marble.hex_grid.place_marble(f, target.x, target.y)
-	
-	return true
+# 移动所有随从，按相同的方向和步数移动，逐格动画
+# game_manager: 用于显示光点
+# 移动所有随从，按相同的方向和步数移动，逐格动画（异步）
+# 并行移动所有随从一格，并同时显示所有光点
+# 返回：是否所有随从都未出界（如果有随从出界，返回 false）
+static func move_followers_one_step_parallel(marble: Marble2D, followers: Array[Node2D], direction: int, game_manager) -> bool:
+	var tasks = []
+	var all_success = true
+	for follower in followers:
+		var task = _move_follower_one_step_parallel(marble, follower, direction, game_manager)
+		tasks.append(task)
+	# 等待所有随从移动完成（包括光点动画）
+	for task in tasks:
+		var success = await task
+		if not success:
+			all_success = false
+	return all_success
+
+# 移动单个随从一格（不等待光点完成，但返回一个信号）
+static func _move_follower_one_step_parallel(marble: Marble2D, follower: Node2D, direction: int, game_manager) -> bool:
+	var current = marble.hex_grid.get_marble_hex(follower)
+	var next = marble.get_neighbor_hex(current, direction)
+	if marble.hex_grid.is_out_of_bounds(next.x, next.y):
+		return false
+	var other = marble.hex_grid.get_marble_at(next.x, next.y)
+	if other != null and other.is_alive:
+		other.continue_move(1, direction)
+		# 显示碰撞点的光点（不等待）
+		if game_manager:
+			game_manager.show_light_at_no_wait(next)
+		return true
+	else:
+		marble.hex_grid.move_marble(follower, current, next)
+		if game_manager:
+			game_manager.show_light_at_no_wait(next)
+		return true
 
 
 # 计算单个随从的最终位置（考虑碰撞和边界）
