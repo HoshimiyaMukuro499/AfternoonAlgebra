@@ -364,18 +364,42 @@ func show_yellow_boost_dialog(dead_yellow: Marble2D, candidates: Array[Marble2D]
 	# 创建弹出对话框
 	var dialog = AcceptDialog.new()
 	dialog.title = "黄球增益选择"
-	dialog.dialog_text = "黄球已死亡！请选择一个己方弹珠获得增益："
-	dialog.size = Vector2(400, 300)
+	dialog.size = Vector2(400, 350)
 	add_child(dialog)
+	
+	# 创建主容器（包含文本和按钮列表）
+	var main_vbox = VBoxContainer.new()
+	main_vbox.name = "MainVBox"
+	main_vbox.anchor_left = 0.0
+	main_vbox.anchor_top = 0.0
+	main_vbox.anchor_right = 1.0
+	main_vbox.anchor_bottom = 1.0
+	main_vbox.offset_left = 10
+	main_vbox.offset_top = 10
+	main_vbox.offset_right = -10
+	main_vbox.offset_bottom = -10
+	dialog.add_child(main_vbox)
+	
+	# 添加文本标签
+	var text_label = Label.new()
+	text_label.text = "黄球已死亡！请选择一个己方弹珠获得增益："
+	text_label.add_theme_font_size_override("font_size", 18)
+	text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text_label.custom_minimum_size = Vector2(0, 40)
+	main_vbox.add_child(text_label)
+	
+	# 添加分隔线
+	var separator = HSeparator.new()
+	separator.custom_minimum_size = Vector2(0, 10)
+	main_vbox.add_child(separator)
 	
 	# 创建候选按钮列表
 	var vbox = VBoxContainer.new()
 	vbox.name = "CandidateList"
-	vbox.anchor_left = 0.0
-	vbox.anchor_top = 0.0
-	vbox.anchor_right = 1.0
-	vbox.anchor_bottom = 1.0
-	dialog.add_child(vbox)
+	vbox.size_flags_horizontal = SIZE_EXPAND_FILL
+	vbox.size_flags_vertical = SIZE_EXPAND_FILL
+	main_vbox.add_child(vbox)
 	
 	for candidate in candidates:
 		if not is_instance_valid(candidate) or not candidate.is_alive:

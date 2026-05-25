@@ -284,7 +284,6 @@ func finish_setup_phase():
 	
 	if ui:
 		ui.hide_setup_phase()
-		ui.update_message("布阵完成，游戏开始！")
 	
 	print("布阵完成，游戏开始")
 	
@@ -675,6 +674,8 @@ func apply_yellow_boost(target: Marble2D):
 	
 	# 增加增益计数
 	target.boost_count += 1
+	# 确保标签存在并更新
+	target.update_label()
 	target.update_boost_label()
 	
 	print("黄球增益已施加到 %s，当前增益次数：%d" % [target.get_class(), target.boost_count])
