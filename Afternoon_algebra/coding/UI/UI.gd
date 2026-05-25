@@ -397,8 +397,8 @@ func show_yellow_boost_dialog(dead_yellow: Marble2D, candidates: Array[Marble2D]
 	# 创建候选按钮列表
 	var vbox = VBoxContainer.new()
 	vbox.name = "CandidateList"
-	vbox.size_flags_horizontal = SIZE_EXPAND_FILL
-	vbox.size_flags_vertical = SIZE_EXPAND_FILL
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND
+	vbox.size_flags_vertical = Control.SIZE_EXPAND
 	main_vbox.add_child(vbox)
 	
 	for candidate in candidates:
