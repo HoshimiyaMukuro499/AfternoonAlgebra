@@ -583,17 +583,20 @@ func execute_move():
 		marble.move(direction, steps)
 		
 		# 处理死亡与白球变色
-		if get_tree() != null:
-			await _handle_deaths_and_white_change()
+		var yellow_death_happened = false
+		if is_inside_tree():
+			yellow_death_happened = await _handle_deaths_and_white_change()
 		else:
-			_handle_deaths_and_white_change()
+			yellow_death_happened = _handle_deaths_and_white_change()
 		
 		var end_hex = marble.get_current_hex() if marble.is_alive else start_hex
 		var path = _get_actual_path(start_hex, end_hex, direction)
-		if get_tree() != null:
+		if is_inside_tree():
 			await _play_path_animation(path)
-	
-	_finish_turn()
+		
+		# 如果发生了黄球死亡，_finish_turn 由 apply_yellow_boost 在用户选择目标后调用
+		if not yellow_death_happened:
+			_finish_turn()
 # 处理死亡事件和白球变色
 # 播放路径动画：在每个格子上依次显示一个黄色光点
 func _play_path_animation(path: Array[Vector2]) -> void:
@@ -722,15 +725,23 @@ func apply_yellow_boost(target: Marble2D):
 	match target.color:
 		MarbleConst.MarbleColor.RED:
 			# 红球：移动步数上限增加1
+			if target.has_method("increase_max_steps"):
+				target.increase_max_steps(1)
 			print("红球获得增益：移动步数上限+1")
 		MarbleConst.MarbleColor.GREEN:
 			# 绿球：推挤距离增加1格
+			if target.has_method("increase_push_range"):
+				target.increase_push_range(1)
 			print("绿球获得增益：推挤距离+1")
 		MarbleConst.MarbleColor.BLUE:
 			# 蓝球：随从出界不再导致蓝球死亡
+			if target.has_method("set_follower_safe"):
+				target.set_follower_safe(true)
 			print("蓝球获得增益：随从出界不再导致死亡")
 		MarbleConst.MarbleColor.BLACK:
 			# 黑球：敌方弹珠被强制移动的格数固定为3
+			if target.has_method("set_enhanced"):
+				target.set_enhanced(true)
 			print("黑球获得增益：强制移动格数固定为3")
 	
 	print("黄球增益已施加到 %s，当前增益次数：%d" % [target.get_class(), target.boost_count])

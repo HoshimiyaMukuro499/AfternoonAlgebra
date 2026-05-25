@@ -109,7 +109,7 @@ func test_state_changed_red_marble_selected_msg() -> void:
 	gm.current_team = RED_CAMP
 	gm.selected_marble = m
 	ui._on_state_changed(GameManager.TurnState.MARBLE_SELECTED)
-	assert_eq(ui.message_label.text, "红球：请选择力度 (按 1~5 键)", "红球应提示选力度")
+	assert_eq(ui.message_label.text, "红球：请选择力度 (按 1~4 键)", "红球应提示选力度")
 
 func test_state_changed_direction_selected_msg() -> void:
 	ui._on_state_changed(GameManager.TurnState.DIRECTION_SELECTED)

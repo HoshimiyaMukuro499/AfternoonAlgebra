@@ -274,8 +274,35 @@ func update_boost_label() -> void:
 	if not _label_node:
 		# 如果标签不存在，先调用 update_label 创建
 		update_label()
+		# 如果 update_label 因为 label_index <= 0 而没有创建标签，则手动创建
 		if not _label_node:
-			return
+			_label_node = Label.new()
+			_label_node.name = "MarbleLabel"
+			_label_node.z_index = 2
+			add_child(_label_node)
+			# 加载自定义字体
+			var font_path = "res://HYPixel11pxU-2.ttf"
+			if ResourceLoader.exists(font_path):
+				var font_data = load(font_path)
+				var font = FontFile.new()
+				font.font_data = font_data
+				_label_node.add_theme_font_override("font", font)
+				_label_node.add_theme_font_size_override("font_size", 24)
+			# 设置字体颜色
+			var font_color = Color(1, 0.1, 0.1) if camp == MarbleConst.Camp.RED else Color(0.1, 0.3, 1)
+			_label_node.add_theme_color_override("font_color", font_color)
+			# 设置位置和大小
+			var s = _get_sprite_node()
+			if s and s.texture:
+				var tex_size = s.texture.get_size()
+				_label_node.size = tex_size
+				_label_node.position = -tex_size / 2
+			else:
+				_label_node.size = Vector2(64, 64)
+				_label_node.position = Vector2(-32, -32)
+			_label_node.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			_label_node.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	
 	# 重新构建完整文本（包括编号和增益后缀）
 	var prefix = "R" if camp == MarbleConst.Camp.RED else "B"
 	var text = "%s%d" % [prefix, label_index]
