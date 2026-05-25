@@ -625,7 +625,7 @@ func execute_move():
 		return
 
 # 如果不是蓝球，则播放分组顺序动画；蓝球自己的动画已在 move 中处理
-	if selected_marble and selected_marble.color != MarbleConst.MarbleColor.BLUE:
+	if selected_marble and is_instance_valid(selected_marble) and selected_marble.color != MarbleConst.MarbleColor.BLUE:
 		await _play_sequential_movement_animation()
 
 	_finish_turn()
@@ -919,16 +919,25 @@ func _play_sequential_movement_animation() -> void:
 	if step_events.is_empty():
 		return
 	
+	# 先清理已释放弹珠的记录（球自杀后引用已失效）
+	var valid_events: Array = []
+	for event in step_events:
+		var marble = event[0]
+		if is_instance_valid(marble):
+			valid_events.append(event)
+	step_events = valid_events
+	
+	if step_events.is_empty():
+		return
+	
 	# 先隐藏所有涉及移动的弹珠（避免闪现）
 	var involved_marbles = {}
 	for event in step_events:
 		var marble = event[0]
-		if marble.is_alive:
+		if is_instance_valid(marble) and marble.is_alive:
 			involved_marbles[marble.get_instance_id()] = marble
 	for marble in involved_marbles.values():
 		_set_marble_visible(marble, false)
-	
-	# 按弹珠分组...（后续代码不变）
 	
 	# 按弹珠分组（保持首次出现的顺序）
 	var groups: Array = []   # 每个元素: { "marble": marble, "path": Array[Vector2] }
@@ -952,16 +961,16 @@ func _play_sequential_movement_animation() -> void:
 		if path.is_empty():
 			continue
 		
-		# 隐藏弹珠（如果还活着）
-		if marble.is_alive:
+		# 隐藏弹珠（如果还活着且仍然有效）
+		if is_instance_valid(marble) and marble.is_alive:
 			_set_marble_visible(marble, false)
 		
 		# 播放该弹珠的所有光点（依次）
 		for hex in path:
 			await _show_light_at(hex)
 		
-		# 显示弹珠（如果还活着）
-		if marble.is_alive:
+		# 显示弹珠（如果还活着且仍然有效）
+		if is_instance_valid(marble) and marble.is_alive:
 			_set_marble_visible(marble, true)
 		
 		await get_tree().create_timer(0.15).timeout
@@ -1005,6 +1014,8 @@ func show_light_at_no_wait(hex: Vector2):
 func show_light_at(hex: Vector2):
 	await _show_light_at(hex)
 func _set_marble_visible(marble: Marble2D, visible: bool) -> void:
+	if not is_instance_valid(marble):
+		return
 	var sprite = marble._get_sprite_node()
 	if sprite:
 		sprite.visible = visible
