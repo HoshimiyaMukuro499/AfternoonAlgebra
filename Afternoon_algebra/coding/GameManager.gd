@@ -593,6 +593,14 @@ func _handle_deaths_and_white_change() -> bool:
 	var death_events: Array = []
 	var yellow_deaths: Array[Marble2D] = []
 	
+	# 确保 last_alive_status 包含所有弹珠的初始状态
+	for m in all_marbles:
+		if not is_instance_valid(m):
+			continue
+		var id = m.get_instance_id()
+		if not last_alive_status.has(id):
+			last_alive_status[id] = m.is_alive
+	
 	# 收集死亡的弹珠
 	for m in all_marbles:
 		if not is_instance_valid(m):

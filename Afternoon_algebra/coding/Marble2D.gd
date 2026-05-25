@@ -272,8 +272,12 @@ func update_label() -> void:
 func update_boost_label() -> void:
 	if not _label_node:
 		return
+	# 重新构建完整文本（包括编号和增益后缀）
+	var prefix = "R" if camp == MarbleConst.Camp.RED else "B"
+	var text = "%s%d" % [prefix, label_index]
 	var suffix = ""
 	for i in range(boost_count):
 		suffix += "+"
 	if suffix != "":
-		_label_node.text += suffix
+		text += suffix
+	_label_node.text = text

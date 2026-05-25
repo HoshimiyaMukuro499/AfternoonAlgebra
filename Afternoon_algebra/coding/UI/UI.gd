@@ -386,7 +386,12 @@ func show_yellow_boost_dialog(dead_yellow: Marble2D, candidates: Array[Marble2D]
 		var boost_text = ""
 		if candidate.boost_count > 0:
 			boost_text = " (增益次数: %d)" % candidate.boost_count
-		btn.text = "%s方 %s%s" % [camp_name, color_name, boost_text]
+		# 显示弹珠编号
+		var label_text = ""
+		if candidate.label_index > 0:
+			var prefix = "R" if candidate.camp == MarbleConst.Camp.RED else "B"
+			label_text = "%s%d " % [prefix, candidate.label_index]
+		btn.text = "%s%s方 %s%s" % [label_text, camp_name, color_name, boost_text]
 		btn.connect("pressed", Callable(self, "_on_boost_target_selected").bind(candidate, dialog))
 		vbox.add_child(btn)
 	
