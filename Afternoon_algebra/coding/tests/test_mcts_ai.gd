@@ -512,7 +512,8 @@ func test_simulate_black_move() -> void:
 		"selected_power": 0,
 		"turn_number": 1,
 		"marbles": [
-			{"id": 1, "camp": RED, "color": BLACK, "is_alive": true, "hex_coord": Vector2(0, 0)},
+			# 黑球设置为 enhanced=true 以确保固定3步
+			{"id": 1, "camp": RED, "color": BLACK, "is_alive": true, "hex_coord": Vector2(0, 0), "enhanced": true},
 			{"id": 2, "camp": BLUE, "color": WHITE, "is_alive": true, "hex_coord": Vector2(5, 0)},
 		],
 		"winner": -1,
@@ -523,6 +524,8 @@ func test_simulate_black_move() -> void:
 	# 蓝方弹珠应向方向0（右）移动3步
 	# 5+3=8，棋盘半径7，(8,0)超出棋盘，蓝方弹珠死亡
 	# 蓝方唯一弹珠死亡 => 红方胜利 => state="victory"
+	# 由于黑球 enhanced 为 true，步数固定为3；方向偏移可能为右(0)、右上(1)或右下(5)
+	# 无论哪种方向，从(5,0)走3步均会出界
 	var target = mcts_ai._find_marble_in_state(new_state, 2)
 	assert_false(target.get("is_alive"), "蓝方弹珠应出界死亡")
 	

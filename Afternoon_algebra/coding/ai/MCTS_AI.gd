@@ -391,13 +391,41 @@ func _capture_state(gm: GameManager) -> Dictionary:
 	for marble in gm.all_marbles:
 		if not is_instance_valid(marble):
 			continue
-		state["marbles"].append({
+		var marble_data = {
 			"id": marble.get_instance_id(),
 			"camp": marble.camp,
 			"color": marble.color,
 			"is_alive": marble.is_alive,
 			"hex_coord": marble.hex_coord if marble.hex_coord != Vector2.ZERO else gm.hex_grid.get_marble_hex(marble),
-		})
+		}
+		
+		# 捕获颜色特有属性（白球（变色后）或原生颜色弹珠均可能持有）
+		if "push_range" in marble:
+			marble_data["push_range"] = marble.push_range
+		else:
+			marble_data["push_range"] = 1  # 默认值
+		
+		if "max_steps" in marble:
+			marble_data["max_steps"] = marble.max_steps
+		else:
+			marble_data["max_steps"] = 4  # 默认值
+		
+		if "enhanced" in marble:
+			marble_data["enhanced"] = marble.enhanced
+		else:
+			marble_data["enhanced"] = false
+		
+		if "follower_safe" in marble:
+			marble_data["follower_safe"] = marble.follower_safe
+		else:
+			marble_data["follower_safe"] = false
+		
+		if "has_changed" in marble:
+			marble_data["has_changed"] = marble.has_changed
+		else:
+			marble_data["has_changed"] = false
+		
+		state["marbles"].append(marble_data)
 		
 	# 捕获选中弹珠信息
 	if gm.selected_marble and is_instance_valid(gm.selected_marble):
@@ -561,7 +589,7 @@ func _simulate_action(state: Dictionary, action: Dictionary, gm: GameManager) ->
 	return new_state
 
 
-# 模拟执行移动（非红球）
+# 模拟执行移动（根据弹珠颜色分发）
 func _simulate_execute_move(state: Dictionary) -> Dictionary:
 	var sel_id = state.get("selected_marble", 0)
 	var marble = _find_marble_in_state(state, sel_id)
@@ -569,56 +597,20 @@ func _simulate_execute_move(state: Dictionary) -> Dictionary:
 		state["state"] = "idle"
 		return state
 	
-	var dir = state.get("selected_direction", 0)
-	var power = state.get("selected_power", 3)
-	var pos = marble.get("hex_coord", Vector2(0, 0))
-	var camp = marble.get("camp")
+	var color = marble.get("color", MarbleConst.MarbleColor.WHITE)
 	
-	# 执行逐格移动
-	var current_pos = pos
-	
-	for step in range(1, power + 1):
-		if not marble.get("is_alive", true):
-			break
-		
-		var next_pos = _sim_get_neighbor(current_pos, dir)
-		
-		# 出界检查
-		if _sim_is_out_of_bounds(next_pos):
-			marble["is_alive"] = false
-			_gmark_dirty(state, marble)
-			break
-		
-		# 碰撞检查
-		var target = _sim_get_marble_at(state, next_pos)
-		if target != null and target.get("is_alive", false):
-			# 碰撞：被撞弹珠继续移动
-			var remaining = power - step
-			if remaining > 0:
-				_sim_collision_move(state, target, dir, remaining)
-			# 攻击者停下
-			current_pos = next_pos
-			_sim_set_marble_pos(state, marble, current_pos)
-			break
-		else:
-			# 空位移动
-			_sim_set_marble_pos(state, marble, next_pos)
-			current_pos = next_pos
-	
-	# 检查胜利（只设 winner，不设 state）
-	_sim_check_victory(state)
-	
-	# 如果已有胜利者，结束
-	if state.get("winner", -1) != -1:
-		state["state"] = "victory"
-		return state
-	
-	# 切换回合
-	state["state"] = "idle"
-	state["current_team"] = MarbleConst.Camp.BLUE if camp == MarbleConst.Camp.RED else MarbleConst.Camp.RED
-	state["turn_number"] = state.get("turn_number", 0) + 1
-	
-	return state
+	match color:
+		MarbleConst.MarbleColor.BLUE:
+			return _sim_blue_move(state, marble)
+		MarbleConst.MarbleColor.GREEN:
+			return _sim_green_move(state, marble)
+		MarbleConst.MarbleColor.YELLOW:
+			return _sim_yellow_move(state, marble)
+		MarbleConst.MarbleColor.WHITE:
+			return _sim_white_move(state, marble)
+		_:
+			# 黑球无法主动移动（防御性兜底）
+			return _sim_basic_move(state, marble)
 
 
 # 模拟红球走一步
@@ -631,6 +623,9 @@ func _simulate_red_step(state: Dictionary, dir: int) -> Dictionary:
 	
 	var pos = marble.get("hex_coord", Vector2(0, 0))
 	var camp = marble.get("camp")
+	var max_steps = marble.get("max_steps", 4)
+	var red_power = state.get("red_power", 3)
+	var actual_power = min(red_power, max_steps)
 	
 	var next_pos = _sim_get_neighbor(pos, dir)
 	
@@ -638,46 +633,71 @@ func _simulate_red_step(state: Dictionary, dir: int) -> Dictionary:
 	if _sim_is_out_of_bounds(next_pos):
 		marble["is_alive"] = false
 		_gmark_dirty(state, marble)
-		# 红球死亡，检查胜利
 		_sim_check_victory(state)
 		if state.get("winner", -1) != -1:
 			state["state"] = "victory"
 			return state
-		# 结束回合
+		_sim_post_action_events(state)
+		_sim_check_victory(state)
+		if state.get("winner", -1) != -1:
+			state["state"] = "victory"
+			return state
 		state["state"] = "idle"
 		state["current_team"] = MarbleConst.Camp.BLUE if camp == MarbleConst.Camp.RED else MarbleConst.Camp.RED
 		state["turn_number"] = state.get("turn_number", 0) + 1
 		return state
 	
-	# 碰撞检查
+	# 碰撞检查（红球特殊碰撞：目标获得剩余步数-2，红球继续）
+	var dirs = state.get("red_directions", [])
+	var remaining_total = actual_power - dirs.size()
+	
 	var target = _sim_get_marble_at(state, next_pos)
 	if target != null and target.get("is_alive", false):
-		# 碰撞：目标被撞走
-		_sim_collision_move(state, target, dir, 1)
+		var push_steps = remaining_total - 2
+		if push_steps > 0:
+			_sim_collision_move(state, target, dir, push_steps, marble)
+		# 检查目标是否已离开
+		if _sim_get_marble_at(state, next_pos) == null:
+			# 红球移入
+			_sim_set_marble_pos(state, marble, next_pos)
+		else:
+			# 目标未离开，红球停止
+			dirs.append(dir)
+			state["red_directions"] = dirs
+			# 红球本次停止，结束回合
+			_sim_check_victory(state)
+			if state.get("winner", -1) != -1:
+				state["state"] = "victory"
+				return state
+			_sim_post_action_events(state)
+			_sim_check_victory(state)
+			if state.get("winner", -1) != -1:
+				state["state"] = "victory"
+				return state
+			state["state"] = "idle"
+			state["current_team"] = MarbleConst.Camp.BLUE if camp == MarbleConst.Camp.RED else MarbleConst.Camp.RED
+			state["turn_number"] = state.get("turn_number", 0) + 1
+			return state
+	else:
+		_sim_set_marble_pos(state, marble, next_pos)
 	
-	# 移动
-	_sim_set_marble_pos(state, marble, next_pos)
-	
-	# 检查红球是否走完
-	var red_power = state.get("red_power", 3)
-	var dirs = state.get("red_directions", [])
 	dirs.append(dir)
 	state["red_directions"] = dirs
 	
-	if dirs.size() >= red_power or not marble.get("is_alive", true):
-		# 红球走完，检查胜利
+	if dirs.size() >= actual_power or not marble.get("is_alive", true):
 		_sim_check_victory(state)
-		
-		# 如果已有胜利者，结束
 		if state.get("winner", -1) != -1:
 			state["state"] = "victory"
 			return state
-		
+		_sim_post_action_events(state)
+		_sim_check_victory(state)
+		if state.get("winner", -1) != -1:
+			state["state"] = "victory"
+			return state
 		state["state"] = "idle"
 		state["current_team"] = MarbleConst.Camp.BLUE if camp == MarbleConst.Camp.RED else MarbleConst.Camp.RED
 		state["turn_number"] = state.get("turn_number", 0) + 1
 	else:
-		# 继续下一格
 		state["state"] = "red_direction_picking"
 	
 	return state
@@ -686,15 +706,28 @@ func _simulate_red_step(state: Dictionary, dir: int) -> Dictionary:
 # 模拟黑球强制移动
 func _simulate_black_move(state: Dictionary) -> Dictionary:
 	var target_coord = state.get("black_target_coord", null)
-	var dir = state.get("black_approx_dir", 0)
+	var approx_dir = state.get("black_approx_dir", 0)
 	
 	if target_coord == null:
 		state["state"] = "idle"
 		return state
 	
+	# 获取黑球弹珠以查询 enhanced 属性
+	var sel_id = state.get("selected_marble", 0)
+	var marble = _find_marble_in_state(state, sel_id)
+	var enhanced = marble.get("enhanced", false) if marble != null else false
+	
+	# 随机方向（指定方向 ±60°）
+	var offset = randi() % 3 - 1
+	var actual_dir = (approx_dir + offset) % 6
+	if actual_dir < 0:
+		actual_dir += 6
+	
+	# 步数：增强后固定3，否则随机2或3
+	var steps = 3 if enhanced else (2 if randi() % 2 == 0 else 3)
+	
 	var camp = state.get("current_team", MarbleConst.Camp.RED)
 	
-	# 目标沿方向移动3格
 	var current_pos = target_coord
 	var target = _sim_get_marble_at(state, current_pos)
 	
@@ -703,10 +736,10 @@ func _simulate_black_move(state: Dictionary) -> Dictionary:
 		state["current_team"] = MarbleConst.Camp.BLUE if camp == MarbleConst.Camp.RED else MarbleConst.Camp.RED
 		return state
 	
-	for step in range(3):
+	for step in range(steps):
 		if not target.get("is_alive", true):
 			break
-		var next_pos = _sim_get_neighbor(current_pos, dir)
+		var next_pos = _sim_get_neighbor(current_pos, actual_dir)
 		
 		if _sim_is_out_of_bounds(next_pos):
 			target["is_alive"] = false
@@ -715,14 +748,19 @@ func _simulate_black_move(state: Dictionary) -> Dictionary:
 		
 		var blocker = _sim_get_marble_at(state, next_pos)
 		if blocker != null and blocker.get("is_alive", false):
-			_sim_collision_move(state, blocker, dir, 1)
+			_sim_collision_move(state, blocker, actual_dir, 1, marble)
 		
 		_sim_set_marble_pos(state, target, next_pos)
 		current_pos = next_pos
 	
 	_sim_check_victory(state)
 	
-	# 如果已有胜利者，结束
+	if state.get("winner", -1) != -1:
+		state["state"] = "victory"
+		return state
+	
+	_sim_post_action_events(state)
+	_sim_check_victory(state)
 	if state.get("winner", -1) != -1:
 		state["state"] = "victory"
 		return state
@@ -733,12 +771,19 @@ func _simulate_black_move(state: Dictionary) -> Dictionary:
 	return state
 
 
-# 模拟碰撞移动
-func _sim_collision_move(state: Dictionary, marble: Dictionary, dir: int, steps: int):
+# 模拟碰撞移动（含白球友方碰撞步数+1）
+# 注意：collider 是碰撞发起方，marble 是被撞方
+func _sim_collision_move(state: Dictionary, marble: Dictionary, dir: int, steps: int, collider: Dictionary = {}):
 	var pos = marble.get("hex_coord", Vector2(0, 0))
 	var current_pos = pos
 	
-	for step in range(steps):
+	# 白球被友方碰撞时步数+1
+	var actual_steps = steps
+	if marble.get("color") == MarbleConst.MarbleColor.WHITE and not collider.is_empty():
+		if collider.get("camp") == marble.get("camp"):
+			actual_steps += 1
+	
+	for step in range(actual_steps):
 		if not marble.get("is_alive", true):
 			break
 		var next_pos = _sim_get_neighbor(current_pos, dir)
@@ -750,7 +795,7 @@ func _sim_collision_move(state: Dictionary, marble: Dictionary, dir: int, steps:
 		
 		var blocker = _sim_get_marble_at(state, next_pos)
 		if blocker != null and blocker.get("is_alive", false):
-			var remaining = steps - step
+			var remaining = actual_steps - step
 			if remaining > 0:
 				_sim_collision_move(state, blocker, dir, remaining)
 			_sim_set_marble_pos(state, marble, next_pos)
@@ -776,6 +821,284 @@ func _sim_check_victory(state: Dictionary):
 		state["winner"] = MarbleConst.Camp.BLUE
 	elif not blue_alive:
 		state["winner"] = MarbleConst.Camp.RED
+
+
+# ── 白球移动（友方碰撞 +1 步） ──
+func _sim_white_move(state: Dictionary, marble: Dictionary) -> Dictionary:
+	var dir = state.get("selected_direction", 0)
+	var power = state.get("selected_power", 3)
+	var camp = marble.get("camp")
+	var pos = marble.get("hex_coord", Vector2(0, 0))
+	var current_pos = pos
+
+	for step in range(1, power + 1):
+		if not marble.get("is_alive", true):
+			break
+		var next_pos = _sim_get_neighbor(current_pos, dir)
+
+		if _sim_is_out_of_bounds(next_pos):
+			marble["is_alive"] = false
+			_gmark_dirty(state, marble)
+			break
+
+		var target = _sim_get_marble_at(state, next_pos)
+		if target != null and target.get("is_alive", false):
+			var remaining = power - step
+			# 白球特有：被友方碰撞时步数 +1
+			if target.get("color") == MarbleConst.MarbleColor.WHITE and target.get("camp") == camp:
+				remaining += 1
+			if remaining > 0:
+				_sim_collision_move(state, target, dir, remaining)
+			current_pos = next_pos
+			_sim_set_marble_pos(state, marble, current_pos)
+			break
+		else:
+			_sim_set_marble_pos(state, marble, next_pos)
+			current_pos = next_pos
+
+	return _sim_end_turn(state, camp)
+
+
+# ── 蓝球移动（随从生成+移动+死亡检测） ──
+func _sim_blue_move(state: Dictionary, marble: Dictionary) -> Dictionary:
+	var dir = state.get("selected_direction", 0)
+	var power = state.get("selected_power", 3)
+	var camp = marble.get("camp")
+	var pos = marble.get("hex_coord", Vector2(0, 0))
+
+	# 模拟生成随从（左右两侧各1个）
+	var left_dir = (dir + 1) % 6
+	var right_dir = (dir + 5) % 6
+	var followers = []
+	for spawn_dir in [left_dir, right_dir]:
+		var spawn_pos = _sim_get_neighbor(pos, spawn_dir)
+		if not _sim_is_out_of_bounds(spawn_pos) and _sim_get_marble_at(state, spawn_pos) == null:
+			followers.append({"pos": spawn_pos, "alive": true})
+
+	# 蓝球自身逐格移动
+	var current_pos = pos
+	var steps_done = 0
+
+	for step in range(1, power + 1):
+		if not marble.get("is_alive", true):
+			break
+		var next_pos = _sim_get_neighbor(current_pos, dir)
+
+		if _sim_is_out_of_bounds(next_pos):
+			marble["is_alive"] = false
+			_gmark_dirty(state, marble)
+			break
+
+		var target = _sim_get_marble_at(state, next_pos)
+		if target != null and target.get("is_alive", false):
+			var remaining = power - step
+			# 白球特有：被友方碰撞时步数 +1
+			if target.get("color") == MarbleConst.MarbleColor.WHITE and target.get("camp") == camp:
+				remaining += 1
+			if remaining > 0:
+				_sim_collision_move(state, target, dir, remaining)
+			current_pos = next_pos
+			_sim_set_marble_pos(state, marble, current_pos)
+			steps_done = step
+			break
+		else:
+			_sim_set_marble_pos(state, marble, next_pos)
+			current_pos = next_pos
+			steps_done = step
+
+	# 移动随从（与蓝球同方向同剩余步数）
+	var follower_safe = marble.get("follower_safe", false)
+	var follower_dead = false
+
+	for f in followers:
+		if not f.alive:
+			continue
+		var f_pos = f.pos
+		for s in range(steps_done):
+			var next_f_pos = _sim_get_neighbor(f_pos, dir)
+			if _sim_is_out_of_bounds(next_f_pos):
+				if not follower_safe:
+					follower_dead = true
+				f.alive = false
+				break
+			var blocker = _sim_get_marble_at(state, next_f_pos)
+			if blocker != null and blocker.get("is_alive", false):
+				var remaining = steps_done - s
+				if remaining > 0:
+					_sim_collision_move(state, blocker, dir, remaining)
+				f_pos = next_f_pos
+				break
+			else:
+				f_pos = next_f_pos
+
+	if follower_dead and marble.get("is_alive", true):
+		marble["is_alive"] = false
+		_gmark_dirty(state, marble)
+
+	return _sim_end_turn(state, camp)
+
+
+# ── 绿球移动（推挤碰撞） ──
+func _sim_green_move(state: Dictionary, marble: Dictionary) -> Dictionary:
+	var dir = state.get("selected_direction", 0)
+	var power = state.get("selected_power", 3)
+	var camp = marble.get("camp")
+	var push_range = marble.get("push_range", 1)
+
+	# 绿球：推开路径上的棋子，而不是被碰撞挡住
+	var current_pos = marble.get("hex_coord", Vector2(0, 0))
+
+	for step in range(1, power + 1):
+		if not marble.get("is_alive", true):
+			break
+		var next_pos = _sim_get_neighbor(current_pos, dir)
+
+		if _sim_is_out_of_bounds(next_pos):
+			marble["is_alive"] = false
+			_gmark_dirty(state, marble)
+			break
+
+		var target = _sim_get_marble_at(state, next_pos)
+		if target != null and target.get("is_alive", false):
+			# 推挤：被撞弹珠沿相同方向移动 push_range 格
+			_sim_collision_move(state, target, dir, push_range)
+			# 如果目标被推走后格子空了，绿球移入
+			if _sim_get_marble_at(state, next_pos) == null:
+				_sim_set_marble_pos(state, marble, next_pos)
+				current_pos = next_pos
+			else:
+				# 目标未被推开，绿球停下
+				break
+		else:
+			_sim_set_marble_pos(state, marble, next_pos)
+			current_pos = next_pos
+
+	# 绿球停止后推挤相邻所有格（同时结算）
+	if marble.get("is_alive", true):
+		for p_dir in range(6):
+			var neighbor_pos = _sim_get_neighbor(current_pos, p_dir)
+			var neighbor = _sim_get_marble_at(state, neighbor_pos)
+			if neighbor != null and neighbor.get("is_alive", false):
+				_sim_collision_move(state, neighbor, p_dir, 1)
+
+	return _sim_end_turn(state, camp)
+
+
+# ── 黄球移动（步数随机 ±1） ──
+func _sim_yellow_move(state: Dictionary, marble: Dictionary) -> Dictionary:
+	var dir = state.get("selected_direction", 0)
+	var power = state.get("selected_power", 3)
+	# 步数随机 ±1（范围 1~5）
+	var actual_power = clamp(power + randi() % 3 - 1, 1, 5)
+	state["selected_power"] = actual_power
+	return _sim_basic_move(state, marble)
+
+
+# ── 基础移动（通用逐格+碰撞） ──
+func _sim_basic_move(state: Dictionary, marble: Dictionary) -> Dictionary:
+	var dir = state.get("selected_direction", 0)
+	var power = state.get("selected_power", 3)
+	var camp = marble.get("camp")
+	var pos = marble.get("hex_coord", Vector2(0, 0))
+	var current_pos = pos
+
+	for step in range(1, power + 1):
+		if not marble.get("is_alive", true):
+			break
+		var next_pos = _sim_get_neighbor(current_pos, dir)
+
+		if _sim_is_out_of_bounds(next_pos):
+			marble["is_alive"] = false
+			_gmark_dirty(state, marble)
+			break
+
+		var target = _sim_get_marble_at(state, next_pos)
+		if target != null and target.get("is_alive", false):
+			var remaining = power - step
+			if remaining > 0:
+				_sim_collision_move(state, target, dir, remaining)
+			current_pos = next_pos
+			_sim_set_marble_pos(state, marble, current_pos)
+			break
+		else:
+			_sim_set_marble_pos(state, marble, next_pos)
+			current_pos = next_pos
+
+	return _sim_end_turn(state, camp)
+
+
+# ── 回合结束处理（胜利检测+切换回合） ──
+func _sim_end_turn(state: Dictionary, camp: int) -> Dictionary:
+	_sim_check_victory(state)
+
+	if state.get("winner", -1) != -1:
+		state["state"] = "victory"
+		return state
+
+	# 切换回合前触发后效事件
+	_sim_post_action_events(state)
+
+	# 再次检查胜利（后效事件可能导致新死亡）
+	_sim_check_victory(state)
+	if state.get("winner", -1) != -1:
+		state["state"] = "victory"
+		return state
+
+	state["state"] = "idle"
+	state["current_team"] = MarbleConst.Camp.BLUE if camp == MarbleConst.Camp.RED else MarbleConst.Camp.RED
+	state["turn_number"] = state.get("turn_number", 0) + 1
+	return state
+
+
+# ── 后效事件处理（白球变色、黄球增益） ──
+func _sim_post_action_events(state: Dictionary) -> void:
+	# 收集本回合死亡事件
+	var dead_marbles = []
+	for m in state.get("marbles", []):
+		if not m.get("is_alive", true):
+			dead_marbles.append(m)
+	
+	var any_dead = false
+	for m in dead_marbles:
+		if m.get("is_alive", false):
+			continue
+		var dead_camp = m.get("camp")
+		var dead_color = m.get("color")
+		
+		# 黄球死亡：对随机友方目标施加增益
+		if dead_color == MarbleConst.MarbleColor.YELLOW:
+			any_dead = true
+			# 找随机存活友方蓝/绿/红/黑球
+			var eligible = []
+			for ally in state.get("marbles", []):
+				if ally.get("is_alive", false) and ally.get("camp") == dead_camp:
+					var ac = ally.get("color")
+					if ac in [MarbleConst.MarbleColor.BLUE, MarbleConst.MarbleColor.GREEN, MarbleConst.MarbleColor.RED, MarbleConst.MarbleColor.BLACK]:
+						eligible.append(ally)
+			if eligible.size() > 0:
+				var target = eligible[randi() % eligible.size()]
+				var tc = target.get("color")
+				match tc:
+					MarbleConst.MarbleColor.BLUE:
+						target["follower_safe"] = true
+					MarbleConst.MarbleColor.GREEN:
+						target["push_range"] = target.get("push_range", 1) + 1
+					MarbleConst.MarbleColor.RED:
+						target["max_steps"] = target.get("max_steps", 4) + 1
+					MarbleConst.MarbleColor.BLACK:
+						target["enhanced"] = true
+		
+		# 白球：友方任意颜色弹珠死亡 → 变色
+		var white_marbles = []
+		for ally in state.get("marbles", []):
+			if ally.get("is_alive", false) and ally.get("camp") == dead_camp and ally.get("color") == MarbleConst.MarbleColor.WHITE:
+				white_marbles.append(ally)
+		
+		for wm in white_marbles:
+			if dead_color != MarbleConst.MarbleColor.YELLOW:
+				wm["color"] = dead_color
+				wm["has_changed"] = true
+				any_dead = true
 
 
 # ═══════════════════════════════════════════════════
