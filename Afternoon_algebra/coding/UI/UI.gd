@@ -249,7 +249,7 @@ func _on_color_button_pressed(color_index: int):
 	if gm:
 		gm.setup_select_color(color_index)
 
-func show_setup_phase(team: int, remaining: int):
+func show_setup_phase(team: int, remaining: int, is_ai: bool = false):
 	setup_active = true
 	setup_container.visible = true
 	var team_name = "红方" if team == MarbleConst.Camp.RED else "蓝方"
@@ -265,8 +265,14 @@ func show_setup_phase(team: int, remaining: int):
 	setup_team_label.visible = true
 	setup_remaining_label.visible = true
 	setup_message_label.visible = true
+	# 如果是 AI 回合，隐藏颜色按钮（避免玩家误点替 AI 选颜色）
 	for btn in color_buttons:
-		btn.visible = true
+		btn.visible = not is_ai
+	if is_ai:
+		# AI 回合时，「选择颜色」的消息由 AI 自动处理，UI 显示等待信息
+		setup_message_label.text = "%s 方正在选择颜色..." % team_name
+	else:
+		setup_message_label.visible = true
 	# 隐藏阵型名称标签
 	if formation_label:
 		formation_label.visible = false

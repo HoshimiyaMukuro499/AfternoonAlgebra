@@ -156,9 +156,11 @@ func start_setup_phase():
 	setup_remaining_marbles = { MarbleConst.Camp.RED: 6, MarbleConst.Camp.BLUE: 6 }
 	all_marbles.clear()
 	
+	var is_ai_turn = ai_enabled and setup_current_team in ai_teams
 	if ui:
-		ui.show_setup_phase(setup_current_team, setup_remaining_marbles[setup_current_team])
-		ui.update_setup_message("请选择弹珠颜色（点击颜色按钮或按数字键1-6）")
+		ui.show_setup_phase(setup_current_team, setup_remaining_marbles[setup_current_team], is_ai_turn)
+		if not is_ai_turn:
+			ui.update_setup_message("请选择弹珠颜色（点击颜色按钮或按数字键1-6）")
 	
 	print("选珠阶段开始，%s 方先选" % ("红" if setup_current_team == MarbleConst.Camp.RED else "蓝"))
 	
@@ -266,16 +268,26 @@ func setup_place_marble(q: int, r: int):
 		else:
 			setup_state = SetupState.COLOR_SELECT
 			setup_selected_color = -1
+			var is_ai_turn = ai_enabled and setup_current_team in ai_teams
 			if ui:
-				ui.show_setup_phase(setup_current_team, setup_remaining_marbles[setup_current_team])
-				ui.update_setup_message("请选择弹珠颜色（点击颜色按钮或按数字键1-6）")
+				ui.show_setup_phase(setup_current_team, setup_remaining_marbles[setup_current_team], is_ai_turn)
+				if not is_ai_turn:
+					ui.update_setup_message("请选择弹珠颜色（点击颜色按钮或按数字键1-6）")
 			print("轮到 %s 方选珠" % ("红" if setup_current_team == MarbleConst.Camp.RED else "蓝"))
+			
+			# 如果切换后的阵营是 AI，触发 AI 决策
+			if is_ai_turn:
+				_trigger_ai_turn.call_deferred()
 	else:
 		# 继续选择颜色
 		setup_state = SetupState.COLOR_SELECT
 		setup_selected_color = -1
+		var is_ai_turn = ai_enabled and setup_current_team in ai_teams
 		if ui:
-			ui.update_setup_message("请选择弹珠颜色（点击颜色按钮或按数字键1-6）")
+			if is_ai_turn:
+				ui.update_setup_message("")
+			else:
+				ui.update_setup_message("请选择弹珠颜色（点击颜色按钮或按数字键1-6）")
 
 func finish_setup_phase():
 	# 后手方阵型名称已在 setup_place_marble 中显示，此处不再重复显示
