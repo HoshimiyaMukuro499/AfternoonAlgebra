@@ -906,11 +906,14 @@ func show_tutorial():
 	add_child(tutorial_instance)
 	
 	# 连接信号
-	tutorial_instance.tutorial_finished.connect(_on_tutorial_finished)
+	tutorial_instance.tutorial_finished.connect(_on_tutorial_finished.bind(tutorial_instance))
 
-func _on_tutorial_finished():
-	# 跳转到主游戏场景
-	get_tree().change_scene_to_file("res://main.tscn")
+func _on_tutorial_finished(tutorial_instance: Control):
+	# 移除教程节点，恢复游戏交互
+	if tutorial_instance and is_instance_valid(tutorial_instance):
+		tutorial_instance.queue_free()
+	# 直接开始游戏
+	start_turn()
 
 func _play_sequential_movement_animation() -> void:
 	if step_events.is_empty():

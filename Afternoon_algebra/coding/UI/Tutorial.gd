@@ -56,7 +56,12 @@ var page_images: Array[String] = [
 var current_page: int = 0
 
 func _ready():
+	# 连接教程完成信号到场景切换
+	tutorial_finished.connect(_on_tutorial_finished)
 	_update_page()
+
+func _on_tutorial_finished():
+	get_tree().change_scene_to_file("res://main.tscn")
 
 func _update_page():
 	# 更新文本

@@ -17,7 +17,6 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-
 MarbleConst="*res://MarbleConst.gd.gd"
 
 [display]
