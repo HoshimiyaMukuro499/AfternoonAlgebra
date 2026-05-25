@@ -503,7 +503,7 @@ func select_black_enemy(enemy: Marble2D):
 	selected_enemy = enemy
 	# 进入选方向状态
 	current_state = TurnState.BLACK_SELECT_DIRECTION
-	print("请选择方向（点击相邻六个方向之一）")
+	print("请指定敌方弹珠的大致移动方向（点击相邻六个方向之一）")
 	# 通知 UI 进入方向选择模式（如果有 UI 方法）
 	if ui and ui.has_method("enter_black_select_direction_mode"):
 		ui.enter_black_select_direction_mode()
