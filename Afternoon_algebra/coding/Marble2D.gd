@@ -270,8 +270,12 @@ func update_label() -> void:
 
 # 更新增益标签显示
 func update_boost_label() -> void:
+	# 确保标签存在
 	if not _label_node:
-		return
+		# 如果标签不存在，先调用 update_label 创建
+		update_label()
+		if not _label_node:
+			return
 	# 重新构建完整文本（包括编号和增益后缀）
 	var prefix = "R" if camp == MarbleConst.Camp.RED else "B"
 	var text = "%s%d" % [prefix, label_index]

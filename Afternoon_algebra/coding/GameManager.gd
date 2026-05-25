@@ -427,6 +427,12 @@ func red_select_power(power: int):
 	if selected_marble == null or selected_marble.color != MarbleConst.MarbleColor.RED:
 		return
 	
+	# 红球最大步数 = 4 + 增益次数
+	var max_steps = 4 + (selected_marble.boost_count if selected_marble else 0)
+	if power > max_steps:
+		print("红球步数不能超过 %d" % max_steps)
+		return
+	
 	red_total_steps = power
 	red_step_directions = []
 	red_current_step_index = 0
@@ -489,6 +495,10 @@ func _red_finish_turn():
 
 func select_power(power: int):
 	if current_state != TurnState.DIRECTION_SELECTED or current_state == TurnState.VICTORY: return
+	# 普通球最大步数 = 5（默认），红球由 red_select_power 处理
+	if power > 5:
+		print("步数不能超过5")
+		return
 	selected_power = power
 	execute_move()
 # 黑球选择敌方弹珠
@@ -677,6 +687,21 @@ func apply_yellow_boost(target: Marble2D):
 	# 确保标签存在并更新
 	target.update_label()
 	target.update_boost_label()
+	
+	# 根据目标颜色应用增益效果
+	match target.color:
+		MarbleConst.MarbleColor.RED:
+			# 红球：移动步数上限增加1
+			print("红球获得增益：移动步数上限+1")
+		MarbleConst.MarbleColor.GREEN:
+			# 绿球：推挤距离增加1格
+			print("绿球获得增益：推挤距离+1")
+		MarbleConst.MarbleColor.BLUE:
+			# 蓝球：随从出界不再导致蓝球死亡
+			print("蓝球获得增益：随从出界不再导致死亡")
+		MarbleConst.MarbleColor.BLACK:
+			# 黑球：敌方弹珠被强制移动的格数固定为3
+			print("黑球获得增益：强制移动格数固定为3")
 	
 	print("黄球增益已施加到 %s，当前增益次数：%d" % [target.get_class(), target.boost_count])
 	

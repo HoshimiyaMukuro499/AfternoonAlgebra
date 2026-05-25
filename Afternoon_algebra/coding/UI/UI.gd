@@ -438,7 +438,8 @@ func _on_state_changed(new_state):
 		
 		# 红球在MARBLE_SELECTED状态下提示选力度
 		if new_state == GameManager.TurnState.MARBLE_SELECTED and gm.selected_marble and gm.selected_marble.color == MarbleConst.MarbleColor.RED:
-			message_label.text = "红球：请选择力度 (按 1~5 键)"
+			var max_steps = 4 + (gm.selected_marble.boost_count if gm.selected_marble else 0)
+			message_label.text = "红球：请选择力度 (按 1~%d 键)" % max_steps
 			return
 	
 	match new_state:
