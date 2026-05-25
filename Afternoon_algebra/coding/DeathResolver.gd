@@ -2,9 +2,10 @@
 # 死亡结算工具：处理同时发生的多个死亡事件，为阵营按规则分配白球变色。
 #
 # 规则说明（详见 game_rule.md 第五节第1条）：
-# 1. 按阵营分组处理，每组内对每个死亡事件找一个己方存活白球变色。
-# 2. 优先选未变色（has_changed == false）的白球；若已无未变色白球，则覆盖已变色白球。
-# 3. 黄球死亡不触发变色（YellowMarbleHelper 专门处理黄球增益）。
+# 1. 同一时刻多颗不同颜色死亡，白球随机选择其中一种颜色变化。
+# 2. 每次有己方弹珠死亡只会变化一个己方白球（即同一批次死亡只变一个白球）。
+# 3. 优先选未变色（has_changed == false）的白球；若已无未变色白球，则覆盖已变色白球。
+# 4. 黄球死亡不触发变色（YellowMarbleHelper 专门处理黄球增益）。
 #
 # 此类为纯函数工具，不依赖场景树或节点生命周期。
 
@@ -38,6 +39,9 @@ extends RefCounted
 #
 # 注意：此函数不会修改传入的 white_marbles，仅返回需要执行的变色事件。
 # 调用方（如 GameManager）应根据返回结果逐一调用 white_marble.on_teammate_died()。
+#
+# 规则语义：同一批次（同时刻）的死亡事件，每个阵营最多只触发一个白球变色，
+# 且只随机选择一种死亡颜色进行变色。
 static func resolve_simultaneous_deaths(death_events: Array, white_marbles: Array) -> Array:
 	var color_changes: Array = []
 	
@@ -66,37 +70,44 @@ static func resolve_simultaneous_deaths(death_events: Array, white_marbles: Arra
 			whites_by_camp[camp] = []
 		whites_by_camp[camp].append(w)
 	
-	# 4. 对每个阵营，逐个处理死亡事件
+	# 4. 对每个阵营，合并所有同时死亡事件为一个变色事件
+	#    规则：同一时刻多颗死亡 → 只变一个白球，随机选一种死亡颜色
 	for camp in deaths_by_camp.keys():
 		var camp_deaths: Array = deaths_by_camp[camp]
 		var camp_whites: Array = whites_by_camp.get(camp, []).duplicate()
 		
 		if camp_whites.is_empty():
-			# 该阵营没有白球，无法变色
 			continue
 		
-		# 对该阵营的每个死亡事件，分配一个白球
+		# 从所有死亡颜色中随机选一种
+		var dead_colors: Array = []
 		for ev in camp_deaths:
-			var dead_color = ev.get("color", -1)
-			if dead_color == -1:
-				continue
-			
-			# 找一个合适的白球：优先未变色，若全部已变色则选第一个覆盖
-			var chosen_white = _pick_white_for_change(camp_whites)
-			if chosen_white.is_empty():
-				continue
-			
-			# 记录变色事件
-			var from_color = chosen_white.get("current_color", MarbleConst.MarbleColor.WHITE)
-			color_changes.append({
-				"white_id": chosen_white.get("id", -1),
-				"from_color": from_color,
-				"to_color": dead_color
-			})
-			
-			# 更新副本状态：标记为已变色（后续死亡事件优先选其他未变色白球）
-			chosen_white["has_changed"] = true
-			chosen_white["current_color"] = dead_color
+			var c = ev.get("color", -1)
+			if c != -1 and not dead_colors.has(c):
+				dead_colors.append(c)
+		
+		if dead_colors.is_empty():
+			continue
+		
+		# 随机选择一种颜色
+		var chosen_color = dead_colors[randi() % dead_colors.size()]
+		
+		# 找一个合适的白球：优先未变色，若全部已变色则选第一个覆盖
+		var chosen_white = _pick_white_for_change(camp_whites)
+		if chosen_white.is_empty():
+			continue
+		
+		# 记录变色事件（只变一个白球）
+		var from_color = chosen_white.get("current_color", MarbleConst.MarbleColor.WHITE)
+		color_changes.append({
+			"white_id": chosen_white.get("id", -1),
+			"from_color": from_color,
+			"to_color": chosen_color
+		})
+		
+		# 更新副本状态
+		chosen_white["has_changed"] = true
+		chosen_white["current_color"] = chosen_color
 	
 	return color_changes
 

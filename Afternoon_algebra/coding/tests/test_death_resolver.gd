@@ -118,8 +118,11 @@ func test_fallback_to_colored_white() -> void:
 	assert_eq(result[0]["from_color"], MarbleConst.MarbleColor.GREEN, "原色应为被覆盖的颜色")
 
 # ---------- 多死亡事件 vs 多白球测试 ----------
+# 注意：规则规定同一时刻多颗死亡只变一个白球，且随机选一种死亡颜色。
+# 以下测试验证这个行为。
 
 func test_two_deaths_two_whites() -> void:
+	# 多个死亡同时发生时，只产生一个变色事件（随机选一种颜色）
 	var deaths = [
 		_make_death(MarbleConst.MarbleColor.BLUE, MarbleConst.Camp.RED),
 		_make_death(MarbleConst.MarbleColor.GREEN, MarbleConst.Camp.RED)
@@ -130,22 +133,19 @@ func test_two_deaths_two_whites() -> void:
 	]
 	var result = call_resolve(deaths, whites)
 	
-	assert_eq(result.size(), 2, "应返回两个变色事件")
+	# 同一时刻多颗死亡，只变一个白球
+	assert_eq(result.size(), 1, "两个同时死亡只应产生一个变色事件")
 	
-	var white1_change = null
-	var white2_change = null
-	for c in result:
-		if c["white_id"] == 1:
-			white1_change = c
-		elif c["white_id"] == 2:
-			white2_change = c
+	# 目标色应该是蓝色或绿色（随机选择）
+	var ok_color = (result[0]["to_color"] == MarbleConst.MarbleColor.BLUE or
+					result[0]["to_color"] == MarbleConst.MarbleColor.GREEN)
+	assert_true(ok_color, "目标色应为蓝色或绿色之一（随机）")
 	
-	assert_not_null(white1_change, "白球1应有变色事件")
-	assert_not_null(white2_change, "白球2应有变色事件")
-	assert_eq(white1_change["to_color"], MarbleConst.MarbleColor.BLUE, "白球1目标色应为蓝色")
-	assert_eq(white2_change["to_color"], MarbleConst.MarbleColor.GREEN, "白球2目标色应为绿色")
+	# 应该优先选未变色的白球
+	assert_eq(result[0]["white_id"], 1, "应优先选编号小的未变色白球")
 
-func test_two_deaths_one_white_uses_same_white() -> void:
+func test_two_deaths_one_white() -> void:
+	# 多个死亡同时发生，只有一个白球：只产生一个变色事件
 	var deaths = [
 		_make_death(MarbleConst.MarbleColor.BLUE, MarbleConst.Camp.RED),
 		_make_death(MarbleConst.MarbleColor.GREEN, MarbleConst.Camp.RED)
@@ -153,19 +153,24 @@ func test_two_deaths_one_white_uses_same_white() -> void:
 	var whites = [_make_white(1, MarbleConst.Camp.RED)]
 	var result = call_resolve(deaths, whites)
 	
-	assert_eq(result.size(), 2, "白球不足时，应对每个死亡事件都记录变色")
+	# 只产生一个变色事件（随机选一种死亡颜色）
+	assert_eq(result.size(), 1, "两个同时死亡只应产生一个变色事件")
 	
-	assert_eq(result[0]["white_id"], 1, "第一次变色应为白球1")
-	assert_eq(result[0]["from_color"], MarbleConst.MarbleColor.WHITE, "第一次原色为白色")
-	assert_eq(result[0]["to_color"], MarbleConst.MarbleColor.BLUE, "第一次目标色为蓝色")
+	assert_eq(result[0]["white_id"], 1, "变色应为白球1")
+	assert_eq(result[0]["from_color"], MarbleConst.MarbleColor.WHITE, "原色为白色")
 	
-	assert_eq(result[1]["white_id"], 1, "第二次变色应为白球1（覆盖）")
-	assert_eq(result[1]["from_color"], MarbleConst.MarbleColor.BLUE, "第二次原色为蓝色")
-	assert_eq(result[1]["to_color"], MarbleConst.MarbleColor.GREEN, "第二次目标色为绿色")
+	# 目标色应该是蓝色或绿色（随机选择）
+	var ok_color = (result[0]["to_color"] == MarbleConst.MarbleColor.BLUE or
+					result[0]["to_color"] == MarbleConst.MarbleColor.GREEN)
+	assert_true(ok_color, "目标色应为蓝色或绿色之一（随机）")
 
 # ---------- 多个阵营各自处理测试 ----------
 
 func test_complex_multi_camp() -> void:
+	# 同一时刻多个死亡：红方2死、蓝方3死（含1黄球）
+	# 规则：每个阵营只产生一个变色事件，黄球死亡不触发变色
+	# 红方：从 {RED, BLUE} 中随机选一种 → 白球1或2变色
+	# 蓝方：从 {GREEN, BLACK} 中随机选一种（YELLOW被过滤）→ 白球3变色
 	var deaths = [
 		_make_death(MarbleConst.MarbleColor.RED, MarbleConst.Camp.RED),
 		_make_death(MarbleConst.MarbleColor.BLUE, MarbleConst.Camp.RED),
@@ -180,15 +185,20 @@ func test_complex_multi_camp() -> void:
 	]
 	var result = call_resolve(deaths, whites)
 	
-	assert_eq(result.size(), 4, "应有4个变色事件")
+	# 每个阵营只产生一个变色事件，共2个
+	assert_eq(result.size(), 2, "应有2个变色事件（每个阵营1个）")
 	
-	var red_whites = result.filter(func(c): return c["white_id"] == 1 or c["white_id"] == 2)
-	assert_eq(red_whites.size(), 2, "红方应有2个变色")
+	var red_change = result.filter(func(c): return c["white_id"] == 1 or c["white_id"] == 2)
+	assert_eq(red_change.size(), 1, "红方应有1个变色")
+	var red_color_ok = (red_change[0]["to_color"] == MarbleConst.MarbleColor.RED or
+						red_change[0]["to_color"] == MarbleConst.MarbleColor.BLUE)
+	assert_true(red_color_ok, "红方目标色应为红色或蓝色之一（随机）")
 	
-	var blue_changes = result.filter(func(c): return c["white_id"] == 3)
-	assert_eq(blue_changes.size(), 2, "蓝方白球应有2次变色")
-	assert_eq(blue_changes[0]["to_color"], MarbleConst.MarbleColor.GREEN)
-	assert_eq(blue_changes[1]["to_color"], MarbleConst.MarbleColor.BLACK)
+	var blue_change = result.filter(func(c): return c["white_id"] == 3)
+	assert_eq(blue_change.size(), 1, "蓝方应有1个变色")
+	var blue_color_ok = (blue_change[0]["to_color"] == MarbleConst.MarbleColor.GREEN or
+						 blue_change[0]["to_color"] == MarbleConst.MarbleColor.BLACK)
+	assert_true(blue_color_ok, "蓝方目标色应为绿色或黑色之一（随机，黄球被过滤）")
 
 # ---------- 边界情况测试 ----------
 

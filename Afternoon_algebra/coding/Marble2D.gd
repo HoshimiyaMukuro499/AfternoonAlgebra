@@ -73,6 +73,13 @@ func unhighlight() -> void:
 	is_highlighted = false
 	var s = _get_sprite_node()
 	if s:
+		# 将外观恢复为弹珠当前颜色（基类默认白色，子类可覆盖）
+		_restore_appearance()
+
+# 恢复弹珠外观为当前颜色（基类默认还原为白色，WhiteMarble 会覆盖）
+func _restore_appearance() -> void:
+	var s = _get_sprite_node()
+	if s:
 		s.modulate = Color.WHITE
 
 

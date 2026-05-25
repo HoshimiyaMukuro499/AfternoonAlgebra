@@ -134,17 +134,23 @@ func change_color(new_color: int) -> void:
 	print("白球变为颜色: ", new_color)
 
 
+# 覆盖基类方法：恢复为白球的当前颜色，而非白色
+func _restore_appearance() -> void:
+	_update_appearance(color)
+
 # 根据颜色设置 Sprite 的 modulate（2D 着色）
+# 使用 _get_sprite_node() 兼容普通 Sprite 和白球的 SpriteWhite
 func _update_appearance(new_color: int) -> void:
-	if not sprite:
+	var target_sprite = _get_sprite_node()
+	if not target_sprite:
 		return
 	match new_color:
-		MarbleConst.MarbleColor.WHITE: sprite.modulate = Color.WHITE
-		MarbleConst.MarbleColor.BLUE:  sprite.modulate = Color.BLUE
-		MarbleConst.MarbleColor.GREEN: sprite.modulate = Color.GREEN
-		MarbleConst.MarbleColor.RED:   sprite.modulate = Color.RED
-		MarbleConst.MarbleColor.BLACK: sprite.modulate = Color.BLACK
-		MarbleConst.MarbleColor.YELLOW:sprite.modulate = Color.YELLOW
+		MarbleConst.MarbleColor.WHITE: target_sprite.modulate = Color.WHITE
+		MarbleConst.MarbleColor.BLUE:  target_sprite.modulate = Color.BLUE
+		MarbleConst.MarbleColor.GREEN: target_sprite.modulate = Color.GREEN
+		MarbleConst.MarbleColor.RED:   target_sprite.modulate = Color.RED
+		MarbleConst.MarbleColor.BLACK: target_sprite.modulate = Color.BLACK
+		MarbleConst.MarbleColor.YELLOW:target_sprite.modulate = Color.YELLOW
 
 
 # 死亡时清理（委托给策略）

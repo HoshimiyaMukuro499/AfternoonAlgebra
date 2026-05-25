@@ -433,6 +433,12 @@ func red_select_power(power: int):
 		print("红球步数不能超过 %d" % max_steps)
 		return
 	
+	# 记录移动前所有弹珠的存活状态（供死亡检测使用）
+	last_alive_status.clear()
+	for m in all_marbles:
+		if is_instance_valid(m):
+			last_alive_status[m.get_instance_id()] = m.is_alive
+	
 	red_total_steps = power
 	red_step_directions = []
 	red_current_step_index = 0
@@ -487,6 +493,12 @@ func _red_finish_turn():
 		selected_marble.on_after_move(last_dir, red_total_steps, selected_marble.is_alive)
 		selected_marble.unhighlight()
 	
+	# 处理死亡与白球变色（红球移动过程中可能有弹珠死亡）
+	if is_inside_tree():
+		await _handle_deaths_and_white_change()
+	else:
+		_handle_deaths_and_white_change()
+	
 	# 在不处于场景树中的测试环境里，同步执行后续逻辑
 	if is_inside_tree():
 		await get_tree().create_timer(0.5).timeout
@@ -523,11 +535,21 @@ func select_black_direction(direction: int):
 		return
 	if selected_marble and selected_marble.is_alive and selected_enemy:
 		selected_marble.unhighlight()
+		# 记录移动前的存活状态（供死亡检测使用）
+		last_alive_status.clear()
+		for m in all_marbles:
+			if is_instance_valid(m):
+				last_alive_status[m.get_instance_id()] = m.is_alive
 		var success = selected_marble.force_enemy_move(selected_enemy, direction)
 		if success:
 			print("黑球强制移动成功")
 		else:
 			print("强制移动失败")
+		# 处理死亡与白球变色（敌方弹珠可能被推出界死亡）
+		if is_inside_tree():
+			await _handle_deaths_and_white_change()
+		else:
+			_handle_deaths_and_white_change()
 	# 清理状态并结束回合
 	selected_marble = null
 	selected_enemy = null
@@ -632,7 +654,8 @@ func _handle_deaths_and_white_change() -> bool:
 	if not death_events.is_empty():
 		var white_marbles_info: Array = []
 		for m in all_marbles:
-			if is_instance_valid(m) and m.is_alive and m.color == MarbleConst.MarbleColor.WHITE:
+			# 注意：已变色的白球 color 属性已改变，需用 is WhiteMarble 判断
+			if is_instance_valid(m) and m.is_alive and (m is WhiteMarble or (m.has_method("has_changed") and "has_changed" in m)):
 				var has_changed = false
 				if m.has_method("has_changed"):
 					has_changed = m.has_changed
@@ -642,7 +665,7 @@ func _handle_deaths_and_white_change() -> bool:
 					"id": m.get_instance_id(),
 					"camp": m.camp,
 					"has_changed": has_changed,
-					"current_color": MarbleConst.MarbleColor.WHITE
+					"current_color": m.color
 				})
 		var changes = DeathResolver.resolve_simultaneous_deaths(death_events, white_marbles_info)
 		for change in changes:
