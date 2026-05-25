@@ -36,6 +36,9 @@ var selected_power: int = 0
 var selected_enemy: Marble2D = null   # 黑球选中的敌方弹珠
 var current_team = MarbleConst.Camp.RED
 var turn_number: int = 0
+var step_events: Array = []   # 存储 [marble, to_hex]
+var moving_marble: Marble2D = null
+var _light_texture: Texture2D = null
 
 # 红球逐格选方向专用变量
 var red_step_directions: Array[int] = []
@@ -51,6 +54,9 @@ var setup_current_team = MarbleConst.Camp.RED
 var setup_remaining_marbles = { MarbleConst.Camp.RED: 6, MarbleConst.Camp.BLUE: 6 }
 var setup_selected_color = -1
 var setup_phase_active = false
+
+var step_queue: Array[Vector2] = []
+var is_playing_step_queue: bool = false
 
 # 随机阵型名称列表
 const FORMATION_NAMES = [
@@ -141,6 +147,12 @@ func _ready():
 	current_team = MarbleConst.Camp.RED if randi() % 2 == 0 else MarbleConst.Camp.BLUE
 	setup_current_team = current_team
 	start_setup_phase()
+	for marble in all_marbles:
+		if not marble.step_moved.is_connected(_on_marble_step_moved):
+			marble.step_moved.connect(_on_marble_step_moved)
+	# 连接所有弹珠的 step_moved 信号
+
+	
 
 func start_setup_phase():
 	setup_phase_active = true
@@ -214,6 +226,7 @@ func setup_place_marble(q: int, r: int):
 	# 创建弹珠
 	var marble = BoardInitializer.create_marble_for_setup(setup_selected_color, setup_current_team, hex_grid, q, r)
 	all_marbles.append(marble)
+	marble.step_moved.connect(_on_marble_step_moved)
 	
 	# 编号
 	var count = 0
@@ -543,46 +556,25 @@ func execute_move():
 		
 		marble.move(direction, steps)
 		
-		# 处理死亡与白球变色
-		await _handle_deaths_and_white_change()
+		# 处理死亡与白球变色（内部可能因为黄球增益而暂停回合）
+		var is_yellow_handled = await _handle_deaths_and_white_change()
+		if is_yellow_handled:
+			# 黄球增益等待选择，不立即结束回合
+			return
 		
-		var end_hex = marble.get_current_hex() if marble.is_alive else start_hex
-		var path = _get_actual_path(start_hex, end_hex, direction)
-		await _play_path_animation(path)
+		# 播放顺序移动动画（此时所有弹珠的实际位置已经确定）
+		await _play_sequential_movement_animation()
 	
+	 # 处理死亡与白球变色
+	await _handle_deaths_and_white_change()
+	
+	# 如果不是蓝球，则播放分组顺序动画；蓝球自己的动画已在 move 中处理
+	if selected_marble and selected_marble.color != MarbleConst.MarbleColor.BLUE:
+		await _play_sequential_movement_animation()
 	_finish_turn()
 # 处理死亡事件和白球变色
 # 播放路径动画：在每个格子上依次显示一个黄色光点
-func _play_path_animation(path: Array[Vector2]) -> void:
-	if path.is_empty():
-		return
-	var circle_texture = null
-	var create_texture = func():
-		var size = 32
-		var image = Image.create(size, size, false, Image.FORMAT_RGBA8)
-		image.fill(Color.TRANSPARENT)
-		var center = size / 2
-		var radius = center - 2
-		for x in range(size):
-			for y in range(size):
-				var dx = x - center
-				var dy = y - center
-				if dx*dx + dy*dy <= radius*radius:
-					image.set_pixel(x, y, Color.YELLOW)
-		return ImageTexture.create_from_image(image)
-	
-	for hex in path:
-		var world_pos = hex_grid.hex_to_world(int(hex.x), int(hex.y))
-		var marker = Sprite2D.new()
-		if circle_texture == null:
-			circle_texture = create_texture.call()
-		marker.texture = circle_texture
-		marker.centered = true
-		marker.position = world_pos
-		marker.z_index = 10
-		hex_grid.add_child(marker)
-		await get_tree().create_timer(0.2).timeout
-		marker.queue_free()
+
 
 # 处理死亡事件、白球变色、黄球增益。返回 true 表示发生了黄球死亡且进入了增益选择状态（暂停回合）
 func _handle_deaths_and_white_change() -> bool:
@@ -771,6 +763,20 @@ func remove_marble(marble: Marble2D):
 	var idx = all_marbles.find(marble)
 	if idx != -1:
 		all_marbles.remove_at(idx)
+# 当任意弹珠移动一格时调用，播放光点动画
+func _on_marble_step_moved(marble: Marble2D, from_hex: Vector2, to_hex: Vector2):
+	step_events.append([marble, to_hex])
+func _process_step_queue():
+	if step_queue.is_empty():
+		is_playing_step_queue = false
+		_show_moving_marble()   # 队列结束，显示弹珠
+		return
+	is_playing_step_queue = true
+	while not step_queue.is_empty():
+		var hex = step_queue.pop_front()
+		await _show_light_at(hex)
+	is_playing_step_queue = false
+	_show_moving_marble()   # 所有光点播放完毕，显示弹珠
 
 # 新手文档环节
 func show_tutorial():
@@ -790,3 +796,99 @@ func show_tutorial():
 func _on_tutorial_finished():
 	# 跳转到主游戏场景
 	get_tree().change_scene_to_file("res://main.tscn")
+
+func _play_sequential_movement_animation() -> void:
+	if step_events.is_empty():
+		return
+	
+	# 先隐藏所有涉及移动的弹珠（避免闪现）
+	var involved_marbles = {}
+	for event in step_events:
+		var marble = event[0]
+		if marble.is_alive:
+			involved_marbles[marble.get_instance_id()] = marble
+	for marble in involved_marbles.values():
+		_set_marble_visible(marble, false)
+	
+	# 按弹珠分组...（后续代码不变）
+	
+	# 按弹珠分组（保持首次出现的顺序）
+	var groups: Array = []   # 每个元素: { "marble": marble, "path": Array[Vector2] }
+	var marble_map: Dictionary = {}
+	var order: Array = []
+	
+	for event in step_events:
+		var marble = event[0]
+		var to_hex = event[1]
+		var id = marble.get_instance_id()
+		if not marble_map.has(id):
+			marble_map[id] = { "marble": marble, "path": [] }
+			order.append(id)
+		marble_map[id]["path"].append(to_hex)
+	
+	# 依次播放每组动画
+	for id in order:
+		var group = marble_map[id]
+		var marble = group["marble"]
+		var path = group["path"]
+		if path.is_empty():
+			continue
+		
+		# 隐藏弹珠（如果还活着）
+		if marble.is_alive:
+			_set_marble_visible(marble, false)
+		
+		# 播放该弹珠的所有光点（依次）
+		for hex in path:
+			await _show_light_at(hex)
+		
+		# 显示弹珠（如果还活着）
+		if marble.is_alive:
+			_set_marble_visible(marble, true)
+		
+		await get_tree().create_timer(0.15).timeout
+	
+	# 清空事件列表，准备下次移动
+	step_events.clear()
+func _show_moving_marble():
+	if moving_marble and is_instance_valid(moving_marble) and moving_marble.is_alive:
+		_set_marble_visible(moving_marble, true)
+	moving_marble = null
+func _get_light_texture() -> Texture2D:
+	if not _light_texture:
+		var size = 32
+		var image = Image.create(size, size, false, Image.FORMAT_RGBA8)
+		image.fill(Color.TRANSPARENT)
+		var center = size / 2
+		var radius = center - 2
+		for x in range(size):
+			for y in range(size):
+				var dx = x - center
+				var dy = y - center
+				if dx*dx + dy*dy <= radius*radius:
+					image.set_pixel(x, y, Color.YELLOW)
+		_light_texture = ImageTexture.create_from_image(image)
+	return _light_texture
+
+func _show_light_at(hex: Vector2) -> void:
+	var texture = _get_light_texture()
+	var world_pos = hex_grid.hex_to_world(int(hex.x), int(hex.y))
+	var marker = Sprite2D.new()
+	marker.texture = texture
+	marker.centered = true
+	marker.position = world_pos
+	marker.z_index = 10
+	hex_grid.add_child(marker)
+	await get_tree().create_timer(0.2).timeout
+	marker.queue_free()
+func show_light_at_no_wait(hex: Vector2):
+	# 直接调用 _show_light_at 但不等待（因为是异步函数，调用后立即返回）
+	_show_light_at(hex)
+func show_light_at(hex: Vector2):
+	await _show_light_at(hex)
+func _set_marble_visible(marble: Marble2D, visible: bool) -> void:
+	var sprite = marble._get_sprite_node()
+	if sprite:
+		sprite.visible = visible
+	if marble.has_node("MarbleLabel"):
+		marble.get_node("MarbleLabel").visible = visible

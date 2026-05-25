@@ -14,46 +14,62 @@ func set_temp_followers(f: Array[Node2D]) -> void:
 func get_temp_followers() -> Array[Node2D]:
 	return followers
 
+func _get_game_manager():
+	var root = get_tree().current_scene
+	if root and root is GameManager:
+		return root
+	return null
 # 新增方法：清除临时随从
 func clear_temp_followers() -> void:
 	if followers.size() > 0:
 		BlueMarbleHelper.clear_followers(self, followers)
 		followers = []
 
-# 重写移动方法（随从与蓝球同步逐格移动，但随从一起结算）
 func move(direction: int, steps: int) -> void:
 	if not is_alive:
 		return
 	
 	on_before_move(direction, steps)
 	
-	# 1. 生成随从（如果还没有，即未通过 select_direction 生成）
+	# 生成随从（如果没有）
 	if followers.is_empty():
 		followers = BlueMarbleHelper.spawn_followers(self, direction)
 	
-	# 蓝球自身移动所有步数（逐格）
-	var remaining = steps
-	while remaining > 0 and is_alive:
+	# 获取 GameManager 引用
+	var gm = _get_game_manager()
+	
+	# 逐格移动，每一步同时移动蓝球自身和所有随从
+	for step in range(steps):
+		if not is_alive:
+			break
+		
+		# 记录移动前的坐标（用于之后的光点）
 		var before_hex = hex_coord if hex_coord != Vector2.ZERO else hex_grid.get_marble_hex(self)
 		
+		# 蓝球自身移动一格（同步移动，不产生额外光点，因为我们会手动显示）
 		var step_ok = _move_step_by_step(direction, 1)
 		if not step_ok:
 			break
 		
+		# 蓝球移动后的新坐标
 		var after_hex = hex_coord if hex_coord != Vector2.ZERO else hex_grid.get_marble_hex(self)
-		if before_hex == after_hex:
-			break
 		
-		remaining -= 1
-	
-	# 蓝球移动完成后，一次性移动随从（一起结算）
-	if is_alive and followers.size() > 0:
-		var follower_ok = BlueMarbleHelper.move_followers(self, followers, direction, steps)
+		# 显示蓝球自身的光点（不等待）
+		if gm and before_hex != after_hex:
+			gm.show_light_at_no_wait(after_hex)
+		
+		# 移动所有随从一格，并显示光点（并行）
+		var follower_ok = await BlueMarbleHelper.move_followers_one_step_parallel(self, followers, direction, gm)
 		if not follower_ok:
-			# 随从出界 → 蓝球死亡
-			die()
+			# 随从出界，蓝球死亡
+			if not follower_safe:
+				die()
+				break
+		
+		# 等待一小段时间，让光点可见（这一步必须等待，否则动画会太快）
+		await get_tree().create_timer(0.2).timeout
 	
-	# 清除所有随从（无论蓝球是否死亡）
+	# 清除所有随从
 	BlueMarbleHelper.clear_followers(self, followers)
 	
 	on_after_move(direction, steps, is_alive)
