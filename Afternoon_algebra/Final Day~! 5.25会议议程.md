@@ -4,9 +4,9 @@
 ### **A ：GameManager 回合流程 + 架构清理**
 
 **Step 2**（等 D 完成策略模式后）：
-- [ ] `GameManager.gd` — **添加死亡→白球变色钩子**：当检测到非黄、非白弹珠死亡时，调用 `white_marble.on_teammate_died(color)`
-- [ ] `GameManager.gd` — **添加黄球死亡增益钩子**：发射 `yellow_died(dead_yellow_marble)` 信号，让 C 的 UI 处理目标选择
-- [ ] `GameManager.gd` — **添加黑球选中特殊逻辑**：如果 `selected_marble.color == BLACK`，进入黑球交互状态（等 C 的 UI）
+- [x] `GameManager.gd` — **添加死亡→白球变色钩子**：当检测到非黄、非白弹珠死亡时，调用 `white_marble.on_teammate_died(color)`
+- [x] `GameManager.gd` — **添加黄球死亡增益钩子**：发射 `yellow_died(dead_yellow_marble)` 信号，让 C 的 UI 处理目标选择
+- [x] `GameManager.gd` — **添加黑球选中特殊逻辑**：如果 `selected_marble.color == BLACK`，进入黑球交互状态（等 C 的 UI）
 - [ ] 修正移动方式：伪动态痕迹
 ### **B ：绿球/红球算法修复 + 蓝球完善**
 
@@ -104,7 +104,7 @@ C任务进行重构，若有遗漏，敬请补充
 5. 全体改bug，优化。
 6. 完善策划案。
 7. 致谢文档（会被我们加到github主页上&游戏文档之中，如果有时间的话就写一个）
-8. 开发者姓名栏是否写真实姓名
+8. 开发者姓名栏是否写真实姓名 github 账户名
 
 # 三、关于后续
 
