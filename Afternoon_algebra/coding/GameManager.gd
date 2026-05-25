@@ -23,6 +23,9 @@ enum TurnState {
 	MARBLE_SELECTED,
 	DIRECTION_SELECTED,
 	RED_DIRECTION_PICKING,  # 红球逐格选方向状态
+	BLACK_MARBLE_SELECTED,  # 黑球已被选中，等待选择目标
+	BLACK_TARGET_PICKING,   # 黑球已选目标，等待选方向
+	BLACK_DIRECTION_PICKING, # 黑球方向已选，执行强制移动
 	EXECUTING,
 	VICTORY
 }
@@ -39,6 +42,10 @@ var red_total_steps: int = 0
 var red_current_step_index: int = 0
 var red_moved_steps: int = 0
 var red_start_position: Vector2 = Vector2.ZERO  # 红球开始移动时的初始位置（用于取消时回退）
+
+# 黑球专用变量
+var black_target_marble = null      # 黑球选择的敌方目标弹珠
+var black_approx_direction: int = -1  # 黑球选择的大致方向
 
 # 选珠布阵阶段变量
 enum SetupState { COLOR_SELECT, PLACEMENT, FINISHED }
@@ -376,6 +383,9 @@ func start_turn():
 	red_total_steps = 0
 	red_current_step_index = 0
 	red_moved_steps = 0
+	# 重置黑球状态
+	black_target_marble = null
+	black_approx_direction = -1
 	turn_number += 1
 	var turn_text = "第 %d 回合，%s 方行动" % [turn_number, "红" if current_team == MarbleConst.Camp.RED else "蓝"]
 	print(turn_text)
@@ -393,8 +403,12 @@ func select_marble(marble):
 	selected_marble = marble
 	selected_marble.highlight()
 	
-	# 红球特殊处理：先选力度（步数），再逐格选方向
-	if marble.color == MarbleConst.MarbleColor.RED:
+	# 黑球特殊处理：不能主动移动，进入选择敌方目标模式
+	if marble.color == MarbleConst.MarbleColor.BLACK:
+		current_state = TurnState.BLACK_MARBLE_SELECTED
+		print("黑球：请选择一个敌方弹珠作为目标")
+	elif marble.color == MarbleConst.MarbleColor.RED:
+		# 红球特殊处理：先选力度（步数），再逐格选方向
 		current_state = TurnState.MARBLE_SELECTED
 		print("红球：请选择力度（按 1~5 键确定步数）")
 	else:
@@ -470,6 +484,61 @@ func red_append_direction(direction: int):
 		print("红球：请选择第 %d 步的方向（点击相邻格子）" % (red_moved_steps + 1))
 		state_changed.emit(current_state)
 
+# ── 黑球行动方法 ──
+
+# 黑球选择目标敌方弹珠
+func black_select_target(target: Marble2D):
+	if current_state != TurnState.BLACK_MARBLE_SELECTED or current_state == TurnState.VICTORY:
+		return
+	if selected_marble == null or selected_marble.color != MarbleConst.MarbleColor.BLACK:
+		return
+	if target == null or not target.is_alive or target.camp == current_team:
+		print("黑球目标无效：不能选择己方或已死亡弹珠")
+		return
+	
+	black_target_marble = target
+	current_state = TurnState.BLACK_TARGET_PICKING
+	print("黑球：请选择一个大致方向（6个主方向之一）")
+	state_changed.emit(current_state)
+
+# 黑球选择大致方向，执行强制移动
+func black_select_approx_direction(direction: int):
+	if current_state != TurnState.BLACK_TARGET_PICKING or current_state == TurnState.VICTORY:
+		return
+	if selected_marble == null or black_target_marble == null:
+		return
+	
+	black_approx_direction = direction
+	current_state = TurnState.BLACK_DIRECTION_PICKING
+	state_changed.emit(current_state)
+	
+	# 执行强制移动
+	_execute_black_move()
+
+# 执行黑球强制移动
+func _execute_black_move():
+	current_state = TurnState.EXECUTING
+	state_changed.emit(current_state)
+	
+	if selected_marble and selected_marble.is_alive:
+		var black_marble = selected_marble
+		var enemy = black_target_marble
+		
+		# 使用 BlackMarbleHelper 执行强制移动
+		if black_marble.has_method("force_enemy_move"):
+			black_marble.force_enemy_move(enemy, black_approx_direction)
+		elif enemy.is_alive:
+			# 兜底：直接调用 continue_move
+			enemy.continue_move(3, black_approx_direction)
+		
+		black_marble.unhighlight()
+	
+	# 等待一下
+	if is_inside_tree():
+		await get_tree().create_timer(0.3).timeout
+	
+	_finish_turn()
+
 # 红球执行移动（传入方向列表）
 func _red_execute_single_step(direction: int) -> bool:
 	if not selected_marble or not selected_marble.is_alive:
@@ -544,6 +613,20 @@ func _finish_turn():
 
 func cancel_selection():
 	if current_state == TurnState.IDLE or current_state == TurnState.EXECUTING or current_state == TurnState.VICTORY: 
+		return
+	
+	# 黑球选择模式取消
+	if current_state in [TurnState.BLACK_MARBLE_SELECTED, TurnState.BLACK_TARGET_PICKING, TurnState.BLACK_DIRECTION_PICKING]:
+		if selected_marble:
+			selected_marble.unhighlight()
+		selected_marble = null
+		black_target_marble = null
+		black_approx_direction = -1
+		current_state = TurnState.IDLE
+		print("黑球：已取消选择")
+		if ui:
+			ui.update_message("已取消选择，请点击己方弹珠")
+		state_changed.emit(current_state)
 		return
 	
 	# 红球逐格选方向模式取消
@@ -717,7 +800,7 @@ func _execute_ai_action(action: Dictionary):
 	match action.get("action"):
 		"select_marble":
 			select_marble(action.marble)
-			# 选中后，如果是非红球，进入 MARBLE_SELECTED 状态，AI 需要继续决策方向
+			# 选中后，根据不同颜色进入不同状态，AI 需要继续决策
 			if ai_enabled and current_team in ai_teams:
 				_trigger_ai_turn.call_deferred()
 		"select_direction":
@@ -740,6 +823,15 @@ func _execute_ai_action(action: Dictionary):
 			# 如果红球还没走完，留在 RED_DIRECTION_PICKING，需要继续触发 AI
 			if ai_enabled and current_team in ai_teams and current_state == TurnState.RED_DIRECTION_PICKING:
 				_trigger_ai_turn.call_deferred()
+		# 黑球动作
+		"select_enemy":
+			black_select_target(action.marble)
+			if ai_enabled and current_team in ai_teams:
+				_trigger_ai_turn.call_deferred()
+		"select_approx_direction":
+			black_select_approx_direction(action.direction)
+			# black_select_approx_direction 内部会调用 _execute_black_move，然后 _finish_turn
+		# 选珠动作
 		"setup_color":
 			setup_select_color(action.color)
 			# 选完颜色后进入 PLACEMENT，AI 需要继续放置
