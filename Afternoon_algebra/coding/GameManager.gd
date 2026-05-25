@@ -544,11 +544,15 @@ func execute_move():
 		marble.move(direction, steps)
 		
 		# 处理死亡与白球变色
-		await _handle_deaths_and_white_change()
+		if get_tree() != null:
+			await _handle_deaths_and_white_change()
+		else:
+			_handle_deaths_and_white_change()
 		
 		var end_hex = marble.get_current_hex() if marble.is_alive else start_hex
 		var path = _get_actual_path(start_hex, end_hex, direction)
-		await _play_path_animation(path)
+		if get_tree() != null:
+			await _play_path_animation(path)
 	
 	_finish_turn()
 # 处理死亡事件和白球变色
@@ -691,8 +695,8 @@ func cancel_selection():
 					selected_marble.hex_grid.place_marble(selected_marble, red_start_position.x, red_start_position.y)
 					selected_marble.hex_coord = red_start_position
 		selected_marble = null
-		selected_direction = -1   # 添加：重置方向
-		selected_power = 0         # 添加：重置力度
+		selected_direction = -1
+		selected_power = 0
 		red_step_directions = []
 		red_total_steps = 0
 		red_current_step_index = 0
@@ -702,19 +706,21 @@ func cancel_selection():
 		if ui:
 			ui.update_message("已取消选择，请点击己方弹珠")
 		state_changed.emit(current_state)
-		return  # 这里的 return 是正确的，避免执行后面的通用代码
+		return
 	# 黑球逐格选择模式取消
 	if current_state == TurnState.BLACK_SELECT_ENEMY or current_state == TurnState.BLACK_SELECT_DIRECTION:
 		if selected_marble:
 			selected_marble.unhighlight()
-	selected_marble = null
-	selected_enemy = null
-	current_state = TurnState.IDLE
-	print("已取消黑球操作")
-	if ui:
-		ui.update_message("已取消选择，请点击己方弹珠")
-	state_changed.emit(current_state)
-	return
+		selected_marble = null
+		selected_enemy = null
+		selected_direction = -1
+		selected_power = 0
+		current_state = TurnState.IDLE
+		print("已取消黑球操作")
+		if ui:
+			ui.update_message("已取消选择，请点击己方弹珠")
+		state_changed.emit(current_state)
+		return
 	# 普通球取消选择
 	if selected_marble:
 		selected_marble.unhighlight()
