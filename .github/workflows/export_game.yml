@@ -22,20 +22,18 @@ jobs:
       # 2. 调用 Godot 导出动作进行打包
       - name: export game
         id: export
-        uses: firebelley/godot-export@v7.0.0 # 升级至最新的 v7.0.0 版本
+        uses: firebelley/godot-export@v7.0.0
         with:
-          # 配置 Godot 4.2.2 的下载链接（这里使用更稳定的官方 TuxFamily 镜像源）
-          godot_executable_download_url: https://downloads.tuxfamily.org/godotengine/4.2.2/Godot_v4.2.2-stable_linux.x86_64.zip
-          godot_export_templates_download_url: https://downloads.tuxfamily.org/godotengine/4.2.2/Godot_v4.2.2-stable_export_templates.tpz
+          # 将下载源更换为 GitHub 官方高速 CDN 镜像
+          godot_executable_download_url: https://github.com/godotengine/godot/releases/download/4.2.2-stable/Godot_v4.2.2-stable_linux.x86_64.zip
+          godot_export_templates_download_url: https://github.com/godotengine/godot/releases/download/4.2.2-stable/Godot_v4.2.2-stable_export_templates.tpz
           
-          # 【重要：请确保这里指向包含 project.godot 的实际子目录路径】
           relative_project_path: ./Afternoon_algebra/coding
-          
           archive_output: true # 导出并自动压缩为 zip
 
       # 3. 创建 GitHub Release 并将打包好的游戏包作为附件上传
       - name: create release
-        uses: ncipollo/release-action@v1.14.0 # 推荐的 Release 管理工具
+        uses: ncipollo/release-action@v1.14.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           generateReleaseNotes: true
