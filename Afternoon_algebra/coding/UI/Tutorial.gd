@@ -73,11 +73,13 @@ func _update_page():
 			sprite.texture = tex
 			sprite.visible = true
 			# 根据区域大小自动计算缩放比例
-			var region_size = Vector2(0.35, 0.75) * get_viewport().get_visible_rect().size
-			var tex_size = tex.get_size()
-			if tex_size.x > 0 and tex_size.y > 0:
-				var scale_factor = min(region_size.x / tex_size.x, region_size.y / tex_size.y)
-				sprite.scale = Vector2(scale_factor, scale_factor)
+			var viewport = get_viewport()
+			if viewport:
+				var region_size = Vector2(0.35, 0.75) * viewport.get_visible_rect().size
+				var tex_size = tex.get_size()
+				if tex_size.x > 0 and tex_size.y > 0:
+					var scale_factor = min(region_size.x / tex_size.x, region_size.y / tex_size.y)
+					sprite.scale = Vector2(scale_factor, scale_factor)
 		else:
 			sprite.visible = false
 	else:
@@ -97,7 +99,11 @@ func _on_next_button_pressed():
 		current_page += 1
 		_update_page()
 	else:
-		get_tree().change_scene_to_file("res://main.tscn")
+		var tree = get_tree()
+		if tree and tree.get_root():
+			tree.change_scene_to_file("res://main.tscn")
 
 func _on_skip_button_pressed():
-	get_tree().change_scene_to_file("res://main.tscn")
+	var tree = get_tree()
+	if tree and tree.get_root():
+		tree.change_scene_to_file("res://main.tscn")

@@ -13,4 +13,3 @@ func on_collision_as_target(marble: Marble2D, collider: Marble2D, incoming_steps
 	if marble.color == MarbleConst.MarbleColor.WHITE and collider.camp == marble.camp:
 		return incoming_steps + 1
 	return incoming_steps
-

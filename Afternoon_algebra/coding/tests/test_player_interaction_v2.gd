@@ -1,4 +1,4 @@
-# test_player_interaction_v2.gd
+﻿# test_player_interaction_v2.gd
 # 玩家交互流程测试：
 #   - 状态机交互（选/取消/非法操作）通过 GameManager 接口
 #   - 移动/碰撞结果直接调用 marble.move()（避免 execute_move 的 await get_tree() 限制）
@@ -555,3 +555,168 @@ func test_start_turn_resets_red_state() -> void:
 	assert_eq(gm.red_total_steps, 0, "步数清空")
 	assert_eq(gm.red_current_step_index, 0, "索引重置")
 	assert_eq(gm.red_moved_steps, 0, "已走步数重置")
+
+# ================================================================
+# 第14组：链式碰撞导致边界死亡（4球一线，末端出界）
+# 覆盖场景：4个球连成一线，最后一个以力5碰撞，最前面的球应出界死亡
+# ================================================================
+
+func test_chain_collision_four_balls_leading_dies() -> void:
+	# 4球一线：球A(0,0), 球B(1,0), 球C(2,0), 球D(3,0)
+	# 球A(红)以力5向右撞 → 球D在位置(3,0)，力5应走到(8,0)，出界死亡（半径7）
+	var ballA := _mk(Vector2i(0, 0), RED_CAMP, MarbleConst.MarbleColor.WHITE)
+	var ballB := _mk(Vector2i(1, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+	var ballC := _mk(Vector2i(2, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+	var ballD := _mk(Vector2i(3, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+
+	ballA.move(RIGHT, 5)
+	
+	assert_false(ballD.is_alive, "最前端的球D应死亡（出界）")
+	assert_true(ballA.is_alive, "攻击者球A应存活")
+	assert_true(ballB.is_alive, "球B应存活")
+	assert_true(ballC.is_alive, "球C应存活")
+	assert_null(grid.get_marble_at(3, 0), "球D原位置(3,0)应为空")
+	assert_eq(ballA.hex_coord, Vector2(0, 0), "攻击者球A应停在(0,0)")
+	assert_eq(grid.marbles.size(), 3, "棋盘应只剩3个弹珠")
+
+
+func test_chain_collision_four_balls_leading_dies_grid_state() -> void:
+	"""验证4球链式碰撞出界后，棋盘字典完整无残留"""
+	var ballA := _mk(Vector2i(0, 0), RED_CAMP, MarbleConst.MarbleColor.WHITE)
+	var ballB := _mk(Vector2i(1, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+	var ballC := _mk(Vector2i(2, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+	var ballD := _mk(Vector2i(3, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+
+	ballA.move(RIGHT, 5)
+
+	for hex in grid.marbles.keys():
+		var node = grid.marbles[hex]
+		assert_true(is_instance_valid(node), "每个key对应有效节点，hex=%s" % str(hex))
+		assert_true(node.is_alive, "每个节点存活，hex=%s" % str(hex))
+	
+	assert_eq(grid.marbles.size(), 3, "棋盘应有3个弹珠")
+
+
+func test_chain_collision_four_balls_no_death_success() -> void:
+	"""4球一线，力3（不出界），验证链式碰撞正确完成"""
+	var ballA := _mk(Vector2i(0, 0), RED_CAMP, MarbleConst.MarbleColor.WHITE)
+	var ballB := _mk(Vector2i(1, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+	var ballC := _mk(Vector2i(2, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+	var ballD := _mk(Vector2i(3, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+
+	ballA.move(RIGHT, 3)
+
+	assert_true(ballA.is_alive, "攻击者球A存活")
+	assert_true(ballB.is_alive, "球B存活")
+	assert_true(ballC.is_alive, "球C存活")
+	assert_true(ballD.is_alive, "球D存活（(6,0)在边界内）")
+	assert_eq(ballA.hex_coord, Vector2(0, 0), "球A停在(0,0)")
+	assert_eq(ballB.hex_coord, Vector2(1, 0), "球B停在(1,0)")
+	assert_eq(ballC.hex_coord, Vector2(2, 0), "球C停在(2,0)")
+	assert_eq(ballD.hex_coord, Vector2(6, 0), "球D到(6,0)")
+	assert_eq(grid.marbles.size(), 4, "棋盘应有4个弹珠")
+
+
+# ================================================================
+# 第15组：边界附近的碰撞死亡
+# ================================================================
+
+func test_collision_at_boundary_dies() -> void:
+	"""边界处碰撞，被撞者出界死亡"""
+	var r := MarbleConst.GRID_RADIUS
+	var red := _mk(Vector2i(r - 1, 0), RED_CAMP, MarbleConst.MarbleColor.WHITE)
+	var blue := _mk(Vector2i(r, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+
+	red.move(RIGHT, 2)
+
+	assert_false(blue.is_alive, "蓝球应出界死亡")
+	assert_true(red.is_alive, "红球应存活")
+	assert_eq(red.hex_coord, Vector2(r - 1, 0), "红球停在(r-1,0)")
+	assert_null(grid.get_marble_at(r, 0), "蓝球原位置为空")
+	assert_eq(grid.marbles.size(), 1, "棋盘只剩红球")
+
+
+func test_chain_collision_multiple_deaths() -> void:
+	"""链式碰撞导致多个球出界死亡"""
+	var r := MarbleConst.GRID_RADIUS
+	var ballA := _mk(Vector2i(r - 2, 0), RED_CAMP, MarbleConst.MarbleColor.WHITE)
+	var ballB := _mk(Vector2i(r - 1, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+	var ballC := _mk(Vector2i(r, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+
+	ballA.move(RIGHT, 3)
+
+	assert_false(ballC.is_alive, "球C应出界死亡")
+	assert_true(ballA.is_alive, "球A存活")
+	assert_true(ballB.is_alive, "球B存活（停在(r-1,0)）")
+	assert_eq(ballA.hex_coord, Vector2(r - 2, 0), "球A停在(r-2,0)")
+	assert_eq(ballB.hex_coord, Vector2(r - 1, 0), "球B停在(r-1,0)")
+	assert_null(grid.get_marble_at(r, 0), "球C原位置为空")
+	assert_eq(grid.marbles.size(), 2, "棋盘剩2个弹珠")
+
+
+# ================================================================
+# 第16组：GameManager 完整流程 + 链式碰撞出界死亡
+# ================================================================
+
+func test_gm_execute_move_chain_collision_leading_dies() -> void:
+	"""GameManager execute_move 中链式碰撞导致最远球死亡"""
+	var ballA := _mk(Vector2i(0, 0), RED_CAMP, MarbleConst.MarbleColor.WHITE)
+	var ballB := _mk(Vector2i(1, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+	var ballC := _mk(Vector2i(2, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+	var ballD := _mk(Vector2i(3, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+	
+	var extra_blue := _mk(Vector2i(10, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+	extra_blue.is_alive = true
+	
+	gm.all_marbles = marbles.duplicate()
+	gm.current_state = S_EXEC as GameManager.TurnState
+	gm.selected_marble = ballA
+	gm.selected_direction = RIGHT
+	gm.selected_power = 5
+	gm.current_team = RED_CAMP
+	
+	ballA.move(RIGHT, 5)
+	
+	assert_false(ballD.is_alive, "球D应出界死亡")
+	assert_true(ballA.is_alive, "球A存活")
+	assert_true(ballB.is_alive, "球B存活")
+	assert_true(ballC.is_alive, "球C存活")
+
+
+func test_gm_execute_move_chain_ends_at_victory() -> void:
+	"""链式碰撞导致对方全灭，应触发胜利状态"""
+	var ballA := _mk(Vector2i(0, 0), RED_CAMP, MarbleConst.MarbleColor.WHITE)
+	var ballB := _mk(Vector2i(1, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+	var ballC := _mk(Vector2i(2, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+	var ballD := _mk(Vector2i(3, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+	
+	gm.all_marbles = marbles.duplicate()
+	
+	var winner = gm._check_victory()
+	assert_eq(winner, -1, "初始无胜利")
+	
+	ballA.move(RIGHT, 5)
+	
+	winner = gm._check_victory()
+	assert_eq(winner, -1, "蓝方还有球B和C存活，不应胜利")
+	assert_true(ballB.is_alive, "球B存活")
+	assert_true(ballC.is_alive, "球C存活")
+
+
+func test_gm_execute_move_all_enemy_dies_victory() -> void:
+	"""碰撞导致唯一蓝球出界死亡，应检测到红方胜利"""
+	var r := MarbleConst.GRID_RADIUS
+	var ballA := _mk(Vector2i(r - 1, 0), RED_CAMP, MarbleConst.MarbleColor.WHITE)
+	var ballB := _mk(Vector2i(r, 0), BLUE_CAMP, MarbleConst.MarbleColor.WHITE)
+	
+	gm.all_marbles = marbles.duplicate()
+	
+	# 球A向右移动2步，第一步就撞到球B，球B被推出界死亡
+	ballA.move(RIGHT, 2)
+	
+	assert_false(ballB.is_alive, "唯一蓝球出界死亡")
+	assert_true(ballA.is_alive, "红球存活")
+	assert_eq(ballA.hex_coord, Vector2(r - 1, 0), "红球停在原地")
+	
+	var winner = gm._check_victory()
+	assert_eq(winner, RED_CAMP, "红方应胜利")

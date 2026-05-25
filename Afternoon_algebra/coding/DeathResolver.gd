@@ -116,4 +116,3 @@ static func _pick_white_for_change(whites: Array) -> Dictionary:
 	
 	# 全部已变色，取第一个覆盖
 	return whites[0]
-
