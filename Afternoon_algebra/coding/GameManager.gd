@@ -390,8 +390,8 @@ func select_marble(marble):
 		current_state = TurnState.BLACK_SELECT_ENEMY
 		print("黑球：请点击一个敌方弹珠作为目标")
 		# 通知 UI 进入黑球选择模式（例如高亮敌方弹珠）
-		if ui:
-			ui.enter_black_select_enemy_mode()   # 假设 UI 有这个函数
+		if ui and ui.has_method("enter_black_select_enemy_mode"):
+			ui.enter_black_select_enemy_mode()
 	else:
 		current_state = TurnState.MARBLE_SELECTED
 		print("选中弹珠，请选择方向")

@@ -346,6 +346,22 @@ func show_victory(team_name: String):
 		message_label.text = "%s 获胜！" % team_name
 		message_label.add_theme_color_override("font_color", Color(1, 0.8, 0))  # 金色
 
+func enter_black_select_enemy_mode() -> void:
+	if message_label:
+		message_label.text = "请点击一个敌方弹珠作为目标"
+
+func enter_black_select_direction_mode() -> void:
+	if message_label:
+		message_label.text = "请选择方向（点击相邻六个方向之一）"
+
+func enter_black_select_enemy_mode() -> void:
+	if message_label:
+		message_label.text = "请点击一个敌方弹珠作为目标"
+
+func enter_black_select_direction_mode() -> void:
+	if message_label:
+		message_label.text = "请选择方向（点击相邻六个方向之一）"
+
 func _on_state_changed(new_state):
 	if not message_label:
 		return
