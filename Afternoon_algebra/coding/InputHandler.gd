@@ -49,6 +49,8 @@ func _handle_click(pos: Vector2):
 			_try_red_select_direction(pos)
 		GameManager.TurnState.BLACK_SELECT_ENEMY:
 			_try_select_enemy(pos)
+		GameManager.TurnState.BLACK_SELECT_DIRECTION:
+			_try_black_select_direction(pos)
 
 func _try_select_marble(pos: Vector2):
 	var hex = game_manager.hex_grid.world_to_hex(pos)
@@ -62,6 +64,17 @@ func _try_select_enemy(pos: Vector2):
 	var marble = game_manager.hex_grid.get_marble_at(int(hex.x), int(hex.y))
 	if marble and marble.is_alive and marble.camp != game_manager.current_team:
 		game_manager.select_black_enemy(marble)
+
+func _try_black_select_direction(pos: Vector2):
+	if not game_manager.selected_enemy:
+		return
+	var enemy_hex = game_manager.selected_enemy.get_current_hex()
+	for dir in range(6):
+		var neighbor = enemy_hex + NEIGHBOR_OFFSETS[dir]
+		var neighbor_pos = game_manager.hex_grid.hex_to_world(neighbor.x, neighbor.y)
+		if pos.distance_to(neighbor_pos) < game_manager.hex_grid.cell_size * 0.8:
+			game_manager.select_black_direction(dir)
+			return
 
 func _try_red_select_direction(pos: Vector2):
 	if not game_manager.selected_marble:

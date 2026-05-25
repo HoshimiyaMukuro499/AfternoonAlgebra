@@ -352,7 +352,7 @@ func enter_black_select_enemy_mode() -> void:
 
 func enter_black_select_direction_mode() -> void:
 	if message_label:
-		message_label.text = "请选择方向（点击相邻六个方向之一）"
+		message_label.text = "请指定敌方弹珠的大致移动方向（点击相邻六个方向之一）"
 
 func _on_state_changed(new_state):
 	if not message_label:
