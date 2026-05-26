@@ -378,6 +378,12 @@ func _on_state_changed(new_state):
 				message_label.text = "红球：请选择第 %d 步方向 (点击相邻格子)" % (gm.red_current_step_index + 1)
 			else:
 				message_label.text = "红球：请选择方向 (点击相邻格子)"
+		GameManager.TurnState.BLACK_MARBLE_SELECTED:
+			message_label.text = "黑球：请点击一个敌方弹珠作为目标"
+		GameManager.TurnState.BLACK_TARGET_PICKING:
+			message_label.text = "黑球：请点击相邻格子选择大致方向"
+		GameManager.TurnState.BLACK_DIRECTION_PICKING:
+			message_label.text = "黑球：正在执行强制移动..."
 		GameManager.TurnState.YELLOW_GAIN_PICKING:
 			message_label.text = "黄球增益：请选择一个己方弹珠（蓝/绿/红/黑）"
 		GameManager.TurnState.EXECUTING:
