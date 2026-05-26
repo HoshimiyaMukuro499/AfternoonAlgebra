@@ -7,3 +7,5 @@
 
 .continue/rules/*.md
 .continue/rules/gut.md
+
+/build
