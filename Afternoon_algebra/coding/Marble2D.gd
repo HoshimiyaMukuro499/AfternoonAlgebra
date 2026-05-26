@@ -23,6 +23,9 @@ var hex_coord: Vector2 = Vector2.ZERO
 # 引用 Sprite 节点（用于改变颜色）
 @onready var sprite: Sprite2D = $Sprite if has_node("Sprite") else null
 
+# 移动动画用的 tween 引用（防止多步移动时冲突）
+var _slide_tween: Tween = null
+
 # 高亮状态
 var is_highlighted: bool = false
 var label_index: int = 0
@@ -57,6 +60,9 @@ func _ready() -> void:
 			hex_coord = Vector2.ZERO
 	else:
 		push_error("Marble2D: 找不到 HexGrid2D 棋盘节点")
+	
+	# 延迟一帧播放放置入场效果（确保父节点已添加完毕，且后续视觉调整已生效）
+	call_deferred("_create_placement_effect")
 
 # 添加一个外部方法设置位置同时同步缓存
 func update_hex_coord(new_coord: Vector2) -> void:
@@ -152,10 +158,25 @@ func _move_step_by_step(direction: int, steps: int) -> bool:
 			break
 		else:
 			# 空位：直接移动
+			var prev_hex = current  # 保存移动前的位置，用于生成轨迹阴影
+			var old_world = hex_grid.hex_to_world(int(prev_hex.x), int(prev_hex.y))
+			
+			# 先更新游戏逻辑位置（marbles 字典 + meta）
 			hex_grid.move_marble(self, current, next)
 			current = next
 			remaining -= 1
 			hex_coord = current   # 更新缓存坐标
+			var new_world = hex_grid.hex_to_world(int(current.x), int(current.y))
+			
+			# 弹珠平滑滑动动画（链式：如果前一步的动画还在播放，覆盖到新位置）
+			if _slide_tween and _slide_tween.is_running():
+				_slide_tween.kill()
+			position = old_world
+			_slide_tween = get_tree().create_tween().set_parallel(false)
+			_slide_tween.tween_property(self, "position", new_world, 0.12).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+			
+			# 创建移动轨迹阴影（旧位置幽灵 + 路径连线 + 滑行残影）
+			_create_move_trail(prev_hex, old_world, new_world)
 			# 每移动一步后的钩子（例如绿球推挤可在此触发）
 			on_step_moved(current)
 	
@@ -301,6 +322,108 @@ func update_label() -> void:
 	
 	_label_node.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_label_node.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+
+
+# ---------- 运动轨迹阴影效果 ----------
+# 在弹珠移动一格后，在旧位置→新位置之间创建动态拖尾轨迹
+# 包含：旧位置渐隐幽灵 + 路径连线 + 滑行残影
+# from_world / to_world 为移动前后的世界坐标（显式传入，避免依赖 position 变化）
+func _create_move_trail(prev_hex: Vector2, from_world: Vector2, to_world: Vector2) -> void:
+	if not hex_grid or not is_inside_tree():
+		return
+	
+	# 获取弹珠的精灵纹理
+	var sprite_node = _get_sprite_node()
+	if not sprite_node or not sprite_node.texture:
+		return  # 没有纹理则跳过
+	
+	# ── 1. 旧位置幽灵（原地渐隐 + 缩小） ──
+	var ghost = Sprite2D.new()
+	ghost.texture = sprite_node.texture
+	ghost.scale = sprite_node.scale * 0.95
+	ghost.modulate = Color(1, 1, 1, 0.55)
+	ghost.z_index = -1
+	ghost.position = from_world
+	hex_grid.add_child(ghost)
+	
+	var t1 = get_tree().create_tween()
+	t1.set_parallel(true)
+	t1.tween_property(ghost, "modulate:a", 0.0, 0.5).set_ease(Tween.EASE_OUT)
+	t1.tween_property(ghost, "scale", ghost.scale * 0.6, 0.5).set_ease(Tween.EASE_IN)
+	t1.tween_callback(ghost.queue_free)
+	
+	# ── 2. 路径拖尾连线（从旧位置到新位置的渐隐线段） ──
+	var line = Line2D.new()
+	line.points = PackedVector2Array([from_world, to_world])
+	line.width = 2.5
+	line.default_color = Color(0.8, 0.8, 0.8, 0.35)
+	line.z_index = -1
+	hex_grid.add_child(line)
+	
+	var t2 = get_tree().create_tween()
+	t2.set_parallel(true)
+	t2.tween_property(line, "default_color:a", 0.0, 0.35).set_ease(Tween.EASE_OUT)
+	t2.tween_property(line, "width", 0.0, 0.35).set_ease(Tween.EASE_IN)
+	t2.tween_callback(line.queue_free)
+	
+	# ── 3. 滑行残影（从旧位置滑向新位置的半透明影子，模拟拖尾） ──
+	var afterimage = Sprite2D.new()
+	afterimage.texture = sprite_node.texture
+	afterimage.scale = sprite_node.scale * 0.85
+	afterimage.modulate = Color(1, 1, 1, 0.6)
+	afterimage.z_index = -1
+	afterimage.position = from_world
+	hex_grid.add_child(afterimage)
+	
+	var t3 = get_tree().create_tween()
+	t3.set_parallel(true)
+	# 残影从旧位置滑到新位置（略微滞后于真实弹珠）
+	t3.tween_property(afterimage, "position", to_world, 0.18).set_ease(Tween.EASE_OUT)
+	t3.tween_property(afterimage, "modulate:a", 0.0, 0.35).set_delay(0.08).set_ease(Tween.EASE_OUT)
+	t3.tween_property(afterimage, "scale", afterimage.scale * 0.5, 0.35).set_delay(0.08)
+	t3.tween_callback(afterimage.queue_free).set_delay(0.1)
+
+
+# 弹珠放置时的入场效果（布阵阶段使用）
+func _create_placement_effect() -> void:
+	if not hex_grid or not is_inside_tree():
+		return
+	
+	var sprite_node = _get_sprite_node()
+	if not sprite_node:
+		return
+	
+	# 计算合理的缩放目标：
+	# 如果 sprite 缩放还很小（默认 0.01），说明 _adjust_marble_visuals 尚未执行，
+	# 主动根据 cell_size 计算合适的缩放
+	var target_scale = sprite_node.scale
+	if target_scale.length() < 0.1 and sprite_node.texture:
+		var tex_size = sprite_node.texture.get_size()
+		var target_size = hex_grid.cell_size * 1.2
+		var scale_factor = target_size / max(tex_size.x, tex_size.y)
+		target_scale = Vector2(scale_factor, scale_factor)
+	
+	sprite_node.scale = Vector2.ZERO
+	modulate = Color(1, 1, 1, 0.0)  # 整体透明
+	
+	# 创建环形扩散阴影
+	var shadow = Sprite2D.new()
+	if sprite_node.texture:
+		shadow.texture = sprite_node.texture
+	shadow.scale = target_scale * 0.5
+	shadow.modulate = Color(1, 1, 1, 0.4)
+	shadow.z_index = -2
+	add_child(shadow)
+	
+	# 弹珠缩放弹入 + 淡入
+	var tween = get_tree().create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(sprite_node, "scale", target_scale, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tween.tween_property(self, "modulate:a", 1.0, 0.25)
+	# 环形阴影扩散消失
+	tween.tween_property(shadow, "scale", target_scale * 1.8, 0.4).set_ease(Tween.EASE_OUT)
+	tween.tween_property(shadow, "modulate:a", 0.0, 0.4).set_ease(Tween.EASE_IN)
+	tween.tween_callback(shadow.queue_free)
 
 
 # ---------- 黄球增益系统 ----------
