@@ -43,4 +43,3 @@ func _set_mode_and_start(mode: int):
 	
 	# 跳转到教程场景（教程结束后会进入 main.tscn）
 	get_tree().change_scene_to_file("res://UI/Tutorial.tscn")
-
