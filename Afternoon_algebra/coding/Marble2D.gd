@@ -28,6 +28,10 @@ var is_highlighted: bool = false
 var label_index: int = 0
 var _label_node: Label = null
 
+# 黄球增益追踪
+var boost_count: int = 0
+var _boost_label: Label = null
+
 
 func _ready() -> void:
 	# 自动查找 HexGrid2D 棋盘节点（向上遍历父节点）
@@ -297,3 +301,55 @@ func update_label() -> void:
 	
 	_label_node.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_label_node.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+
+
+# ---------- 黄球增益系统 ----------
+# 添加黄球增益（由 GameManager 调用），并显示 "+" 标签
+func add_yellow_boost() -> void:
+	boost_count += 1
+	_update_boost_label()
+	print("%s 获得黄球增益，当前增益层数: %d" % [get_class(), boost_count])
+
+
+# 更新或创建 "+" 增益标签
+func _update_boost_label() -> void:
+	# 如果标签节点不存在则创建
+	if not _boost_label:
+		_boost_label = Label.new()
+		_boost_label.name = "BoostLabel"
+		_boost_label.z_index = 3  # 比编号标签更高
+		_boost_label.mouse_filter = Control.MOUSE_FILTER_IGNORE  # 不阻挡点击
+		add_child(_boost_label)
+	
+	# 显示 boost_count 个 "+" 号
+	var text = ""
+	for i in range(boost_count):
+		text += "+"
+	_boost_label.text = text
+	_boost_label.clip_text = false
+	_boost_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_boost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_boost_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	
+	# 加载自定义字体（与 update_label 相同方式）
+	var font_path = "res://HYPixel11pxU-2.ttf"
+	if ResourceLoader.exists(font_path):
+		var font_data = load(font_path)
+		var font = FontFile.new()
+		font.font_data = font_data
+		_boost_label.add_theme_font_override("font", font)
+	
+	# 始终设置字体大小（确保 "+" 标签文字足够大、可见）
+	_boost_label.add_theme_font_size_override("font_size", 24)
+	
+	# 金色 "+" 标签
+	_boost_label.add_theme_color_override("font_color", Color(1, 0.84, 0))  # Gold
+	
+	# 固定大小和位置，确保在所有弹珠上都能正常显示
+	_boost_label.size = Vector2(48, 32)
+	var s = _get_sprite_node()
+	if s:
+		# 根据 Sprite 的缩放调整偏移量，使标签始终位于弹珠右上角外侧
+		_boost_label.position = Vector2(24 * s.scale.x, -48 * s.scale.y)
+	else:
+		_boost_label.position = Vector2(24, -48)

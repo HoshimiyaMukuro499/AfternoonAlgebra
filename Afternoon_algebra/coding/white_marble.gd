@@ -25,7 +25,7 @@ var has_changed: bool = false
 var temp_followers: Array[Node2D] = []
 var follower_safe: bool = false
 var push_range: int = 1
-var max_steps: int = 4
+var max_steps: int = 5
 var enhanced: bool = false
 
 # 新增方法：设置临时随从列表（由 GameManager 在选定方向后调用）

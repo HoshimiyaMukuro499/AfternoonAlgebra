@@ -50,8 +50,9 @@ func move(direction: int, steps: int) -> void:
 	if is_alive and followers.size() > 0:
 		var follower_ok = BlueMarbleHelper.move_followers(self, followers, direction, steps)
 		if not follower_ok:
-			# 随从出界 → 蓝球死亡
-			die()
+			# 随从出界 → 蓝球死亡（除非有 follower_safe 增益）
+			if not follower_safe:
+				die()
 	
 	# 清除所有随从（无论蓝球是否死亡）
 	BlueMarbleHelper.clear_followers(self, followers)

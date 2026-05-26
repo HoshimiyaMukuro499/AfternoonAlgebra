@@ -47,12 +47,22 @@ func _handle_click(pos: Vector2):
 			_try_select_power(pos)
 		GameManager.TurnState.RED_DIRECTION_PICKING:
 			_try_red_select_direction(pos)
+		GameManager.TurnState.YELLOW_GAIN_PICKING:
+			_try_yellow_gain_select(pos)
 
 func _try_select_marble(pos: Vector2):
 	var hex = game_manager.hex_grid.world_to_hex(pos)
 	var marble = game_manager.hex_grid.get_marble_at(int(hex.x), int(hex.y))
 	if marble and marble.is_alive and marble.camp == game_manager.current_team:
 		game_manager.select_marble(marble)
+		return
+
+func _try_yellow_gain_select(pos: Vector2):
+	var hex = game_manager.hex_grid.world_to_hex(pos)
+	var marble = game_manager.hex_grid.get_marble_at(int(hex.x), int(hex.y))
+	if marble and marble.is_alive:
+		# 只允许选择同阵营的非白非黄弹珠
+		game_manager.yellow_select_gain_target(marble)
 		return
 
 func _try_red_select_direction(pos: Vector2):
@@ -93,12 +103,12 @@ func _input(event):
 			if event.keycode in key_map:
 				game_manager.select_power(key_map[event.keycode])
 	
-	# 红球：在MARBLE_SELECTED状态下按1~5选力度（步数）
+	# 红球：在MARBLE_SELECTED状态下按1~6选力度（步数，6仅限黄球增益后）
 	if game_manager.current_state == GameManager.TurnState.MARBLE_SELECTED:
 		if game_manager.selected_marble and game_manager.selected_marble.color == MarbleConst.MarbleColor.RED:
 			if event is InputEventKey and event.pressed:
 				var key_map = {
-					KEY_1: 1, KEY_2: 2, KEY_3: 3, KEY_4: 4, KEY_5: 5
+					KEY_1: 1, KEY_2: 2, KEY_3: 3, KEY_4: 4, KEY_5: 5, KEY_6: 6
 				}
 				if event.keycode in key_map:
 					game_manager.red_select_power(key_map[event.keycode])

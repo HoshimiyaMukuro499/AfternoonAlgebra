@@ -1,0 +1,51 @@
+name: "自动打包并发布游戏"
+
+on:
+  push:
+    tags:
+      - "v*" # 当你推送形如 v1.0.0 的 Tag 时触发此工作流
+
+permissions:
+  contents: write # 确保工作流有权限向 Releases 写入文件
+
+jobs:
+  export_game:
+    runs-on: ubuntu-latest
+    name: 导出游戏任务
+    steps:
+      # 1. 检出仓库代码
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. 调用 Godot 导出动作进行打包
+      - name: export game
+        id: export
+        uses: firebelley/godot-export@v7.0.0
+        with:
+          godot_executable_download_url: https://github.com/godotengine/godot/releases/download/4.2.2-stable/Godot_v4.2.2-stable_linux.x86_64.zip
+          godot_export_templates_download_url: https://github.com/godotengine/godot/releases/download/4.2.2-stable/Godot_v4.2.2-stable_export_templates.tpz
+          relative_project_path: ./Afternoon_algebra/coding
+          archive_output: true # 导出并自动压缩为 zip
+
+      # 2.5 自动重命名（采用通配符匹配，100% 兼容任何预设名称和空格）
+      - name: rename artifact
+        run: |
+          cd "${{ steps.export.outputs.archive_directory }}"
+          # 寻找当前目录下所有的 .zip 文件，并自动将它们重命名
+          for file in *.zip; do
+            if [ -f "$file" ]; then
+              echo "发现打包文件: $file，正在重命名..."
+              mv "$file" "AfternoonAlgebra-${{ github.ref_name }}-Windows-X86_64.zip"
+            fi
+          done
+
+      # 3. 创建 GitHub Release 并将重命名后的游戏包上传
+      - name: create release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generateReleaseNotes: true
+          tag: ${{ github.ref_name }}
+          artifacts: ${{ steps.export.outputs.archive_directory }}/*

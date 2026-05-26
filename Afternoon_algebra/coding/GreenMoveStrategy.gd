@@ -19,8 +19,9 @@ func execute(marble: Marble2D, direction: int, steps: int) -> bool:
 		# 检查目标格子是否有棋子
 		var other = marble.hex_grid.get_marble_at(next.x, next.y)
 		if other != null and other.is_alive:
-			# 绿球推挤：将目标棋子沿相同方向推一格
-			other.continue_move(1, direction)
+			# 绿球推挤：将目标棋子沿相同方向推挤（推挤范围受 push_range 增益影响）
+			var push_dist = marble.get("push_range") if "push_range" in marble else 1
+			other.continue_move(push_dist, direction)
 			# 如果目标棋子被推走后格子空了（没死亡或被阻挡），绿球移入
 			if marble.hex_grid.get_marble_at(next.x, next.y) == null:
 				marble.hex_grid.move_marble(marble, current, next)

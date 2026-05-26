@@ -360,9 +360,10 @@ func _on_state_changed(new_state):
 	if gm:
 		update_turn_display(gm)
 		
-		# 红球在MARBLE_SELECTED状态下提示选力度
+		# 红球在MARBLE_SELECTED状态下提示选力度（根据 max_steps 动态显示）
 		if new_state == GameManager.TurnState.MARBLE_SELECTED and gm.selected_marble and gm.selected_marble.color == MarbleConst.MarbleColor.RED:
-			message_label.text = "红球：请选择力度 (按 1~5 键)"
+			var max_steps = gm.selected_marble.max_steps if "max_steps" in gm.selected_marble else 5
+			message_label.text = "红球：请选择力度 (按 1~%d 键)" % max_steps
 			return
 	
 	match new_state:
@@ -377,6 +378,8 @@ func _on_state_changed(new_state):
 				message_label.text = "红球：请选择第 %d 步方向 (点击相邻格子)" % (gm.red_current_step_index + 1)
 			else:
 				message_label.text = "红球：请选择方向 (点击相邻格子)"
+		GameManager.TurnState.YELLOW_GAIN_PICKING:
+			message_label.text = "黄球增益：请选择一个己方弹珠（蓝/绿/红/黑）"
 		GameManager.TurnState.EXECUTING:
 			message_label.text = "移动中..."
 		GameManager.TurnState.VICTORY:

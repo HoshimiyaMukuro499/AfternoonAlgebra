@@ -6,8 +6,22 @@ func move(direction: int, steps: int) -> void:
 
 func on_death() -> void:
 	print("黄球死亡，等待选择增益目标")
+	# 通知 GameManager 进入黄球增益选择流程
+	var gm = _find_game_manager()
+	if gm and gm.has_method("notify_yellow_death"):
+		gm.notify_yellow_death(camp)
 
-	# 由 GameManager 调用，对目标弹珠施加增益
+func _find_game_manager():
+	var root = get_tree().current_scene
+	if root and root is GameManager:
+		return root
+	if root:
+		var gm_node = root.find_child("GameManager", true, false)
+		if gm_node:
+			return gm_node
+	return null
+
+# 由 GameManager 调用，对目标弹珠施加增益
 func apply_boost(target: Marble2D) -> void:
 	match target.color:
 		MarbleConst.MarbleColor.BLUE:

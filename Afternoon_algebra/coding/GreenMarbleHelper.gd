@@ -21,8 +21,8 @@ static func push_neighbors(marble: Marble2D, push_range: int) -> Array[Vector2]:
 		if other == null or not other.is_alive:
 			continue
 		
-		# 方向 dir 即为远离绿球的方向
-		var success = other.continue_move(1, dir)
+		# 方向 dir 即为远离绿球的方向，推挤距离受 push_range 影响
+		var success = other.continue_move(push_range, dir)
 		if success and other.is_alive:
 			result.append(other.get_current_hex())
 		else:

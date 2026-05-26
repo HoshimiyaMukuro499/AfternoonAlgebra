@@ -26,6 +26,7 @@ enum TurnState {
 	BLACK_MARBLE_SELECTED,  # 黑球已被选中，等待选择目标
 	BLACK_TARGET_PICKING,   # 黑球已选目标，等待选方向
 	BLACK_DIRECTION_PICKING, # 黑球方向已选，执行强制移动
+	YELLOW_GAIN_PICKING,    # 黄球死亡后选择增益目标
 	EXECUTING,
 	VICTORY
 }
@@ -46,6 +47,10 @@ var red_start_position: Vector2 = Vector2.ZERO  # 红球开始移动时的初始
 # 黑球专用变量
 var black_target_marble = null      # 黑球选择的敌方目标弹珠
 var black_approx_direction: int = -1  # 黑球选择的大致方向
+
+# 黄球增益专用变量
+var _pending_yellow_gain: bool = false  # 是否有待处理的黄球增益
+var _yellow_gain_camp: int = -1         # 死亡黄球的阵营（用于验证增益目标阵营）
 
 # 选珠布阵阶段变量
 enum SetupState { COLOR_SELECT, PLACEMENT, FINISHED }
@@ -422,7 +427,8 @@ func select_marble(marble):
 	elif marble.color == MarbleConst.MarbleColor.RED:
 		# 红球特殊处理：先选力度（步数），再逐格选方向
 		current_state = TurnState.MARBLE_SELECTED
-		print("红球：请选择力度（按 1~5 键确定步数）")
+		var max_steps = selected_marble.max_steps if "max_steps" in selected_marble else 5
+		print("红球：请选择力度（按 1~%d 键确定步数）" % max_steps)
 	else:
 		current_state = TurnState.MARBLE_SELECTED
 		print("选中弹珠，请选择方向")
@@ -457,6 +463,13 @@ func red_select_power(power: int):
 	if current_state != TurnState.MARBLE_SELECTED or current_state == TurnState.VICTORY: return
 	if selected_marble == null or selected_marble.color != MarbleConst.MarbleColor.RED:
 		return
+	
+	# 限制力度不超过 max_steps（红球特性）
+	if selected_marble and "max_steps" in selected_marble:
+		var max_allowed = selected_marble.max_steps
+		if power > max_allowed:
+			print("红球力度受限：%d > 最大步数 %d，调整为 %d" % [power, max_allowed, max_allowed])
+			power = max_allowed
 	
 	red_total_steps = power
 	red_step_directions = []
@@ -619,12 +632,28 @@ func _finish_turn():
 	if winner != -1:
 		_on_victory(winner)
 		return
+	
+	# 检查是否有待处理的黄球增益
+	if _pending_yellow_gain:
+		_pending_yellow_gain = false
+		current_state = TurnState.YELLOW_GAIN_PICKING
+		print("黄球增益：请选择一个己方非白非黄弹珠作为增益目标")
+		if ui:
+			ui.update_message("黄球增益：请选择一个己方弹珠（蓝/绿/红/黑）")
+		state_changed.emit(current_state)
+		return
+	
 	# 切换回合
 	current_team = MarbleConst.Camp.BLUE if current_team == MarbleConst.Camp.RED else MarbleConst.Camp.RED
 	start_turn()
 
 func cancel_selection():
 	if current_state == TurnState.IDLE or current_state == TurnState.EXECUTING or current_state == TurnState.VICTORY: 
+		return
+	
+	# 黄球增益选择模式取消（不允许取消，必须选择目标）
+	if current_state == TurnState.YELLOW_GAIN_PICKING:
+		print("黄球增益：必须选择一个增益目标，不能取消")
 		return
 	
 	# 黑球选择模式取消
@@ -693,6 +722,70 @@ func cancel_selection():
 	if ui:
 		ui.update_message("已取消选择，请点击己方弹珠")
 	state_changed.emit(current_state)
+
+# ── 黄球增益方法 ──
+
+# 由 yellow_marble.on_death() 调用，标记有待处理的增益
+func notify_yellow_death(camp: int) -> void:
+	_pending_yellow_gain = true
+	_yellow_gain_camp = camp
+	print("黄球死亡，阵营 %d，等待选择增益目标" % camp)
+
+
+# 选择黄球增益目标（玩家点击己方弹珠）
+func yellow_select_gain_target(target: Marble2D) -> void:
+	if current_state != TurnState.YELLOW_GAIN_PICKING:
+		return
+	if target == null or not target.is_alive:
+		return
+	if target.camp != _yellow_gain_camp:
+		print("黄球增益目标无效：不能选择敌方弹珠")
+		return
+	if target.color == MarbleConst.MarbleColor.WHITE or target.color == MarbleConst.MarbleColor.YELLOW:
+		print("黄球增益目标无效：不能选择白球或黄球")
+		return
+	
+	# 执行增益
+	_execute_yellow_gain(target)
+	
+	# 继续正常回合流程：检查胜负，切换回合
+	var winner = _check_victory()
+	if winner != -1:
+		_on_victory(winner)
+		return
+	
+	current_team = MarbleConst.Camp.BLUE if current_team == MarbleConst.Camp.RED else MarbleConst.Camp.RED
+	start_turn()
+
+
+# 对目标弹珠施加黄球增益效果
+func _execute_yellow_gain(target: Marble2D) -> void:
+	print("黄球增益：对 %s (颜色=%d) 施加增益" % [target.get_class(), target.color])
+	
+	# 显示 "+" 标签
+	target.add_yellow_boost()
+	
+	# 根据目标颜色施加对应增益效果
+	match target.color:
+		MarbleConst.MarbleColor.BLUE:
+			if target.has_method("set_follower_safe"):
+				target.set_follower_safe(true)
+			print("  -> 蓝球增益：随从出界不再导致死亡")
+		MarbleConst.MarbleColor.GREEN:
+			if target.has_method("increase_push_range"):
+				target.increase_push_range(1)
+			print("  -> 绿球增益：推挤范围 +1")
+		MarbleConst.MarbleColor.RED:
+			if target.has_method("increase_max_steps"):
+				target.increase_max_steps(1)
+			print("  -> 红球增益：最大步数 +1")
+		MarbleConst.MarbleColor.BLACK:
+			if target.has_method("set_enhanced"):
+				target.set_enhanced(true)
+			print("  -> 黑球增益：强制移动距离固定为3")
+		_:
+			print("  -> 未知颜色，无法施加增益")
+
 
 func _check_victory() -> int:
 	var red_alive = false
