@@ -190,8 +190,40 @@ func die() -> void:
 		return
 	is_alive = false
 	on_death()   # 触发子类死亡钩子
+	
+	# 通知同阵营存活白球：队友死亡时白球变色
+	_notify_white_teammates()
+	
 	hex_grid.remove_marble_by_node(self)   # 从棋盘移除
 	queue_free()  # 删除节点
+
+
+# 通知同阵营存活的白球：有队友死亡了
+# 规则：每次死亡只触发一个己方白球变色，优先选未变色的
+func _notify_white_teammates() -> void:
+	if not hex_grid:
+		return
+	
+	# 收集同阵营存活白球
+	var alive_whites: Array = []
+	for hex_key in hex_grid.marbles:
+		var marble = hex_grid.marbles[hex_key]
+		if marble is WhiteMarble and marble.camp == self.camp and marble.is_alive:
+			alive_whites.append(marble)
+	
+	if alive_whites.is_empty():
+		return
+	
+	# 选一个白球变色：优先未变色（has_changed == false）
+	var chosen: WhiteMarble = null
+	for w in alive_whites:
+		if not w.has_changed:
+			chosen = w
+			break
+	if not chosen:
+		chosen = alive_whites[0]  # 全部已变色，选第一个覆盖
+	
+	chosen.on_teammate_died(self.color)
 
 
 # 死亡时的钩子（子类可重写，如黄球触发增益、蓝球清理随从）

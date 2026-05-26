@@ -41,10 +41,11 @@ extends RefCounted
 static func resolve_simultaneous_deaths(death_events: Array, white_marbles: Array) -> Array:
 	var color_changes: Array = []
 	
-	# 1. 过滤掉黄球死亡（黄球不触发变色）
+	# 1. 过滤掉黄球和白球死亡（黄球不触发变色，白球死亡也不触发变色）
 	var filtered_deaths: Array = []
 	for ev in death_events:
-		if ev.get("color", -1) != MarbleConst.MarbleColor.YELLOW:
+		var c = ev.get("color", -1)
+		if c != MarbleConst.MarbleColor.YELLOW and c != MarbleConst.MarbleColor.WHITE:
 			filtered_deaths.append(ev)
 	
 	if filtered_deaths.is_empty():

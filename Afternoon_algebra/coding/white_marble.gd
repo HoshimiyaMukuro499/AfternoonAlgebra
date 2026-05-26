@@ -115,14 +115,16 @@ func _sync_strategy_with_color() -> void:
 
 # ---------- 变色逻辑 ----------
 # 由外部（GameManager / Board）在己方其他颜色弹珠死亡时调用
+# 规则：己方非白非黄的弹珠死亡时，白球变为该颜色；白球死亡不触发变色
 func on_teammate_died(dead_color: int) -> void:
+	if not is_alive:
+		return
 	if dead_color == MarbleConst.MarbleColor.YELLOW:
 		return
-	if not has_changed:
-		change_color(dead_color)
-		has_changed = true
-	else:
-		change_color(dead_color)
+	if dead_color == MarbleConst.MarbleColor.WHITE:
+		return
+	change_color(dead_color)
+	has_changed = true
 
 
 # 改变颜色并更新外观，同时切换策略
@@ -134,17 +136,26 @@ func change_color(new_color: int) -> void:
 	print("白球变为颜色: ", new_color)
 
 
-# 根据颜色设置 Sprite 的 modulate（2D 着色）
+# 根据颜色设置 Sprite 的纹理（替换精灵图而非 modulate 着色）
 func _update_appearance(new_color: int) -> void:
-	if not sprite:
+	var s = _get_sprite_node()
+	if not s:
 		return
-	match new_color:
-		MarbleConst.MarbleColor.WHITE: sprite.modulate = Color.WHITE
-		MarbleConst.MarbleColor.BLUE:  sprite.modulate = Color.BLUE
-		MarbleConst.MarbleColor.GREEN: sprite.modulate = Color.GREEN
-		MarbleConst.MarbleColor.RED:   sprite.modulate = Color.RED
-		MarbleConst.MarbleColor.BLACK: sprite.modulate = Color.BLACK
-		MarbleConst.MarbleColor.YELLOW:sprite.modulate = Color.YELLOW
+	var tex = _get_texture_for_color(new_color)
+	if tex:
+		s.texture = tex
+
+
+# 获取各颜色对应的纹理
+func _get_texture_for_color(c: int) -> Texture2D:
+	match c:
+		MarbleConst.MarbleColor.WHITE:  return load("res://e38f2b561d3b4729548c49c70ff55bfc_副本.png")
+		MarbleConst.MarbleColor.BLUE:   return load("res://72ecbf01174f9811d8d12cb4db99ff12.png")
+		MarbleConst.MarbleColor.GREEN:  return load("res://e0b8bb4e61a2c84b61cb88da0639f13f.png")
+		MarbleConst.MarbleColor.RED:    return load("res://51aaad4f97bb00788f135d0f723e824b.png")
+		MarbleConst.MarbleColor.BLACK:  return load("res://b764655fb551105500b3ff458d9a265f.png")
+		MarbleConst.MarbleColor.YELLOW: return load("res://448f9290e54cf220665a9acb90b58e08.png")
+	return null
 
 
 # 死亡时清理（委托给策略）

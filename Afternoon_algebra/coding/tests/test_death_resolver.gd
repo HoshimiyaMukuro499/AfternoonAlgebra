@@ -217,11 +217,10 @@ func test_only_yellow_deaths_returns_empty() -> void:
 
 # ---------- 不变色情况测试 ----------
 
-func test_white_death_self_does_not_change() -> void:
+func test_white_death_does_not_trigger_change() -> void:
+	# 规则：白球死亡不触发其他白球变色（"其他颜色弹珠"不含白色）
 	var deaths = [_make_death(MarbleConst.MarbleColor.WHITE, MarbleConst.Camp.RED)]
 	var whites = [_make_white(2, MarbleConst.Camp.RED)]
 	var result = call_resolve(deaths, whites)
 	
-	assert_eq(result.size(), 1, "白球死亡仍可触发其他存活白球变色")
-	assert_eq(result[0]["white_id"], 2, "存活白球应变色")
-	assert_eq(result[0]["to_color"], MarbleConst.MarbleColor.WHITE, "目标色应为白色")
+	assert_eq(result.size(), 0, "白球死亡不应触发其他白球变色")

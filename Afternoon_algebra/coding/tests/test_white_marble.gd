@@ -91,6 +91,16 @@ func test_ignore_yellow_teammate_death() -> void:
 	white.on_teammate_died(MarbleConst.MarbleColor.YELLOW)
 	assert_eq(white.color, MarbleConst.MarbleColor.WHITE, "黄球死亡不应触发变色")
 
+func test_ignore_white_teammate_death() -> void:
+	white.on_teammate_died(MarbleConst.MarbleColor.WHITE)
+	assert_eq(white.color, MarbleConst.MarbleColor.WHITE, "白球死亡不应触发变色")
+
+func test_dead_white_does_not_change() -> void:
+	white.die()
+	var color_before = white.color
+	white.on_teammate_died(MarbleConst.MarbleColor.BLUE)
+	assert_eq(white.color, color_before, "已死亡白球不应变色")
+
 func test_can_override_color() -> void:
 	white.on_teammate_died(MarbleConst.MarbleColor.BLUE)
 	white.on_teammate_died(MarbleConst.MarbleColor.GREEN)
