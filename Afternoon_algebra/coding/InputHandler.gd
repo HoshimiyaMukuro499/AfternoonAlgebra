@@ -47,6 +47,10 @@ func _handle_click(pos: Vector2):
 			_try_select_power(pos)
 		GameManager.TurnState.RED_DIRECTION_PICKING:
 			_try_red_select_direction(pos)
+		GameManager.TurnState.BLACK_MARBLE_SELECTED:
+			_try_black_select_target(pos)
+		GameManager.TurnState.BLACK_TARGET_PICKING:
+			_try_black_select_approx_direction(pos)
 		GameManager.TurnState.YELLOW_GAIN_PICKING:
 			_try_yellow_gain_select(pos)
 
@@ -77,6 +81,26 @@ func _try_red_select_direction(pos: Vector2):
 			return
 	# 点击位置不在任何相邻格子，不取消选择，等待玩家继续点击
 	return
+
+# 黑球：点击敌方弹珠选择为目标
+func _try_black_select_target(pos: Vector2):
+	var hex = game_manager.hex_grid.world_to_hex(pos)
+	var marble = game_manager.hex_grid.get_marble_at(int(hex.x), int(hex.y))
+	if marble and marble.is_alive and marble.camp != game_manager.current_team:
+		game_manager.black_select_target(marble)
+		return
+
+# 黑球：点击相邻格子选择大致方向
+func _try_black_select_approx_direction(pos: Vector2):
+	if not game_manager.selected_marble:
+		return
+	var current_hex = game_manager.selected_marble.get_current_hex()
+	for dir in range(6):
+		var neighbor = current_hex + NEIGHBOR_OFFSETS[dir]
+		var neighbor_pos = game_manager.hex_grid.hex_to_world(neighbor.x, neighbor.y)
+		if pos.distance_to(neighbor_pos) < game_manager.hex_grid.cell_size * 0.8:
+			game_manager.black_select_approx_direction(dir)
+			return
 func _try_select_direction(pos: Vector2):
 	if not game_manager.selected_marble:
 		return
