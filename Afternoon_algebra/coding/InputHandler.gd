@@ -90,13 +90,15 @@ func _try_black_select_target(pos: Vector2):
 		game_manager.black_select_target(marble)
 		return
 
-# 黑球：点击相邻格子选择大致方向
+# 黑球：点击敌方目标弹珠周围的相邻格子选择大致方向
 func _try_black_select_approx_direction(pos: Vector2):
 	if not game_manager.selected_marble:
 		return
-	var current_hex = game_manager.selected_marble.get_current_hex()
+	if not game_manager.black_target_marble:
+		return
+	var target_hex = game_manager.black_target_marble.get_current_hex()
 	for dir in range(6):
-		var neighbor = current_hex + NEIGHBOR_OFFSETS[dir]
+		var neighbor = target_hex + NEIGHBOR_OFFSETS[dir]
 		var neighbor_pos = game_manager.hex_grid.hex_to_world(neighbor.x, neighbor.y)
 		if pos.distance_to(neighbor_pos) < game_manager.hex_grid.cell_size * 0.8:
 			game_manager.black_select_approx_direction(dir)

@@ -381,7 +381,7 @@ func _on_state_changed(new_state):
 		GameManager.TurnState.BLACK_MARBLE_SELECTED:
 			message_label.text = "黑球：请点击一个敌方弹珠作为目标"
 		GameManager.TurnState.BLACK_TARGET_PICKING:
-			message_label.text = "黑球：请点击相邻格子选择大致方向"
+			message_label.text = "黑球：请点击敌方目标弹珠周围的六个方向之一"
 		GameManager.TurnState.BLACK_DIRECTION_PICKING:
 			message_label.text = "黑球：正在执行强制移动..."
 		GameManager.TurnState.YELLOW_GAIN_PICKING:
