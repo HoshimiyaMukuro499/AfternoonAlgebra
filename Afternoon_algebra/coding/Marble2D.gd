@@ -47,9 +47,11 @@ func _ready() -> void:
 	
 	# 如果上面没找到，再试试用节点名称查找（方便你在编辑器里把棋盘命名为 HexGrid）
 	if not hex_grid:
-		var root = get_tree().current_scene
-		if root:
-			hex_grid = root.find_child("HexGrid2D", true, false)
+		var tree = get_tree()
+		if tree:
+			var root = tree.current_scene
+			if root:
+				hex_grid = root.find_child("HexGrid2D", true, false)
 	
 	if hex_grid:
 		# 关键修复：从棋盘获取实际位置，而不是依赖 meta
@@ -172,11 +174,16 @@ func _move_step_by_step(direction: int, steps: int) -> bool:
 			if _slide_tween and _slide_tween.is_running():
 				_slide_tween.kill()
 			position = old_world
-			_slide_tween = get_tree().create_tween().set_parallel(false)
-			_slide_tween.tween_property(self, "position", new_world, 0.12).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+			# headless/测试模式下无场景树，直接瞬移
+			if is_inside_tree():
+				_slide_tween = get_tree().create_tween().set_parallel(false)
+				_slide_tween.tween_property(self, "position", new_world, 0.12).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_SINE)
+			else:
+				position = new_world
 			
 			# 创建移动轨迹阴影（旧位置幽灵 + 路径连线 + 滑行残影）
-			_create_move_trail(prev_hex, old_world, new_world)
+			if is_inside_tree():
+				_create_move_trail(prev_hex, old_world, new_world)
 			# 每移动一步后的钩子（例如绿球推挤可在此触发）
 			on_step_moved(current)
 	
@@ -337,6 +344,10 @@ func _create_move_trail(prev_hex: Vector2, from_world: Vector2, to_world: Vector
 	if not sprite_node or not sprite_node.texture:
 		return  # 没有纹理则跳过
 	
+	var tree = get_tree()
+	if not tree:
+		return
+	
 	# ── 1. 旧位置幽灵（原地渐隐 + 缩小） ──
 	var ghost = Sprite2D.new()
 	ghost.texture = sprite_node.texture
@@ -346,7 +357,7 @@ func _create_move_trail(prev_hex: Vector2, from_world: Vector2, to_world: Vector
 	ghost.position = from_world
 	hex_grid.add_child(ghost)
 	
-	var t1 = get_tree().create_tween()
+	var t1 = tree.create_tween()
 	t1.set_parallel(true)
 	t1.tween_property(ghost, "modulate:a", 0.0, 0.5).set_ease(Tween.EASE_OUT)
 	t1.tween_property(ghost, "scale", ghost.scale * 0.6, 0.5).set_ease(Tween.EASE_IN)
@@ -360,7 +371,7 @@ func _create_move_trail(prev_hex: Vector2, from_world: Vector2, to_world: Vector
 	line.z_index = -1
 	hex_grid.add_child(line)
 	
-	var t2 = get_tree().create_tween()
+	var t2 = tree.create_tween()
 	t2.set_parallel(true)
 	t2.tween_property(line, "default_color:a", 0.0, 0.35).set_ease(Tween.EASE_OUT)
 	t2.tween_property(line, "width", 0.0, 0.35).set_ease(Tween.EASE_IN)
@@ -375,7 +386,7 @@ func _create_move_trail(prev_hex: Vector2, from_world: Vector2, to_world: Vector
 	afterimage.position = from_world
 	hex_grid.add_child(afterimage)
 	
-	var t3 = get_tree().create_tween()
+	var t3 = tree.create_tween()
 	t3.set_parallel(true)
 	# 残影从旧位置滑到新位置（略微滞后于真实弹珠）
 	t3.tween_property(afterimage, "position", to_world, 0.18).set_ease(Tween.EASE_OUT)
@@ -415,8 +426,12 @@ func _create_placement_effect() -> void:
 	shadow.z_index = -2
 	add_child(shadow)
 	
+	var tree = get_tree()
+	if not tree:
+		return
+	
 	# 弹珠缩放弹入 + 淡入
-	var tween = get_tree().create_tween()
+	var tween = tree.create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(sprite_node, "scale", target_scale, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	tween.tween_property(self, "modulate:a", 1.0, 0.25)
