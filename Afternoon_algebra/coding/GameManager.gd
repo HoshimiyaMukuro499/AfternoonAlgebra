@@ -1026,7 +1026,8 @@ func _finish_move_logging():
 	var desc = _move_description
 	if desc == "":
 		desc = _build_move_description()
-	var lines = PackedStringArray([desc])
+	# 使用普通数组（而非 PackedStringArray）确保 join 正常工作
+	var lines = [desc]
 	for entry in _collision_log:
 		lines.append(entry)
 	for entry in _death_log:
