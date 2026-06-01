@@ -1,6 +1,10 @@
 class_name Marble2D
 extends Area2D
 
+# 信号：碰撞与死亡
+signal collision_occurred(collider: Marble2D, target: Marble2D, remaining_steps: int, direction: int)
+signal marble_died(marble: Marble2D)
+
 # ---------- 导出变量（可在编辑器中直接设置） ----------
 # 弹珠颜色（默认为白色）
 @export var color: MarbleConst.MarbleColor = MarbleConst.MarbleColor.WHITE
@@ -154,6 +158,10 @@ func _move_step_by_step(direction: int, steps: int) -> bool:
 			temp = other.on_collision_as_target(self, temp, direction)
 			# 通知当前弹珠发生了碰撞（子类可重写做额外处理）
 			on_collision_with(other, temp, direction)
+			
+			# 发送碰撞信号（用于 UI 提示）
+			collision_occurred.emit(self, other, temp, direction)
+			
 			# 让被撞弹珠继续移动
 			other.continue_move(temp, direction)
 			# 当前弹珠停止移动（不再继续本次移动）
@@ -227,6 +235,10 @@ func die() -> void:
 	_notify_white_teammates()
 	
 	hex_grid.remove_marble_by_node(self)   # 从棋盘移除
+	
+	# 发送死亡信号（用于 UI 提示）
+	marble_died.emit(self)
+	
 	queue_free()  # 删除节点
 
 

@@ -8,6 +8,9 @@ const BlueMarbleHelper = preload("res://BlueMarbleHelper.gd")
 const RandomAIScript = preload("res://ai/RandomAI.gd")
 # GameModeManager 已注册为 Autoload，可直接通过全局名称访问
 
+# 方向名称（用于 UI 提示）
+const DIRECTION_NAMES = ["东", "东南", "西南", "西", "西北", "东北"]
+
 var hex_grid: HexGrid2D
 var all_marbles: Array[Marble2D] = []
 var ui: CanvasLayer
@@ -59,6 +62,12 @@ var setup_current_team = MarbleConst.Camp.RED
 var setup_remaining_marbles = { MarbleConst.Camp.RED: 6, MarbleConst.Camp.BLUE: 6 }
 var setup_selected_color = -1
 var setup_phase_active = false
+
+# ---------- 移动日志与 UI 提示 ----------
+var _logging_active: bool = false
+var _collision_log: Array[String] = []
+var _death_log: Array[String] = []
+var _move_description: String = ""
 
 # 随机阵型名称列表
 const FORMATION_NAMES = [
@@ -392,6 +401,9 @@ func _init_ui():
 	ui = ui_node
 
 func start_turn():
+	# 连接弹珠信号，以便收集碰撞与死亡信息
+	_connect_marble_signals()
+	
 	current_state = TurnState.IDLE
 	selected_marble = null
 	selected_direction = -1
@@ -471,6 +483,9 @@ func red_select_power(power: int):
 			print("红球力度受限：%d > 最大步数 %d，调整为 %d" % [power, max_allowed, max_allowed])
 			power = max_allowed
 	
+	# 开始收集移动日志
+	_start_move_logging()
+	
 	red_total_steps = power
 	red_step_directions = []
 	red_current_step_index = 0
@@ -542,12 +557,20 @@ func black_select_approx_direction(direction: int):
 
 # 执行黑球强制移动
 func _execute_black_move():
+	# 开始收集移动日志
+	_start_move_logging()
+	
 	current_state = TurnState.EXECUTING
 	state_changed.emit(current_state)
 	
 	if selected_marble and selected_marble.is_alive:
 		var black_marble = selected_marble
 		var enemy = black_target_marble
+		
+		var camp_str = "红方" if current_team == MarbleConst.Camp.RED else "蓝方"
+		var color_name = MarbleConst.COLOR_NAMES.get(black_marble.color, "?")
+		var dir_name = DIRECTION_NAMES[black_approx_direction]
+		_move_description = "%s%s 强制对方弹珠往大致方向 %s 移动" % [camp_str, color_name, dir_name]
 		
 		# 使用 BlackMarbleHelper 执行强制移动
 		if black_marble.has_method("force_enemy_move"):
@@ -593,6 +616,9 @@ func select_power(power: int):
 
 
 func execute_move():
+	# 开始收集移动日志（会在 _finish_turn 中输出）
+	_start_move_logging()
+	
 	current_state = TurnState.EXECUTING
 	state_changed.emit(current_state)
 	
@@ -628,6 +654,10 @@ func execute_move():
 
 # 提取回合结束公共逻辑，方便测试和代码复用
 func _finish_turn():
+	# 收集移动过程中的日志，并在 UI 上显示
+	if _logging_active:
+		_finish_move_logging()
+	
 	var winner = _check_victory()
 	if winner != -1:
 		_on_victory(winner)
@@ -655,6 +685,13 @@ func cancel_selection():
 	if current_state == TurnState.YELLOW_GAIN_PICKING:
 		print("黄球增益：必须选择一个增益目标，不能取消")
 		return
+	
+	# 移动过程中取消时，清除尚未完成的日志
+	if _logging_active:
+		_collision_log.clear()
+		_death_log.clear()
+		_move_description = ""
+		_logging_active = false
 	
 	# 黑球选择模式取消
 	if current_state in [TurnState.BLACK_MARBLE_SELECTED, TurnState.BLACK_TARGET_PICKING, TurnState.BLACK_DIRECTION_PICKING]:
@@ -954,6 +991,83 @@ func _execute_ai_action(action: Dictionary):
 				# 如果 setup_current_team 切换到另一方且那方也是 AI
 				elif setup_phase_active and ai_enabled and ai_teams.size() > 1:
 					_trigger_ai_turn.call_deferred()
+
+# ── 移动日志与 UI 显示辅助方法 ──
+
+func _start_move_logging():
+	_collision_log.clear()
+	_death_log.clear()
+	_move_description = ""
+	_logging_active = true
+
+func _finish_move_logging():
+	if not _logging_active:
+		return
+	var desc = _move_description
+	if desc == "":
+		desc = _build_move_description()
+	var lines = PackedStringArray([desc])
+	for entry in _collision_log:
+		lines.append(entry)
+	for entry in _death_log:
+		lines.append(entry)
+	if ui:
+		ui.update_message("\n".join(lines))
+	_logging_active = false
+
+func _build_move_description() -> String:
+	if selected_marble == null or not is_instance_valid(selected_marble):
+		return ""
+	var camp_str = "红方" if current_team == MarbleConst.Camp.RED else "蓝方"
+	var color_name = MarbleConst.COLOR_NAMES.get(selected_marble.color, "?")
+	
+	if selected_marble.color == MarbleConst.MarbleColor.BLACK:
+		# 黑球描述已在 _execute_black_move 中设置
+		return _move_description if _move_description != "" else "%s%s 执行了强制移动" % [camp_str, color_name]
+	if selected_marble.color == MarbleConst.MarbleColor.RED:
+		var dir_names: Array[String] = []
+		for d in red_step_directions:
+			if d >= 0 and d < DIRECTION_NAMES.size():
+				dir_names.append(DIRECTION_NAMES[d])
+			else:
+				dir_names.append("?")
+		return "%s%s 进行了 %d 步长步移动，方向依次：%s" % [camp_str, color_name, red_total_steps, ", ".join(dir_names)]
+	
+	var dir = selected_direction
+	var steps = selected_power
+	var dir_str = DIRECTION_NAMES[dir] if dir >= 0 and dir < DIRECTION_NAMES.size() else "?"
+	return "%s%s 向%s方向移动了 %d 步" % [camp_str, color_name, dir_str, steps]
+
+func _connect_marble_signals():
+	for marble in all_marbles:
+		if not is_instance_valid(marble):
+			continue
+		if marble.is_connected("collision_occurred", _on_marble_collision):
+			marble.disconnect("collision_occurred", _on_marble_collision)
+		if marble.is_connected("marble_died", _on_marble_died):
+			marble.disconnect("marble_died", _on_marble_died)
+		marble.connect("collision_occurred", _on_marble_collision)
+		marble.connect("marble_died", _on_marble_died)
+
+func _on_marble_collision(collider: Marble2D, target: Marble2D, remaining_steps: int, direction: int):
+	if not _logging_active:
+		return
+	var col_color = MarbleConst.COLOR_NAMES.get(collider.color, "?")
+	var tgt_color = MarbleConst.COLOR_NAMES.get(target.color, "?")
+	var col_camp = "红方" if collider.camp == MarbleConst.Camp.RED else "蓝方"
+	var tgt_camp = "红方" if target.camp == MarbleConst.Camp.RED else "蓝方"
+	var dir_name = DIRECTION_NAMES[direction] if direction >= 0 and direction < DIRECTION_NAMES.size() else "方向%d" % direction
+	var entry = "碰撞：%s%s 撞到了 %s%s，%s 获得剩余 %d 步，朝%s方向移动" % [col_camp, col_color, tgt_camp, tgt_color, tgt_color, remaining_steps, dir_name]
+	_collision_log.append(entry)
+
+func _on_marble_died(marble: Marble2D):
+	if not _logging_active:
+		return
+	if not is_instance_valid(marble):
+		return
+	var camp_name = "红方" if marble.camp == MarbleConst.Camp.RED else "蓝方"
+	var color_name = MarbleConst.COLOR_NAMES.get(marble.color, "?")
+	_death_log.append("弹珠死亡：%s%s 阵亡" % [camp_name, color_name])
 
 # 新手文档环节
 func show_tutorial():
