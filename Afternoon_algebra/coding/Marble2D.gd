@@ -156,6 +156,10 @@ func _move_step_by_step(direction: int, steps: int) -> bool:
 			var temp = remaining
 			# 被撞弹珠有机会修改步数（例如白球被友方碰撞时步数+1）
 			temp = other.on_collision_as_target(self, temp, direction)
+			
+			# 播放碰撞视觉特效（放大效果 + 闪光）
+			_play_collision_effect(other)
+			
 			# 通知当前弹珠发生了碰撞（子类可重写做额外处理）
 			on_collision_with(other, temp, direction)
 			
@@ -197,6 +201,57 @@ func _move_step_by_step(direction: int, steps: int) -> bool:
 	
 	_recursion_depth -= 1
 	return true
+
+
+# ---------- 碰撞视觉特效 ----------
+func _play_collision_effect(other: Marble2D) -> void:
+	if not is_inside_tree():
+		return
+	var tween = get_tree().create_tween().set_parallel(true)
+	# 自身弹珠瞬间放大再缩回
+	var self_scale = scale
+	tween.tween_property(self, "scale", self_scale * 1.3, 0.08).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "scale", self_scale, 0.08).set_delay(0.08).set_ease(Tween.EASE_IN)
+	# 被撞弹珠同样放大
+	if other and is_instance_valid(other) and other.is_inside_tree():
+		var other_scale = other.scale
+		tween.tween_property(other, "scale", other_scale * 1.3, 0.08).set_ease(Tween.EASE_OUT)
+		tween.tween_property(other, "scale", other_scale, 0.08).set_delay(0.08).set_ease(Tween.EASE_IN)
+	# 在碰撞位置产生一个白色环圈扩散（冲击波）
+	_spawn_impact_ring_at(position)
+	if other and is_instance_valid(other) and other.is_inside_tree():
+		_spawn_impact_ring_at(other.position)
+
+func _spawn_impact_ring_at(world_pos: Vector2) -> void:
+	# 创建一个临时 Sprite 模拟冲击波圆环
+	var ring = Sprite2D.new()
+	# 使用一个简单的圆形纹理，如果没有合适的，用白色矩形做 fallback 也行，这里我们绘制一个半透明圆环
+	# 简便起见，直接创建一个纯色 Sprite 并设置缩放渐隐
+	ring.texture = _create_circle_texture(16, Color.WHITE)
+	if ring.texture == null:
+		return  # 无法创建纹理则跳过
+	ring.position = world_pos
+	ring.z_index = 2
+	ring.modulate = Color(1, 1, 1, 0.7)
+	get_tree().root.add_child(ring)
+	var t = get_tree().create_tween()
+	t.set_parallel(true)
+	t.tween_property(ring, "scale", Vector2(2.0, 2.0), 0.3).set_ease(Tween.EASE_OUT)
+	t.tween_property(ring, "modulate:a", 0.0, 0.3).set_ease(Tween.EASE_IN)
+	t.tween_callback(ring.queue_free)
+
+func _create_circle_texture(radius: int, color: Color) -> Texture2D:
+	# 用 Image 动态生成一个简单的圆形纹理
+	var size = radius * 2
+	var img = Image.create(size, size, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var center = Vector2(radius, radius)
+	for x in range(size):
+		for y in range(size):
+			var dist = Vector2(x, y).distance_to(center)
+			if dist <= radius and dist >= radius - 2:
+				img.set_pixel(x, y, color)
+	return ImageTexture.create_from_image(img)
 
 
 # ---------- 钩子函数（子类可选择性重写） ----------
