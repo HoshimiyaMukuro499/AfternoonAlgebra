@@ -69,6 +69,10 @@ var _collision_log: Array[String] = []
 var _death_log: Array[String] = []
 var _move_description: String = ""
 
+# 在显示移动播报后延迟执行回合后续逻辑
+var _postpone_finish_timer: Timer
+var _postpone_finish_pending: bool = false
+
 # 随机阵型名称列表
 const FORMATION_NAMES = [
 	"天使夜莺阵",
@@ -657,7 +661,23 @@ func _finish_turn():
 	# 收集移动过程中的日志，并在 UI 上显示
 	if _logging_active:
 		_finish_move_logging()
-	
+		# 延迟 2 秒，让玩家看清移动播报后再执行后续逻辑
+		_postpone_finish_pending = true
+		if not _postpone_finish_timer:
+			_postpone_finish_timer = Timer.new()
+			_postpone_finish_timer.one_shot = true
+			_postpone_finish_timer.timeout.connect(_on_postpone_finish_timeout)
+			add_child(_postpone_finish_timer)
+		_postpone_finish_timer.start(2.0)
+		return
+	# 如果不需要延迟，直接继续后续逻辑
+	_continue_finish_turn()
+
+func _on_postpone_finish_timeout():
+	_postpone_finish_pending = false
+	_continue_finish_turn()
+
+func _continue_finish_turn():
 	var winner = _check_victory()
 	if winner != -1:
 		_on_victory(winner)

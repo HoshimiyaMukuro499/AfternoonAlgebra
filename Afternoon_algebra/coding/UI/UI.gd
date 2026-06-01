@@ -45,7 +45,7 @@ func _build_ui():
 	container.offset_left = 10
 	container.offset_top = 10
 	container.offset_right = 400
-	container.offset_bottom = 200
+	container.offset_bottom = 400  # 加大高度以容纳多行播报
 	add_child(container)
 	
 	# 创建背景面板（填充容器）
@@ -101,7 +101,7 @@ func _build_ui():
 	team_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	container.add_child(team_label)
 	
-	# 创建消息标签
+	# 创建消息标签（支持多行显示）
 	message_label = Label.new()
 	message_label.name = "MessageLabel"
 	message_label.anchor_left = 0.0
@@ -117,6 +117,9 @@ func _build_ui():
 	message_label.add_theme_color_override("font_color", Color(1, 1, 0.8))
 	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	message_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	# 启用多行显示，避免内容被截断
+	message_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	message_label.clip_text = false
 	container.add_child(message_label)
 	
 	# 选珠阶段UI（初始隐藏）
