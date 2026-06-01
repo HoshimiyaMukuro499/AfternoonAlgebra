@@ -208,40 +208,44 @@ func _play_collision_effect(other: Marble2D) -> void:
 	if not is_inside_tree():
 		return
 	var tween = get_tree().create_tween().set_parallel(true)
-	# 自身弹珠瞬间放大再缩回
+	
 	var self_scale = scale
-	tween.tween_property(self, "scale", self_scale * 1.3, 0.08).set_ease(Tween.EASE_OUT)
-	tween.tween_property(self, "scale", self_scale, 0.08).set_delay(0.08).set_ease(Tween.EASE_IN)
-	# 被撞弹珠同样放大
+	# 自身放大并待回弹
+	tween.tween_property(self, "scale", self_scale * 1.6, 0.15).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "scale", self_scale, 0.15).set_delay(0.15).set_ease(Tween.EASE_IN)
+	# 碰撞瞬间闪白（两个弹珠）
+	tween.tween_property(self, "modulate", Color.WHITE, 0.08).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "modulate", Color.WHITE, 0.08).set_delay(0.08).set_ease(Tween.EASE_IN)
+	
 	if other and is_instance_valid(other) and other.is_inside_tree():
 		var other_scale = other.scale
-		tween.tween_property(other, "scale", other_scale * 1.3, 0.08).set_ease(Tween.EASE_OUT)
-		tween.tween_property(other, "scale", other_scale, 0.08).set_delay(0.08).set_ease(Tween.EASE_IN)
-	# 在碰撞位置产生一个白色环圈扩散（冲击波）
-	_spawn_impact_ring_at(position)
+		tween.tween_property(other, "scale", other_scale * 1.6, 0.15).set_ease(Tween.EASE_OUT)
+		tween.tween_property(other, "scale", other_scale, 0.15).set_delay(0.15).set_ease(Tween.EASE_IN)
+		tween.tween_property(other, "modulate", Color.WHITE, 0.08).set_ease(Tween.EASE_OUT)
+		tween.tween_property(other, "modulate", Color.WHITE, 0.08).set_delay(0.08).set_ease(Tween.EASE_IN)
+	
+	# 冲击波（在全局坐标位置）
+	_spawn_impact_ring_at(global_position)
 	if other and is_instance_valid(other) and other.is_inside_tree():
-		_spawn_impact_ring_at(other.position)
+		_spawn_impact_ring_at(other.global_position)
 
 func _spawn_impact_ring_at(world_pos: Vector2) -> void:
-	# 创建一个临时 Sprite 模拟冲击波圆环
 	var ring = Sprite2D.new()
-	# 使用一个简单的圆形纹理，如果没有合适的，用白色矩形做 fallback 也行，这里我们绘制一个半透明圆环
-	# 简便起见，直接创建一个纯色 Sprite 并设置缩放渐隐
-	ring.texture = _create_circle_texture(16, Color.WHITE)
+	ring.texture = _create_circle_texture(48, Color(1, 1, 1, 0.9))
 	if ring.texture == null:
 		return  # 无法创建纹理则跳过
 	ring.position = world_pos
-	ring.z_index = 2
-	ring.modulate = Color(1, 1, 1, 0.7)
+	ring.z_index = 3
+	ring.scale = Vector2(0.3, 0.3)
+	ring.modulate = Color(1, 1, 1, 0.8)
 	get_tree().root.add_child(ring)
 	var t = get_tree().create_tween()
 	t.set_parallel(true)
-	t.tween_property(ring, "scale", Vector2(2.0, 2.0), 0.3).set_ease(Tween.EASE_OUT)
-	t.tween_property(ring, "modulate:a", 0.0, 0.3).set_ease(Tween.EASE_IN)
+	t.tween_property(ring, "scale", Vector2(2.0, 2.0), 0.5).set_ease(Tween.EASE_OUT)
+	t.tween_property(ring, "modulate:a", 0.0, 0.5).set_ease(Tween.EASE_IN)
 	t.tween_callback(ring.queue_free)
 
 func _create_circle_texture(radius: int, color: Color) -> Texture2D:
-	# 用 Image 动态生成一个简单的圆形纹理
 	var size = radius * 2
 	var img = Image.create(size, size, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
@@ -249,7 +253,7 @@ func _create_circle_texture(radius: int, color: Color) -> Texture2D:
 	for x in range(size):
 		for y in range(size):
 			var dist = Vector2(x, y).distance_to(center)
-			if dist <= radius and dist >= radius - 2:
+			if dist <= radius and dist >= radius - 8:
 				img.set_pixel(x, y, color)
 	return ImageTexture.create_from_image(img)
 
