@@ -69,6 +69,15 @@ var _collision_log: Array[String] = []
 var _death_log: Array[String] = []
 var _move_description: String = ""
 
+# 缓存上次移动的关键信息，用于在弹珠死亡后仍能生成描述
+var _last_move_team: int = -1
+var _last_move_color: int = -1
+var _last_move_direction: int = -1
+var _last_move_steps: int = 0
+var _last_red_directions: Array[int] = []
+var _last_red_total_steps: int = 0
+var _is_black_move: bool = false
+
 # 在显示移动播报后延迟执行回合后续逻辑
 var _postpone_finish_timer: Timer
 var _postpone_finish_pending: bool = false
@@ -490,6 +499,12 @@ func red_select_power(power: int):
 	# 开始收集移动日志
 	_start_move_logging()
 	
+	# 缓存红球关键信息，以备死亡后仍可生成描述
+	_last_move_team = current_team
+	_last_move_color = selected_marble.color
+	_last_red_total_steps = power
+	_last_red_directions = []
+	
 	red_total_steps = power
 	red_step_directions = []
 	red_current_step_index = 0
@@ -575,6 +590,10 @@ func _execute_black_move():
 		var color_name = MarbleConst.COLOR_NAMES.get(black_marble.color, "?")
 		var dir_name = DIRECTION_NAMES[black_approx_direction]
 		_move_description = "%s%s 强制对方弹珠往大致方向 %s 移动" % [camp_str, color_name, dir_name]
+		# 缓存信息
+		_last_move_team = current_team
+		_last_move_color = black_marble.color
+		_is_black_move = true
 		
 		# 使用 BlackMarbleHelper 执行强制移动
 		if black_marble.has_method("force_enemy_move"):
@@ -602,6 +621,21 @@ func _red_finish_turn():
 	current_state = TurnState.EXECUTING
 	state_changed.emit(current_state)
 	
+	# 记录红球最终的方向列表（即使弹珠死亡，日志仍能使用）
+	_last_red_directions = red_step_directions
+	_last_red_total_steps = red_total_steps
+	
+	# 提前构建移动描述，以防 selected_marble 已在死亡后失效
+	var camp_str = "红方" if _last_move_team == MarbleConst.Camp.RED else "蓝方"
+	var color_name = MarbleConst.COLOR_NAMES.get(_last_move_color, "?")
+	var dir_names: Array[String] = []
+	for d in _last_red_directions:
+		if d >= 0 and d < DIRECTION_NAMES.size():
+			dir_names.append(DIRECTION_NAMES[d])
+		else:
+			dir_names.append("?")
+	_move_description = "%s%s 进行了 %d 步长步移动，方向依次：%s" % [camp_str, color_name, _last_red_total_steps, ", ".join(dir_names)]
+	
 	if selected_marble and is_instance_valid(selected_marble):
 		var last_dir = red_step_directions[-1] if red_step_directions.size() > 0 else 0
 		selected_marble.on_after_move(last_dir, red_total_steps, selected_marble.is_alive)
@@ -622,6 +656,15 @@ func select_power(power: int):
 func execute_move():
 	# 开始收集移动日志（会在 _finish_turn 中输出）
 	_start_move_logging()
+	
+	# 提前构建移动描述并缓存关键数据，这样即使 selected_marble 在移动中死亡，描述仍可保留
+	if selected_marble:
+		_last_move_team = current_team
+		_last_move_color = selected_marble.color
+		var camp_str = "红方" if current_team == MarbleConst.Camp.RED else "蓝方"
+		var color_name = MarbleConst.COLOR_NAMES.get(selected_marble.color, "?")
+		var dir_str = DIRECTION_NAMES[selected_direction] if selected_direction >= 0 and selected_direction < DIRECTION_NAMES.size() else "?"
+		_move_description = "%s%s 向%s方向移动了 %d 步" % [camp_str, color_name, dir_str, selected_power]
 	
 	current_state = TurnState.EXECUTING
 	state_changed.emit(current_state)
@@ -1018,6 +1061,13 @@ func _start_move_logging():
 	_collision_log.clear()
 	_death_log.clear()
 	_move_description = ""
+	_last_move_team = -1
+	_last_move_color = -1
+	_last_move_direction = -1
+	_last_move_steps = 0
+	_last_red_directions.clear()
+	_last_red_total_steps = 0
+	_is_black_move = false
 	_logging_active = true
 
 func _finish_move_logging():
@@ -1037,25 +1087,28 @@ func _finish_move_logging():
 	_logging_active = false
 
 func _build_move_description() -> String:
-	if selected_marble == null or not is_instance_valid(selected_marble):
+	# 优先使用已缓存的 _move_description，若为空再根据缓存信息生成
+	if _move_description != "":
+		return _move_description
+	# 尝试根据缓存生成
+	if _last_move_team == -1:
 		return ""
-	var camp_str = "红方" if current_team == MarbleConst.Camp.RED else "蓝方"
-	var color_name = MarbleConst.COLOR_NAMES.get(selected_marble.color, "?")
-	
-	if selected_marble.color == MarbleConst.MarbleColor.BLACK:
-		# 黑球描述已在 _execute_black_move 中设置
-		return _move_description if _move_description != "" else "%s%s 执行了强制移动" % [camp_str, color_name]
-	if selected_marble.color == MarbleConst.MarbleColor.RED:
+	var camp_str = "红方" if _last_move_team == MarbleConst.Camp.RED else "蓝方"
+	var color_name = MarbleConst.COLOR_NAMES.get(_last_move_color, "?")
+	if _is_black_move:
+		return "%s%s 执行了强制移动" % [camp_str, color_name]
+	if _last_move_color == MarbleConst.MarbleColor.RED:
 		var dir_names: Array[String] = []
-		for d in red_step_directions:
+		for d in _last_red_directions:
 			if d >= 0 and d < DIRECTION_NAMES.size():
 				dir_names.append(DIRECTION_NAMES[d])
 			else:
 				dir_names.append("?")
-		return "%s%s 进行了 %d 步长步移动，方向依次：%s" % [camp_str, color_name, red_total_steps, ", ".join(dir_names)]
-	
-	var dir = selected_direction
-	var steps = selected_power
+		return "%s%s 进行了 %d 步长步移动，方向依次：%s" % [camp_str, color_name, _last_red_total_steps, ", ".join(dir_names)]
+	var dir = _last_move_direction
+	var steps = _last_move_steps
+	if steps <= 0:
+		steps = selected_power  # fallback
 	var dir_str = DIRECTION_NAMES[dir] if dir >= 0 and dir < DIRECTION_NAMES.size() else "?"
 	return "%s%s 向%s方向移动了 %d 步" % [camp_str, color_name, dir_str, steps]
 
